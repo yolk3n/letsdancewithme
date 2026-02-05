@@ -1,0 +1,31 @@
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+
+  const user = tg.initDataUnsafe.user;
+  const el = document.getElementById("user");
+
+  if (!user) {
+    el.innerText = "Не удалось получить данные Telegram";
+  } else {
+    fetch(`/api/user/${user.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        el.innerHTML = `
+          <b>Привет, ${user.first_name}!</b><br/><br/>
+          ⭐ XP: ${data.xp}<br/>
+          🏅 Уровень: ${getLevel(data.xp)}<br/>
+          📚 Пройдено уроков: ${data.lessons_completed}
+        `;
+      })
+      .catch(() => {
+        el.innerText = "Ошибка загрузки данных пользователя";
+      });
+  }
+
+  function getLevel(xp) {
+    if (xp >= 60) return "💃 Танцор";
+    if (xp >= 30) return "🥋 Ученик";
+    return "🌱 Новичок";
+  }
+</script>
