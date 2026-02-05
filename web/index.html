@@ -48,8 +48,7 @@
       }
     </style>
   </head>
-
-  <body>
+<body>
   <h1>💃 Let's Dance With Me</h1>
 
   <div class="card" id="screen"></div>
@@ -87,29 +86,30 @@
         });
     }
 
-    function loadCourses(teacherId) {
-      screen.innerHTML = "Загрузка курсов...";
-      fetch(`/api/courses/${teacherId}`)
-        .then((res) => res.json())
-        .then((courses) => {
-          screen.innerHTML =
-            "<b>Курсы</b><br/><br/>" +
-            courses
-              .map(
-                (c) => `
-                  <button onclick="openCourse(${c.id})">
-                    ${c.title}<br/>
-                    <small>${c.description}</small>
-                  </button>
-                `
-              )
-              .join("") +
-            `<br/><button onclick="loadTeachers()">⬅ Назад</button>`;
-        })
-        .catch(() => {
-          screen.innerHTML = "❌ Ошибка загрузки курсов";
-        });
-    }
+  function openCourse(courseId) {
+  screen.innerHTML = "Загрузка уроков...";
+
+  fetch(`/api/lessons/${courseId}`)
+    .then((res) => res.json())
+    .then((lessons) => {
+      screen.innerHTML =
+        "<b>Уроки</b><br/><br/>" +
+        lessons
+          .map(
+            (l) => `
+              <button onclick="doLesson(${l.lesson_number})">
+                Урок ${l.lesson_number}: ${l.title}
+              </button>
+            `
+          )
+          .join("") +
+        `<br/><button onclick="loadTeachers()">⬅ К преподавателям</button>`;
+    })
+    .catch(() => {
+      screen.innerHTML = "❌ Ошибка загрузки уроков";
+    });
+  }
+
 
     function openCourse(courseId) {
       tg.showAlert("Курс выбран. Уроки — следующий шаг 😉");
