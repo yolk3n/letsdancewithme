@@ -1,60 +1,138 @@
-<body>
-  <h1>💃 Let's Dance With Me</h1>
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Let's Dance With Me</title>
 
-  <div class="card" id="user">Загрузка...</div>
+    <!-- Telegram Mini App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <div class="card">
-    <h3>Уроки</h3>
-    <button onclick="doLesson(1)">Урок 1</button>
-    <button onclick="doLesson(2)">Урок 2</button>
-    <button onclick="doLesson(3)">Урок 3</button>
-    <button onclick="doLesson(4)">Урок 4 🔒</button>
-  </div>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #111;
+        color: #fff;
+        padding: 20px;
+        margin: 0;
+      }
 
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.ready();
+      h1 {
+        margin-top: 0;
+      }
 
-    const user = tg.initDataUnsafe.user;
-    const el = document.getElementById("user");
+      .card {
+        background: #1e1e1e;
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+      }
 
-    function getLevel(xp) {
-      if (xp >= 60) return "💃 Танцор";
-      if (xp >= 30) return "🥋 Ученик";
-      return "🌱 Новичок";
-    }
+      button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 8px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: none;
+        background: #ff4d6d;
+        color: #fff;
+        cursor: pointer;
+      }
 
-    function loadUser() {
-      fetch(`/api/user/${user.id}`)
-        .then((res) => res.json())
-        .then((data) => {
-          el.innerHTML = `
-            <b>${user.first_name}</b><br/>
-            ⭐ XP: ${data.xp}<br/>
-            🏅 Уровень: ${getLevel(data.xp)}<br/>
-            📚 Уроков пройдено: ${data.lessons_completed}
-          `;
-        });
-    }
+      button:active {
+        background: #e03a58;
+      }
 
-    function doLesson(n) {
-      fetch("/api/lesson", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          telegramId: user.id,
-          lessonNumber: n,
-        }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.blocked) {
-            alert("🔒 Доступно по подписке");
-          }
-          loadUser();
-        });
-    }
+      .error {
+        color: #ff8080;
+      }
+    </style>
+  </head>
 
-    loadUser();
-  </script>
-</body>
+  <body>
+    <h1>💃 Let's Dance With Me</h1>
+
+    <div class="card" id="user">
+      Загрузка данных пользователя...
+    </div>
+
+    <div class="card">
+      <h3>Уроки</h3>
+      <button onclick="doLesson(1)">Урок 1 — Базовый шаг</button>
+      <button onclick="doLesson(2)">Урок 2 — Правый поворот</button>
+      <button onclick="doLesson(3)">Урок 3 — Связка</button>
+      <button onclick="doLesson(4)">Урок 4 — Комбинация 🔒</button>
+    </div>
+
+    <script>
+      const tg = window.Telegram.WebApp;
+      tg.ready();
+      tg.expand(); // критично для кликов
+
+      const userBlock = document.getElementById("user");
+      const tgUser = tg.initDataUnsafe?.user;
+
+      if (!tgUser) {
+        userBlock.innerHTML =
+          '<span class="error">❌ Не удалось получить данные Telegram</span>';
+      } else {
+        loadUser();
+      }
+
+      function getLevel(xp) {
+        if (xp >= 60) return "💃 Танцор";
+        if (xp >= 30) return "🥋 Ученик";
+        return "🌱 Новичок";
+      }
+
+      function loadUser() {
+        fetch(`/api/user/${tgUser.id}`)
+          .then((res) => {
+            if (!res.ok) throw new Error("API error");
+            return res.json();
+          })
+          .then((data) => {
+            userBlock.innerHTML = `
+              <b>${tgUser.first_name}</b><br/><br/>
+              ⭐ XP: ${data.xp}<br/>
+              🏅 Уровень: ${getLevel(data.xp)}<br/>
+              📚 Уроков пройдено: ${data.lessons_completed}
+            `;
+          })
+          .catch(() => {
+            userBlock.innerHTML =
+              '<span class="error">❌ Ошибка загрузки данных пользователя</span>';
+            tg.showAlert("Ошибка загрузки данных");
+          });
+      }
+
+      function doLesson(lessonNumber) {
+        fetch("/api/lesson", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            telegramId: tgUser.id,
+            lessonNumber: lessonNumber,
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.blocked) {
+              tg.showPopup({
+                title: "🔒 Урок закрыт",
+                message: "Этот урок доступен по подписке",
+                buttons: [{ type: "ok" }],
+              });
+            }
+            loadUser();
+          })
+          .catch(() => {
+            tg.showAlert("Ошибка при прохождении урока");
+          });
+      }
+
+      // важно: делаем функцию доступной кнопкам
+      window.doLesson = doLesson;
+    </script>
+  </body>
+</html>
