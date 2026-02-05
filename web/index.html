@@ -54,6 +54,39 @@
       small {
         color: #bbb;
       }
+
+      .teacher-btn {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-align: left;
+      }
+
+      .teacher-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex: 0 0 44px;
+      }
+
+      .teacher-avatar-fallback {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        flex: 0 0 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+        background: #2b2b2b;
+        color: #fff;
+      }
+
+      .teacher-content {
+        min-width: 0;
+      }
     </style>
   </head>
 
@@ -122,9 +155,12 @@
               teachers
                 .map(
                   (t) => `
-                  <button onclick="loadCourses(${t.id})">
-                    ${t.name}<br/>
-                    <small>${t.description}</small>
+                  <button class="teacher-btn" onclick="loadCourses(${t.id})">
+                    ${renderTeacherAvatar(t)}
+                    <span class="teacher-content">
+                      ${t.name}<br/>
+                      <small>${t.description || ""}</small>
+                    </span>
                   </button>
                 `
                 )
@@ -220,6 +256,34 @@
           .catch(() => {
             tg.showAlert("Ошибка при прохождении урока");
           });
+      }
+
+      function getInitials(name) {
+        return String(name || "")
+          .trim()
+          .split(/\s+/)
+          .slice(0, 2)
+          .map((part) => part.charAt(0).toUpperCase())
+          .join("") || "T";
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;");
+      }
+
+      function renderTeacherAvatar(teacher) {
+        if (teacher.avatar_url) {
+          return `<img class="teacher-avatar" src="${escapeHtml(
+            teacher.avatar_url
+          )}" alt="${escapeHtml(teacher.name || "Teacher")}"/>`;
+        }
+        return `<span class="teacher-avatar-fallback">${escapeHtml(
+          getInitials(teacher.name)
+        )}</span>`;
       }
 
       /* expose */

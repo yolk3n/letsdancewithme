@@ -3,15 +3,29 @@ const db = require("./db");
 async function getOrCreateUser(telegramId) {
   await db.query(
     `
-      INSERT INTO users (telegram_id, lessons_completed, xp)
-      VALUES ($1, 0, 0)
+      INSERT INTO users (telegram_id, lessons_completed, xp, role, is_onboarded)
+      VALUES ($1, 0, 0, 'student', false)
       ON CONFLICT (telegram_id) DO NOTHING
     `,
     [telegramId]
   );
 
   const result = await db.query(
-    "SELECT telegram_id, lessons_completed, xp FROM users WHERE telegram_id = $1",
+    "SELECT telegram_id, lessons_completed, xp, role, is_onboarded FROM users WHERE telegram_id = $1",
+    [telegramId]
+  );
+
+  return result.rows[0];
+}
+
+async function setOnboardingComplete(telegramId) {
+  const result = await db.query(
+    `
+      UPDATE users
+      SET is_onboarded = true
+      WHERE telegram_id = $1
+      RETURNING telegram_id, lessons_completed, xp, role, is_onboarded
+    `,
     [telegramId]
   );
 
@@ -22,15 +36,15 @@ async function completeLesson(telegramId, lessonNumber) {
   return db.withTransaction(async (client) => {
     await client.query(
       `
-        INSERT INTO users (telegram_id, lessons_completed, xp)
-        VALUES ($1, 0, 0)
+        INSERT INTO users (telegram_id, lessons_completed, xp, role, is_onboarded)
+        VALUES ($1, 0, 0, 'student', false)
         ON CONFLICT (telegram_id) DO NOTHING
       `,
       [telegramId]
     );
 
     const userResult = await client.query(
-      "SELECT telegram_id, lessons_completed, xp FROM users WHERE telegram_id = $1 FOR UPDATE",
+      "SELECT telegram_id, lessons_completed, xp, role, is_onboarded FROM users WHERE telegram_id = $1 FOR UPDATE",
       [telegramId]
     );
 
@@ -66,5 +80,6 @@ async function completeLesson(telegramId, lessonNumber) {
 
 module.exports = {
   getOrCreateUser,
+  setOnboardingComplete,
   completeLesson,
 };
