@@ -1,45 +1,35 @@
 const express = require("express");
-const { getOrCreateUser } = require("./userService");
+const path = require("path");
+
+const db = require("./db");
+const { getOrCreateUser, completeLesson } = require("./userService");
 
 const app = express();
 app.use(express.json());
 
-app.get("/api/user/:telegramId", (req, res) => {
-  const telegramId = Number(req.params.telegramId);
-  const user = getOrCreateUser(telegramId);
-
-  res.json(user);
-});
-
-const path = require("path");
+/* =========================
+   STATIC (Mini App)
+========================= */
 
 app.use(express.static(path.join(__dirname, "web")));
 
-const db = require("./db");
+/* =========================
+   API: USERS
+========================= */
 
-// список преподавателей
-app.get("/api/teachers", (req, res) => {
-  const teachers = db.prepare("SELECT * FROM teachers").all();
-  res.json(teachers);
+// получить пользователя и прогресс
+app.get("/api/user/:telegramId", (req, res) => {
+  const telegramId = Number(req.params.telegramId);
+
+  if (!telegramId) {
+    return res.status(400).json({ error: "Invalid telegramId" });
+  }
+
+  const user = getOrCreateUser(telegramId);
+  res.json(user);
 });
 
-// курсы преподавателя
-app.get("/api/courses/:teacherId", (req, res) => {
-  const teacherId = Number(req.params.teacherId);
-  const courses = db
-    .prepare("SELECT * FROM courses WHERE teacher_id = ?")
-    .all(teacherId);
-
-  res.json(courses);
-});
-
-
-app.listen(3000, () => {
-  console.log("API сервер запущен на http://localhost:3000");
-});
-
-const { completeLesson } = require("./userService");
-
+// прохождение урока
 app.post("/api/lesson", (req, res) => {
   const { telegramId, lessonNumber } = req.body;
 
@@ -49,4 +39,54 @@ app.post("/api/lesson", (req, res) => {
 
   const result = completeLesson(Number(telegramId), Number(lessonNumber));
   res.json(result);
+});
+
+/* =========================
+   API: TEACHERS
+========================= */
+
+app.get("/api/teachers", (req, res) => {
+  const teachers = db.prepare(
+    "SELECT id, name, description FROM teachers ORDER BY id"
+  ).all();
+
+  res.json(teachers);
+});
+
+/* =========================
+   API: COURSES
+========================= */
+
+app.get("/api/courses/:teacherId", (req, res) => {
+  const teacherId = Number(req.params.teacherId);
+
+  if (!teacherId) {
+    return res.status(400).json({ error: "Invalid teacherId" });
+  }
+
+  const courses = db
+    .prepare(
+      "SELECT id, teacher_id, title, description FROM courses WHERE teacher_id = ? ORDER BY id"
+    )
+    .all(teacherId);
+
+  res.json(courses);
+});
+
+/* =========================
+   HEALTHCHECK (Render)
+========================= */
+
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
+/* =========================
+   START SERVER
+========================= */
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`API server running on port ${PORT}`);
 });
