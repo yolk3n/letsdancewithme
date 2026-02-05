@@ -1,13 +1,12 @@
 require("dotenv").config();
 
-const { InlineKeyboard } = require("grammy");
+const { Bot, InlineKeyboard, Keyboard } = require("grammy");
 
 const db = require("./db");
-const { Bot, Keyboard } = require("grammy");
-const bot = new Bot(process.env.BOT_TOKEN);
 const { completeLesson } = require("./userService");
 
-// Главное меню
+const bot = new Bot(process.env.BOT_TOKEN);
+
 const mainMenu = new Keyboard()
   .text("👩‍🏫 Выбрать преподавателя")
   .row()
@@ -19,14 +18,12 @@ const miniAppKeyboard = new InlineKeyboard().webApp(
   "https://letsdancewithme.onrender.com"
 );
 
-// Меню преподавателей
 const teachersMenu = new Keyboard()
   .text("🕺 Алекс — Salsa NY")
   .row()
   .text("🔙 Назад")
   .resized();
 
-// Меню уроков
 const lessonsMenu = new Keyboard()
   .text("Урок 1 — Базовый шаг")
   .row()
@@ -39,8 +36,8 @@ const lessonsMenu = new Keyboard()
   .text("🔙 Назад")
   .resized();
 
-bot.command("start", (ctx) => {
-  ctx.reply(
+bot.command("start", async (ctx) => {
+  await ctx.reply(
     "💃 *Let's Dance With Me* 🕺\nДобро пожаловать!\nОткрой обучение:",
     {
       parse_mode: "Markdown",
@@ -49,48 +46,24 @@ bot.command("start", (ctx) => {
   );
 });
 
-bot.hears("ℹ️ О проекте", (ctx) => {
-  ctx.reply(
+bot.hears("ℹ️ О проекте", async (ctx) => {
+  await ctx.reply(
     "Это онлайн-школа танцев.\nПервые уроки бесплатные, дальше — подписка."
   );
 });
 
-bot.hears("👩‍🏫 Выбрать преподавателя", (ctx) => {
-  ctx.reply("Выбери преподавателя:", {
+bot.hears("👩‍🏫 Выбрать преподавателя", async (ctx) => {
+  await ctx.reply("Выбери преподавателя:", {
     reply_markup: teachersMenu,
   });
 });
 
-bot.hears("🕺 Алекс — Salsa NY", (ctx) => {
-  ctx.reply(
-    "*Курс:* Salsa NY для начинающих\nВыбери урок:",
-    {
-      parse_mode: "Markdown",
-      reply_markup: lessonsMenu,
-    }
-  );
+bot.hears("🕺 Алекс — Salsa NY", async (ctx) => {
+  await ctx.reply("*Курс:* Salsa NY для начинающих\nВыбери урок:", {
+    parse_mode: "Markdown",
+    reply_markup: lessonsMenu,
+  });
 });
-
-// ===== ЛОГИКА УРОКОВ =====
-
-function handleLesson(ctx, lessonNumber) {
-  const userId = ctx.from.id;
-
-  const result = completeLesson(userId, lessonNumber);
-
-  if (result.blocked) {
-    ctx.reply(
-      "🔒 Этот урок доступен по подписке.\nОформи подписку, чтобы продолжить обучение 💃"
-    );
-    return;
-  }
-
-  const level = getLevel(result.xp);
-
-  ctx.reply(
-    `✅ Урок ${lessonNumber} пройден!\n⭐ XP: ${result.xp}\n🏅 Уровень: ${level}`
-  );
-}
 
 function getLevel(xp) {
   if (xp >= 60) return "💃 Танцор";
@@ -98,17 +71,41 @@ function getLevel(xp) {
   return "🌱 Новичок";
 }
 
+async function handleLesson(ctx, lessonNumber) {
+  const userId = ctx.from.id;
+  const result = await completeLesson(userId, lessonNumber);
 
-bot.hears("Урок 1 — Базовый шаг", (ctx) => handleLesson(ctx, 1));
-bot.hears("Урок 2 — Правый поворот", (ctx) => handleLesson(ctx, 2));
-bot.hears("Урок 3 — Левая связка", (ctx) => handleLesson(ctx, 3));
-bot.hears("Урок 4 — Комбинация 🔒", (ctx) => handleLesson(ctx, 4));
+  if (result.blocked) {
+    await ctx.reply(
+      "🔒 Этот урок доступен по подписке.\nОформи подписку, чтобы продолжить обучение 💃"
+    );
+    return;
+  }
 
-bot.hears("🔙 Назад", (ctx) => {
-  ctx.reply("Главное меню:", {
+  const level = getLevel(result.xp);
+  await ctx.reply(
+    `✅ Урок ${lessonNumber} пройден!\n⭐ XP: ${result.xp}\n🎖 Уровень: ${level}`
+  );
+}
+
+bot.hears("Урок 1 — Базовый шаг", async (ctx) => handleLesson(ctx, 1));
+bot.hears("Урок 2 — Правый поворот", async (ctx) => handleLesson(ctx, 2));
+bot.hears("Урок 3 — Левая связка", async (ctx) => handleLesson(ctx, 3));
+bot.hears("Урок 4 — Комбинация 🔒", async (ctx) => handleLesson(ctx, 4));
+
+bot.hears("🔙 Назад", async (ctx) => {
+  await ctx.reply("Главное меню:", {
     reply_markup: mainMenu,
   });
 });
 
-bot.start();
-console.log("Бот запущен 🚀");
+async function startBot() {
+  await db.initDb();
+  await bot.start();
+  console.log("Бот запущен");
+}
+
+startBot().catch((error) => {
+  console.error("Failed to start bot", error);
+  process.exit(1);
+});

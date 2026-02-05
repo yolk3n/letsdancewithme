@@ -1,42 +1,74 @@
 const db = require("./db");
 
-db.prepare("PRAGMA foreign_keys = ON").run();
+async function upsertTeacher(name, description) {
+  const result = await db.query(
+    `
+      INSERT INTO teachers (name, description)
+      VALUES ($1, $2)
+      ON CONFLICT (name) DO UPDATE SET description = EXCLUDED.description
+      RETURNING id
+    `,
+    [name, description]
+  );
+  return result.rows[0].id;
+}
 
-// чистим в правильном порядке
-db.prepare("DELETE FROM lessons").run();
-db.prepare("DELETE FROM courses").run();
-db.prepare("DELETE FROM teachers").run();
+async function upsertCourse(teacherId, title, description) {
+  const result = await db.query(
+    `
+      INSERT INTO courses (teacher_id, title, description)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (teacher_id, title) DO UPDATE SET description = EXCLUDED.description
+      RETURNING id
+    `,
+    [teacherId, title, description]
+  );
+  return result.rows[0].id;
+}
 
-// преподаватели
-db.prepare(
-  "INSERT INTO teachers (name, description) VALUES (?, ?)"
-).run("Алекс", "Salsa NY, On2");
+async function upsertLesson(courseId, lessonNumber, title, description) {
+  await db.query(
+    `
+      INSERT INTO lessons (course_id, lesson_number, title, description)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (course_id, lesson_number) DO UPDATE
+      SET title = EXCLUDED.title, description = EXCLUDED.description
+    `,
+    [courseId, lessonNumber, title, description]
+  );
+}
 
-db.prepare(
-  "INSERT INTO teachers (name, description) VALUES (?, ?)"
-).run("Мария", "Bachata, Lady Style");
+async function seed() {
+  await db.initDb();
 
-// курсы
-db.prepare(
-  "INSERT INTO courses (teacher_id, title, description) VALUES (?, ?, ?)"
-).run(1, "Salsa NY для начинающих", "База, шаги, ритм");
+  const alexTeacherId = await upsertTeacher("Алекс", "Salsa NY, On2");
+  const mariaTeacherId = await upsertTeacher("Мария", "Bachata, Lady Style");
 
-db.prepare(
-  "INSERT INTO courses (teacher_id, title, description) VALUES (?, ?, ?)"
-).run(2, "Bachata с нуля", "Основы бачаты");
+  const salsaCourseId = await upsertCourse(
+    alexTeacherId,
+    "Salsa NY для начинающих",
+    "База, шаги, ритм"
+  );
+  const bachataCourseId = await upsertCourse(
+    mariaTeacherId,
+    "Bachata с нуля",
+    "Основы бачаты"
+  );
 
-// уроки (курс 1)
-const insertLesson = db.prepare(
-  "INSERT INTO lessons (course_id, lesson_number, title, description) VALUES (?, ?, ?, ?)"
-);
+  await upsertLesson(salsaCourseId, 1, "Базовый шаг", "Основной шаг salsa NY");
+  await upsertLesson(salsaCourseId, 2, "Правый поворот", "Техника поворота");
+  await upsertLesson(salsaCourseId, 3, "Связка", "Соединяем движения");
+  await upsertLesson(salsaCourseId, 4, "Комбинация", "Продвинутая связка");
 
-insertLesson.run(1, 1, "Базовый шаг", "Основной шаг salsa NY");
-insertLesson.run(1, 2, "Правый поворот", "Техника поворота");
-insertLesson.run(1, 3, "Связка", "Соединяем движения");
-insertLesson.run(1, 4, "Комбинация", "Продвинутая связка");
+  await upsertLesson(bachataCourseId, 1, "Базовый шаг", "Основной шаг бачаты");
+  await upsertLesson(bachataCourseId, 2, "Волна", "Работа корпусом");
 
-// уроки (курс 2)
-insertLesson.run(2, 1, "Базовый шаг", "Основной шаг бачаты");
-insertLesson.run(2, 2, "Волна", "Работа корпусом");
+  console.log("Seed completed");
+  await db.pool.end();
+}
 
-console.log("Seed с уроками выполнен ✅");
+seed().catch(async (error) => {
+  console.error("Seed failed", error);
+  await db.pool.end();
+  process.exit(1);
+});

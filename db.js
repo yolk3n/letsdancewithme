@@ -1,49 +1,78 @@
-const path = require("path");
-const Database = require("better-sqlite3");
+require("dotenv").config();
 
-const dbPath = path.join(__dirname, "database.db");
-const db = new Database(dbPath);
+const { Pool } = require("pg");
 
-// Таблица пользователей
-db.prepare(`
-  CREATE TABLE IF NOT EXISTS users (
-    telegram_id INTEGER PRIMARY KEY,
-    lessons_completed INTEGER DEFAULT 0,
-    xp INTEGER DEFAULT 0
-  )
-`).run();
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL is required");
+}
 
-// Таблица преподавателей
-db.prepare(`
-  CREATE TABLE IF NOT EXISTS teachers (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    description TEXT
-  )
-`).run();
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : false,
+});
 
-// Таблица курсов
-db.prepare(`
-  CREATE TABLE IF NOT EXISTS courses (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    teacher_id INTEGER NOT NULL,
-    title TEXT NOT NULL,
-    description TEXT,
-    FOREIGN KEY (teacher_id) REFERENCES teachers(id)
-  )
-`).run();
+async function query(text, params = []) {
+  return pool.query(text, params);
+}
 
-// Таблица уроков
-db.prepare(`
-  CREATE TABLE IF NOT EXISTS lessons (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    course_id INTEGER NOT NULL,
-    lesson_number INTEGER NOT NULL,
-    title TEXT NOT NULL,
-    description TEXT,
-    FOREIGN KEY (course_id) REFERENCES courses(id)
-  )
-`).run();
+async function withTransaction(work) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const result = await work(client);
+    await client.query("COMMIT");
+    return result;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
 
+async function initDb() {
+  await query(`
+    CREATE TABLE IF NOT EXISTS users (
+      telegram_id BIGINT PRIMARY KEY,
+      lessons_completed INTEGER NOT NULL DEFAULT 0,
+      xp INTEGER NOT NULL DEFAULT 0
+    )
+  `);
 
-module.exports = db;
+  await query(`
+    CREATE TABLE IF NOT EXISTS teachers (
+      id BIGSERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT,
+      UNIQUE (name)
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS courses (
+      id BIGSERIAL PRIMARY KEY,
+      teacher_id BIGINT NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      description TEXT,
+      UNIQUE (teacher_id, title)
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS lessons (
+      id BIGSERIAL PRIMARY KEY,
+      course_id BIGINT NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+      lesson_number INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT,
+      UNIQUE (course_id, lesson_number)
+    )
+  `);
+}
+
+module.exports = {
+  initDb,
+  pool,
+  query,
+  withTransaction,
+};

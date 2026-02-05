@@ -6,107 +6,100 @@ const { getOrCreateUser, completeLesson } = require("./userService");
 
 const app = express();
 app.use(express.json());
-
-/* =========================
-   STATIC (Mini App)
-========================= */
-
 app.use(express.static(path.join(__dirname, "web")));
 
-/* =========================
-   API: USERS
-========================= */
+function asyncRoute(handler) {
+  return (req, res, next) => {
+    Promise.resolve(handler(req, res, next)).catch(next);
+  };
+}
 
-// получить пользователя и прогресс
-app.get("/api/user/:telegramId", (req, res) => {
-  const telegramId = Number(req.params.telegramId);
+app.get(
+  "/api/user/:telegramId",
+  asyncRoute(async (req, res) => {
+    const telegramId = Number(req.params.telegramId);
+    if (!telegramId) {
+      return res.status(400).json({ error: "Invalid telegramId" });
+    }
 
-  if (!telegramId) {
-    return res.status(400).json({ error: "Invalid telegramId" });
-  }
+    const user = await getOrCreateUser(telegramId);
+    res.json(user);
+  })
+);
 
-  const user = getOrCreateUser(telegramId);
-  res.json(user);
-});
+app.post(
+  "/api/lesson",
+  asyncRoute(async (req, res) => {
+    const { telegramId, lessonNumber } = req.body;
+    if (!telegramId || !lessonNumber) {
+      return res.status(400).json({ error: "Missing data" });
+    }
 
-// прохождение урока
-app.post("/api/lesson", (req, res) => {
-  const { telegramId, lessonNumber } = req.body;
+    const result = await completeLesson(Number(telegramId), Number(lessonNumber));
+    res.json(result);
+  })
+);
 
-  if (!telegramId || !lessonNumber) {
-    return res.status(400).json({ error: "Missing data" });
-  }
+app.get(
+  "/api/teachers",
+  asyncRoute(async (req, res) => {
+    const result = await db.query(
+      "SELECT id, name, description FROM teachers ORDER BY id"
+    );
+    res.json(result.rows);
+  })
+);
 
-  const result = completeLesson(Number(telegramId), Number(lessonNumber));
-  res.json(result);
-});
+app.get(
+  "/api/courses/:teacherId",
+  asyncRoute(async (req, res) => {
+    const teacherId = Number(req.params.teacherId);
+    if (!teacherId) {
+      return res.status(400).json({ error: "Invalid teacherId" });
+    }
 
-/* =========================
-   API: TEACHERS
-========================= */
+    const result = await db.query(
+      "SELECT id, teacher_id, title, description FROM courses WHERE teacher_id = $1 ORDER BY id",
+      [teacherId]
+    );
+    res.json(result.rows);
+  })
+);
 
-app.get("/api/teachers", (req, res) => {
-  const teachers = db.prepare(
-    "SELECT id, name, description FROM teachers ORDER BY id"
-  ).all();
+app.get(
+  "/api/lessons/:courseId",
+  asyncRoute(async (req, res) => {
+    const courseId = Number(req.params.courseId);
+    if (!courseId) {
+      return res.status(400).json({ error: "Invalid courseId" });
+    }
 
-  res.json(teachers);
-});
-
-/* =========================
-   API: COURSES
-========================= */
-
-app.get("/api/courses/:teacherId", (req, res) => {
-  const teacherId = Number(req.params.teacherId);
-
-  if (!teacherId) {
-    return res.status(400).json({ error: "Invalid teacherId" });
-  }
-
-  const courses = db
-    .prepare(
-      "SELECT id, teacher_id, title, description FROM courses WHERE teacher_id = ? ORDER BY id"
-    )
-    .all(teacherId);
-
-  res.json(courses);
-});
-
-// уроки курса
-app.get("/api/lessons/:courseId", (req, res) => {
-  const courseId = Number(req.params.courseId);
-
-  if (!courseId) {
-    return res.status(400).json({ error: "Invalid courseId" });
-  }
-
-  const lessons = db
-    .prepare(
-      "SELECT id, lesson_number, title, description FROM lessons WHERE course_id = ? ORDER BY lesson_number"
-    )
-    .all(courseId);
-
-  res.json(lessons);
-});
-
-
-/* =========================
-   HEALTHCHECK (Render)
-========================= */
+    const result = await db.query(
+      "SELECT id, lesson_number, title, description FROM lessons WHERE course_id = $1 ORDER BY lesson_number",
+      [courseId]
+    );
+    res.json(result.rows);
+  })
+);
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+app.use((error, req, res, next) => {
+  console.error(error);
+  res.status(500).json({ error: "Internal server error" });
+});
 
+async function startServer() {
+  await db.initDb();
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`API server running on port ${PORT}`);
+  });
+}
 
-/* =========================
-   START SERVER
-========================= */
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`API server running on port ${PORT}`);
+startServer().catch((error) => {
+  console.error("Failed to start server", error);
+  process.exit(1);
 });

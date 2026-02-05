@@ -1,42 +1,67 @@
 const db = require("./db");
 
-function getOrCreateUser(telegramId) {
-  let user = db
-    .prepare("SELECT * FROM users WHERE telegram_id = ?")
-    .get(telegramId);
+async function getOrCreateUser(telegramId) {
+  await db.query(
+    `
+      INSERT INTO users (telegram_id, lessons_completed, xp)
+      VALUES ($1, 0, 0)
+      ON CONFLICT (telegram_id) DO NOTHING
+    `,
+    [telegramId]
+  );
 
-  if (!user) {
-    db.prepare(
-      "INSERT INTO users (telegram_id, lessons_completed, xp) VALUES (?, 0, 0)"
-    ).run(telegramId);
+  const result = await db.query(
+    "SELECT telegram_id, lessons_completed, xp FROM users WHERE telegram_id = $1",
+    [telegramId]
+  );
 
-    user = { telegram_id: telegramId, lessons_completed: 0, xp: 0 };
-  }
-
-  return user;
+  return result.rows[0];
 }
 
-function completeLesson(telegramId, lessonNumber) {
-  const user = getOrCreateUser(telegramId);
+async function completeLesson(telegramId, lessonNumber) {
+  return db.withTransaction(async (client) => {
+    await client.query(
+      `
+        INSERT INTO users (telegram_id, lessons_completed, xp)
+        VALUES ($1, 0, 0)
+        ON CONFLICT (telegram_id) DO NOTHING
+      `,
+      [telegramId]
+    );
 
-  if (lessonNumber > 3 && user.lessons_completed >= 3) {
-    return { blocked: true };
-  }
+    const userResult = await client.query(
+      "SELECT telegram_id, lessons_completed, xp FROM users WHERE telegram_id = $1 FOR UPDATE",
+      [telegramId]
+    );
 
-  if (lessonNumber > user.lessons_completed) {
-    user.lessons_completed = lessonNumber;
-    user.xp += 10;
+    const user = userResult.rows[0];
 
-    db.prepare(
-      "UPDATE users SET lessons_completed = ?, xp = ? WHERE telegram_id = ?"
-    ).run(user.lessons_completed, user.xp, telegramId);
-  }
+    if (lessonNumber > 3 && user.lessons_completed >= 3) {
+      return { blocked: true };
+    }
 
-  return {
-    blocked: false,
-    lessons_completed: user.lessons_completed,
-    xp: user.xp,
-  };
+    if (lessonNumber > user.lessons_completed) {
+      const nextLessonsCompleted = lessonNumber;
+      const nextXp = user.xp + 10;
+
+      await client.query(
+        "UPDATE users SET lessons_completed = $1, xp = $2 WHERE telegram_id = $3",
+        [nextLessonsCompleted, nextXp, telegramId]
+      );
+
+      return {
+        blocked: false,
+        lessons_completed: nextLessonsCompleted,
+        xp: nextXp,
+      };
+    }
+
+    return {
+      blocked: false,
+      lessons_completed: user.lessons_completed,
+      xp: user.xp,
+    };
+  });
 }
 
 module.exports = {
