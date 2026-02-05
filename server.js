@@ -73,6 +73,24 @@ app.get("/api/courses/:teacherId", (req, res) => {
   res.json(courses);
 });
 
+// уроки курса
+app.get("/api/lessons/:courseId", (req, res) => {
+  const courseId = Number(req.params.courseId);
+
+  if (!courseId) {
+    return res.status(400).json({ error: "Invalid courseId" });
+  }
+
+  const lessons = db
+    .prepare(
+      "SELECT id, lesson_number, title, description FROM lessons WHERE course_id = ? ORDER BY lesson_number"
+    )
+    .all(courseId);
+
+  res.json(lessons);
+});
+
+
 /* =========================
    HEALTHCHECK (Render)
 ========================= */
@@ -80,6 +98,8 @@ app.get("/api/courses/:teacherId", (req, res) => {
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
+
+
 
 /* =========================
    START SERVER
