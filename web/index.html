@@ -2,11 +2,9 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Let's Dance With Me</title>
-
-    <!-- Telegram Mini App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
     <style>
       body {
         margin: 0;
@@ -27,13 +25,32 @@
         margin-bottom: 16px;
       }
 
-      button {
+      .hidden {
+        display: none;
+      }
+
+      .muted {
+        color: #bbb;
+      }
+
+      .error {
+        color: #ff8080;
+      }
+
+      button,
+      input,
+      select,
+      textarea {
         width: 100%;
         padding: 12px;
         margin-bottom: 8px;
         font-size: 15px;
         border-radius: 8px;
         border: none;
+        box-sizing: border-box;
+      }
+
+      button {
         background: #ff4d6d;
         color: #fff;
         cursor: pointer;
@@ -47,12 +64,12 @@
         background: #e03a58;
       }
 
-      .error {
-        color: #ff8080;
-      }
-
-      small {
-        color: #bbb;
+      input,
+      select,
+      textarea {
+        background: #2a2a2a;
+        color: #fff;
+        border: 1px solid #3a3a3a;
       }
 
       .teacher-btn {
@@ -87,36 +104,106 @@
       .teacher-content {
         min-width: 0;
       }
+
+      .row {
+        display: flex;
+        gap: 8px;
+      }
+
+      .row > * {
+        flex: 1;
+      }
     </style>
   </head>
-
   <body>
     <h1>💃 Let's Dance With Me</h1>
 
     <div class="card" id="user">Загрузка пользователя...</div>
-    <div class="card" id="screen">Загрузка...</div>
+
+    <div class="card hidden" id="onboardingCard">
+      <b>Добро пожаловать!</b>
+      <p class="muted">
+        Здесь ты найдешь курсы по разным танцевальным направлениям. Выбери преподавателя и начни с бесплатных уроков.
+      </p>
+      <button id="onboardingBtn">Начать обучение</button>
+    </div>
+
+    <div class="card hidden" id="studentScreen">Загрузка...</div>
+
+    <div class="card hidden" id="teacherScreen">
+      <b>Кабинет преподавателя</b>
+      <p class="muted">Профиль</p>
+      <input id="teacherName" placeholder="Имя преподавателя" />
+      <input id="teacherDescription" placeholder="Описание" />
+      <input id="teacherAvatarUrl" placeholder="URL аватарки" />
+      <button id="saveTeacherProfileBtn">Сохранить профиль</button>
+      <hr />
+      <p class="muted">Новый курс</p>
+      <input id="courseTitle" placeholder="Название курса" />
+      <input id="courseDescription" placeholder="Описание курса" />
+      <div class="row">
+        <input id="coursePrice" type="number" placeholder="Цена" />
+        <select id="coursePublished">
+          <option value="true">Опубликован</option>
+          <option value="false">Скрыт</option>
+        </select>
+      </div>
+      <button id="createCourseBtn">Создать курс</button>
+      <hr />
+      <div id="teacherCourses" class="muted">Курсы преподавателя: загрузка...</div>
+    </div>
 
     <script>
       const tg = window.Telegram.WebApp;
       tg.ready();
       tg.expand();
 
-      const userBlock = document.getElementById("user");
-      const screen = document.getElementById("screen");
-
       const tgUser = tg.initDataUnsafe?.user;
+      const userBlock = document.getElementById("user");
+      const onboardingCard = document.getElementById("onboardingCard");
+      const onboardingBtn = document.getElementById("onboardingBtn");
+      const studentScreen = document.getElementById("studentScreen");
+      const teacherScreen = document.getElementById("teacherScreen");
+      const teacherCourses = document.getElementById("teacherCourses");
+
+      const teacherNameInput = document.getElementById("teacherName");
+      const teacherDescriptionInput = document.getElementById("teacherDescription");
+      const teacherAvatarInput = document.getElementById("teacherAvatarUrl");
+      const saveTeacherProfileBtn = document.getElementById("saveTeacherProfileBtn");
+
+      const courseTitleInput = document.getElementById("courseTitle");
+      const courseDescriptionInput = document.getElementById("courseDescription");
+      const coursePriceInput = document.getElementById("coursePrice");
+      const coursePublishedInput = document.getElementById("coursePublished");
+      const createCourseBtn = document.getElementById("createCourseBtn");
+
+      let currentUser = null;
+      let selectedStyleId = "";
 
       if (!tgUser) {
         userBlock.innerHTML =
-          '<span class="error">❌ Не удалось получить данные Telegram</span>';
+          '<span class="error">Не удалось получить данные Telegram</span>';
       } else {
-        loadUser();
-        loadTeachers();
+        bootstrap().catch(() => {
+          userBlock.innerHTML = '<span class="error">Ошибка инициализации приложения</span>';
+        });
       }
 
-      /* =========================
-         USER
-      ========================= */
+      async function apiFetch(url, options = {}) {
+        const headers = {
+          "Content-Type": "application/json",
+          "x-telegram-id": String(tgUser.id),
+          ...(options.headers || {}),
+        };
+
+        const response = await fetch(url, { ...options, headers });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const message = data.error || "Request failed";
+          throw new Error(message);
+        }
+        return data;
+      }
 
       function getLevel(xp) {
         if (xp >= 60) return "💃 Танцор";
@@ -124,138 +211,210 @@
         return "🌱 Новичок";
       }
 
-      function loadUser() {
-        fetch(`/api/user/${tgUser.id}`)
-          .then((res) => res.json())
-          .then((data) => {
-            userBlock.innerHTML = `
-              <b>${tgUser.first_name}</b><br/>
-              ⭐ XP: ${data.xp}<br/>
-              🏅 Уровень: ${getLevel(data.xp)}<br/>
-              📚 Уроков пройдено: ${data.lessons_completed}
-            `;
-          })
-          .catch(() => {
-            userBlock.innerHTML =
-              '<span class="error">Ошибка загрузки пользователя</span>';
-          });
+      async function bootstrap() {
+        await loadCurrentUser();
+        bindEvents();
+        await routeByRole();
       }
 
-      /* =========================
-         TEACHERS
-      ========================= */
-
-      function loadTeachers() {
-        screen.innerHTML = "<b>Выбери преподавателя</b><br/><br/>Загрузка...";
-        fetch("/api/teachers")
-          .then((res) => res.json())
-          .then((teachers) => {
-            screen.innerHTML =
-              "<b>Выбери преподавателя</b><br/><br/>" +
-              teachers
-                .map(
-                  (t) => `
-                  <button class="teacher-btn" onclick="loadCourses(${t.id})">
-                    ${renderTeacherAvatar(t)}
-                    <span class="teacher-content">
-                      ${t.name}<br/>
-                      <small>${t.description || ""}</small>
-                    </span>
-                  </button>
-                `
-                )
-                .join("");
-          })
-          .catch(() => {
-            screen.innerHTML =
-              '<span class="error">Ошибка загрузки преподавателей</span>';
-          });
+      async function loadCurrentUser() {
+        currentUser = await apiFetch("/api/me");
+        userBlock.innerHTML = `
+          <b>${escapeHtml(tgUser.first_name || "Пользователь")}</b><br/>
+          Роль: ${escapeHtml(currentUser.role)}<br/>
+          ⭐ XP: ${currentUser.xp}<br/>
+          🎖 Уровень: ${getLevel(currentUser.xp)}<br/>
+          📚 Уроков пройдено: ${currentUser.lessons_completed}
+        `;
       }
 
-      /* =========================
-         COURSES
-      ========================= */
+      function bindEvents() {
+        onboardingBtn.addEventListener("click", async () => {
+          await apiFetch("/api/onboarding/complete", { method: "POST" });
+          await loadCurrentUser();
+          await routeByRole();
+        });
 
-      function loadCourses(teacherId) {
-        screen.innerHTML = "Загрузка курсов...";
-        fetch(`/api/courses/${teacherId}`)
-          .then((res) => res.json())
-          .then((courses) => {
-            screen.innerHTML =
-              "<b>Курсы</b><br/><br/>" +
-              courses
-                .map(
-                  (c) => `
-                  <button onclick="openCourse(${c.id})">
-                    ${c.title}<br/>
-                    <small>${c.description}</small>
-                  </button>
-                `
-                )
-                .join("") +
-              `<button class="secondary" onclick="loadTeachers()">⬅ К преподавателям</button>`;
-          })
-          .catch(() => {
-            screen.innerHTML =
-              '<span class="error">Ошибка загрузки курсов</span>';
-          });
+        saveTeacherProfileBtn.addEventListener("click", saveTeacherProfile);
+        createCourseBtn.addEventListener("click", createCourse);
       }
 
-      /* =========================
-         LESSONS
-      ========================= */
+      async function routeByRole() {
+        onboardingCard.classList.add("hidden");
+        studentScreen.classList.add("hidden");
+        teacherScreen.classList.add("hidden");
 
-      function openCourse(courseId) {
-        screen.innerHTML = "Загрузка уроков...";
-        fetch(`/api/lessons/${courseId}`)
-          .then((res) => res.json())
-          .then((lessons) => {
-            screen.innerHTML =
-              "<b>Уроки</b><br/><br/>" +
-              lessons
-                .map(
-                  (l) => `
-                  <button onclick="doLesson(${l.lesson_number})">
-                    Урок ${l.lesson_number}: ${l.title}
-                  </button>
-                `
-                )
-                .join("") +
-              `<button class="secondary" onclick="loadTeachers()">⬅ К преподавателям</button>`;
-          })
-          .catch(() => {
-            screen.innerHTML =
-              '<span class="error">Ошибка загрузки уроков</span>';
-          });
+        if (!currentUser.is_onboarded) {
+          onboardingCard.classList.remove("hidden");
+        }
+
+        if (currentUser.role === "teacher" || currentUser.role === "admin") {
+          teacherScreen.classList.remove("hidden");
+          await loadTeacherProfile();
+          await loadTeacherCourses();
+          return;
+        }
+
+        studentScreen.classList.remove("hidden");
+        await loadTeachers();
       }
 
-      /* =========================
-         COMPLETE LESSON
-      ========================= */
+      async function loadTeachers() {
+        const [teachers, styles] = await Promise.all([
+          apiFetch("/api/teachers"),
+          apiFetch("/api/styles"),
+        ]);
 
-      function doLesson(lessonNumber) {
-        fetch("/api/lesson", {
+        studentScreen.innerHTML = `
+          <b>Выбери преподавателя</b><br/><br/>
+          <select id="styleFilter">
+            <option value="">Все направления</option>
+            ${styles
+              .map((s) => `<option value="${s.id}">${escapeHtml(s.name)}</option>`)
+              .join("")}
+          </select>
+          ${teachers
+            .map(
+              (t) => `
+              <button class="teacher-btn" onclick="loadCourses(${t.id})">
+                ${renderTeacherAvatar(t)}
+                <span class="teacher-content">
+                  ${escapeHtml(t.name)}<br/>
+                  <small class="muted">${escapeHtml(t.description || "")}</small>
+                </span>
+              </button>
+            `
+            )
+            .join("")}
+        `;
+
+        const styleFilter = document.getElementById("styleFilter");
+        styleFilter.value = selectedStyleId;
+        styleFilter.addEventListener("change", () => {
+          selectedStyleId = styleFilter.value;
+        });
+      }
+
+      async function loadCourses(teacherId) {
+        studentScreen.innerHTML = "Загрузка курсов...";
+        const styleQuery = selectedStyleId ? `?styleId=${selectedStyleId}` : "";
+        const courses = await apiFetch(`/api/courses/${teacherId}${styleQuery}`);
+
+        studentScreen.innerHTML =
+          "<b>Курсы</b><br/><br/>" +
+          courses
+            .map(
+              (c) => `
+              <button onclick="openCourse(${c.id})">
+                ${escapeHtml(c.title)}<br/>
+                <small class="muted">${escapeHtml(c.description || "")}</small><br/>
+                <small class="muted">Цена: ${Number(c.price || 0)} ₽</small>
+              </button>
+            `
+            )
+            .join("") +
+          `<button class="secondary" onclick="loadTeachers()">⬅ К преподавателям</button>`;
+      }
+
+      async function openCourse(courseId) {
+        studentScreen.innerHTML = "Загрузка уроков...";
+        const lessons = await apiFetch(`/api/lessons/${courseId}`);
+        studentScreen.innerHTML =
+          "<b>Уроки</b><br/><br/>" +
+          lessons
+            .map(
+              (l) => `
+              <button onclick="doLesson(${l.lesson_number})">
+                Урок ${l.lesson_number}: ${escapeHtml(l.title)}<br/>
+                <small class="muted">${l.is_free ? "Бесплатно" : "Платно"} · ${
+                l.duration_sec ? Math.round(l.duration_sec / 60) + " мин" : "без длительности"
+              }</small>
+              </button>
+            `
+            )
+            .join("") +
+          `<button class="secondary" onclick="loadTeachers()">⬅ К преподавателям</button>`;
+      }
+
+      async function doLesson(lessonNumber) {
+        const data = await apiFetch("/api/lesson", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             telegramId: tgUser.id,
-            lessonNumber: lessonNumber,
+            lessonNumber,
           }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.blocked) {
-              tg.showPopup({
-                title: "🔒 Урок закрыт",
-                message: "Этот урок доступен по подписке",
-                buttons: [{ type: "ok" }],
-              });
-            }
-            loadUser();
-          })
-          .catch(() => {
-            tg.showAlert("Ошибка при прохождении урока");
+        });
+
+        if (data.blocked) {
+          tg.showPopup({
+            title: "🔒 Урок закрыт",
+            message: "Этот урок доступен по подписке",
+            buttons: [{ type: "ok" }],
           });
+          return;
+        }
+
+        await loadCurrentUser();
+      }
+
+      async function loadTeacherProfile() {
+        const profile = await apiFetch("/api/teacher/profile");
+        teacherNameInput.value = profile.name || "";
+        teacherDescriptionInput.value = profile.description || "";
+        teacherAvatarInput.value = profile.avatar_url || "";
+      }
+
+      async function saveTeacherProfile() {
+        await apiFetch("/api/teacher/profile", {
+          method: "PUT",
+          body: JSON.stringify({
+            name: teacherNameInput.value,
+            description: teacherDescriptionInput.value,
+            avatarUrl: teacherAvatarInput.value,
+          }),
+        });
+        tg.showAlert("Профиль преподавателя сохранен");
+      }
+
+      async function loadTeacherCourses() {
+        const courses = await apiFetch("/api/teacher/courses");
+        teacherCourses.innerHTML =
+          "<b>Ваши курсы</b><br/><br/>" +
+          (courses.length
+            ? courses
+                .map(
+                  (c) =>
+                    `• ${escapeHtml(c.title)} — ${Number(c.price || 0)} ₽ (${
+                      c.is_published ? "опубликован" : "скрыт"
+                    })`
+                )
+                .join("<br/>")
+            : "Пока нет курсов");
+      }
+
+      async function createCourse() {
+        const title = courseTitleInput.value.trim();
+        if (!title) {
+          tg.showAlert("Укажи название курса");
+          return;
+        }
+
+        await apiFetch("/api/teacher/courses", {
+          method: "POST",
+          body: JSON.stringify({
+            title,
+            description: courseDescriptionInput.value.trim(),
+            price: Number(coursePriceInput.value || 0),
+            isPublished: coursePublishedInput.value === "true",
+            styleIds: [],
+          }),
+        });
+
+        courseTitleInput.value = "";
+        courseDescriptionInput.value = "";
+        coursePriceInput.value = "";
+        await loadTeacherCourses();
+        tg.showAlert("Курс создан");
       }
 
       function getInitials(name) {
@@ -286,7 +445,6 @@
         )}</span>`;
       }
 
-      /* expose */
       window.loadTeachers = loadTeachers;
       window.loadCourses = loadCourses;
       window.openCourse = openCourse;
