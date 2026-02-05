@@ -33,4 +33,17 @@ db.prepare(`
   )
 `).run();
 
+// Таблица уроков
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS lessons (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    course_id INTEGER NOT NULL,
+    lesson_number INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    FOREIGN KEY (course_id) REFERENCES courses(id)
+  )
+`).run();
+
+
 module.exports = db;
