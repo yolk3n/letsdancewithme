@@ -15,6 +15,25 @@ const path = require("path");
 
 app.use(express.static(path.join(__dirname, "web")));
 
+const db = require("./db");
+
+// список преподавателей
+app.get("/api/teachers", (req, res) => {
+  const teachers = db.prepare("SELECT * FROM teachers").all();
+  res.json(teachers);
+});
+
+// курсы преподавателя
+app.get("/api/courses/:teacherId", (req, res) => {
+  const teacherId = Number(req.params.teacherId);
+  const courses = db
+    .prepare("SELECT * FROM courses WHERE teacher_id = ?")
+    .all(teacherId);
+
+  res.json(courses);
+});
+
+
 app.listen(3000, () => {
   console.log("API сервер запущен на http://localhost:3000");
 });

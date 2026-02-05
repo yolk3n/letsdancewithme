@@ -50,89 +50,74 @@
   </head>
 
   <body>
-    <h1>💃 Let's Dance With Me</h1>
+  <h1>💃 Let's Dance With Me</h1>
 
-    <div class="card" id="user">
-      Загрузка данных пользователя...
-    </div>
+  <div class="card" id="screen"></div>
 
-    <div class="card">
-      <h3>Уроки</h3>
-      <button onclick="doLesson(1)">Урок 1 — Базовый шаг</button>
-      <button onclick="doLesson(2)">Урок 2 — Правый поворот</button>
-      <button onclick="doLesson(3)">Урок 3 — Связка</button>
-      <button onclick="doLesson(4)">Урок 4 — Комбинация 🔒</button>
-    </div>
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
 
-    <script>
-      const tg = window.Telegram.WebApp;
-      tg.ready();
-      tg.expand(); // критично для кликов
+    const screen = document.getElementById("screen");
 
-      const userBlock = document.getElementById("user");
-      const tgUser = tg.initDataUnsafe?.user;
+    // стартуем с преподавателей
+    loadTeachers();
 
-      if (!tgUser) {
-        userBlock.innerHTML =
-          '<span class="error">❌ Не удалось получить данные Telegram</span>';
-      } else {
-        loadUser();
-      }
-
-      function getLevel(xp) {
-        if (xp >= 60) return "💃 Танцор";
-        if (xp >= 30) return "🥋 Ученик";
-        return "🌱 Новичок";
-      }
-
-      function loadUser() {
-        fetch(`/api/user/${tgUser.id}`)
-          .then((res) => {
-            if (!res.ok) throw new Error("API error");
-            return res.json();
-          })
-          .then((data) => {
-            userBlock.innerHTML = `
-              <b>${tgUser.first_name}</b><br/><br/>
-              ⭐ XP: ${data.xp}<br/>
-              🏅 Уровень: ${getLevel(data.xp)}<br/>
-              📚 Уроков пройдено: ${data.lessons_completed}
-            `;
-          })
-          .catch(() => {
-            userBlock.innerHTML =
-              '<span class="error">❌ Ошибка загрузки данных пользователя</span>';
-            tg.showAlert("Ошибка загрузки данных");
-          });
-      }
-
-      function doLesson(lessonNumber) {
-        fetch("/api/lesson", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            telegramId: tgUser.id,
-            lessonNumber: lessonNumber,
-          }),
+    function loadTeachers() {
+      screen.innerHTML = "<b>Выбери преподавателя</b><br/><br/>Загрузка...";
+      fetch("/api/teachers")
+        .then((res) => res.json())
+        .then((teachers) => {
+          screen.innerHTML =
+            "<b>Выбери преподавателя</b><br/><br/>" +
+            teachers
+              .map(
+                (t) => `
+                  <button onclick="loadCourses(${t.id})">
+                    ${t.name}<br/>
+                    <small>${t.description}</small>
+                  </button>
+                `
+              )
+              .join("");
         })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.blocked) {
-              tg.showPopup({
-                title: "🔒 Урок закрыт",
-                message: "Этот урок доступен по подписке",
-                buttons: [{ type: "ok" }],
-              });
-            }
-            loadUser();
-          })
-          .catch(() => {
-            tg.showAlert("Ошибка при прохождении урока");
-          });
-      }
+        .catch(() => {
+          screen.innerHTML = "❌ Ошибка загрузки преподавателей";
+        });
+    }
 
-      // важно: делаем функцию доступной кнопкам
-      window.doLesson = doLesson;
-    </script>
-  </body>
+    function loadCourses(teacherId) {
+      screen.innerHTML = "Загрузка курсов...";
+      fetch(`/api/courses/${teacherId}`)
+        .then((res) => res.json())
+        .then((courses) => {
+          screen.innerHTML =
+            "<b>Курсы</b><br/><br/>" +
+            courses
+              .map(
+                (c) => `
+                  <button onclick="openCourse(${c.id})">
+                    ${c.title}<br/>
+                    <small>${c.description}</small>
+                  </button>
+                `
+              )
+              .join("") +
+            `<br/><button onclick="loadTeachers()">⬅ Назад</button>`;
+        })
+        .catch(() => {
+          screen.innerHTML = "❌ Ошибка загрузки курсов";
+        });
+    }
+
+    function openCourse(courseId) {
+      tg.showAlert("Курс выбран. Уроки — следующий шаг 😉");
+    }
+
+    window.loadCourses = loadCourses;
+    window.loadTeachers = loadTeachers;
+    window.openCourse = openCourse;
+  </script>
+</body>
 </html>
