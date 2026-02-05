@@ -18,3 +18,16 @@ app.use(express.static(path.join(__dirname, "web")));
 app.listen(3000, () => {
   console.log("API сервер запущен на http://localhost:3000");
 });
+
+const { completeLesson } = require("./userService");
+
+app.post("/api/lesson", (req, res) => {
+  const { telegramId, lessonNumber } = req.body;
+
+  if (!telegramId || !lessonNumber) {
+    return res.status(400).json({ error: "Missing data" });
+  }
+
+  const result = completeLesson(Number(telegramId), Number(lessonNumber));
+  res.json(result);
+});

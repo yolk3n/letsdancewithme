@@ -1,31 +1,60 @@
-<script>
-  const tg = window.Telegram.WebApp;
-  tg.ready();
+<body>
+  <h1>💃 Let's Dance With Me</h1>
 
-  const user = tg.initDataUnsafe.user;
-  const el = document.getElementById("user");
+  <div class="card" id="user">Загрузка...</div>
 
-  if (!user) {
-    el.innerText = "Не удалось получить данные Telegram";
-  } else {
-    fetch(`/api/user/${user.id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        el.innerHTML = `
-          <b>Привет, ${user.first_name}!</b><br/><br/>
-          ⭐ XP: ${data.xp}<br/>
-          🏅 Уровень: ${getLevel(data.xp)}<br/>
-          📚 Пройдено уроков: ${data.lessons_completed}
-        `;
+  <div class="card">
+    <h3>Уроки</h3>
+    <button onclick="doLesson(1)">Урок 1</button>
+    <button onclick="doLesson(2)">Урок 2</button>
+    <button onclick="doLesson(3)">Урок 3</button>
+    <button onclick="doLesson(4)">Урок 4 🔒</button>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+
+    const user = tg.initDataUnsafe.user;
+    const el = document.getElementById("user");
+
+    function getLevel(xp) {
+      if (xp >= 60) return "💃 Танцор";
+      if (xp >= 30) return "🥋 Ученик";
+      return "🌱 Новичок";
+    }
+
+    function loadUser() {
+      fetch(`/api/user/${user.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          el.innerHTML = `
+            <b>${user.first_name}</b><br/>
+            ⭐ XP: ${data.xp}<br/>
+            🏅 Уровень: ${getLevel(data.xp)}<br/>
+            📚 Уроков пройдено: ${data.lessons_completed}
+          `;
+        });
+    }
+
+    function doLesson(n) {
+      fetch("/api/lesson", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          telegramId: user.id,
+          lessonNumber: n,
+        }),
       })
-      .catch(() => {
-        el.innerText = "Ошибка загрузки данных пользователя";
-      });
-  }
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.blocked) {
+            alert("🔒 Доступно по подписке");
+          }
+          loadUser();
+        });
+    }
 
-  function getLevel(xp) {
-    if (xp >= 60) return "💃 Танцор";
-    if (xp >= 30) return "🥋 Ученик";
-    return "🌱 Новичок";
-  }
-</script>
+    loadUser();
+  </script>
+</body>
