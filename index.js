@@ -16,7 +16,7 @@ const mainMenu = new Keyboard()
 
 const miniAppKeyboard = new InlineKeyboard().webApp(
   "🚀 Открыть обучение",
-  "https://varnishy-optically-kenzie.ngrok-free.dev"
+  "https://letsdancewithme.onrender.com"
 );
 
 // Меню преподавателей
