@@ -11,7 +11,71 @@ async function getOrCreateUser(telegramId) {
   );
 
   const result = await db.query(
-    "SELECT telegram_id, lessons_completed, xp, role, is_onboarded FROM users WHERE telegram_id = $1",
+    `
+      SELECT
+        telegram_id,
+        lessons_completed,
+        xp,
+        role,
+        is_onboarded,
+        first_name,
+        last_name,
+        username,
+        avatar_url
+      FROM users
+      WHERE telegram_id = $1
+    `,
+    [telegramId]
+  );
+
+  return result.rows[0];
+}
+
+async function syncTelegramProfile(telegramId, profile = {}) {
+  const firstName = typeof profile.first_name === "string" ? profile.first_name.trim() : null;
+  const lastName = typeof profile.last_name === "string" ? profile.last_name.trim() : null;
+  const username = typeof profile.username === "string" ? profile.username.trim() : null;
+  const avatarUrl = typeof profile.avatar_url === "string" ? profile.avatar_url.trim() : null;
+
+  await db.query(
+    `
+      INSERT INTO users (
+        telegram_id,
+        lessons_completed,
+        xp,
+        role,
+        is_onboarded,
+        first_name,
+        last_name,
+        username,
+        avatar_url
+      )
+      VALUES ($1, 0, 0, 'student', false, $2, $3, $4, $5)
+      ON CONFLICT (telegram_id)
+      DO UPDATE SET
+        first_name = COALESCE(NULLIF(EXCLUDED.first_name, ''), users.first_name),
+        last_name = COALESCE(NULLIF(EXCLUDED.last_name, ''), users.last_name),
+        username = COALESCE(NULLIF(EXCLUDED.username, ''), users.username),
+        avatar_url = COALESCE(NULLIF(EXCLUDED.avatar_url, ''), users.avatar_url)
+    `,
+    [telegramId, firstName, lastName, username, avatarUrl]
+  );
+
+  const result = await db.query(
+    `
+      SELECT
+        telegram_id,
+        lessons_completed,
+        xp,
+        role,
+        is_onboarded,
+        first_name,
+        last_name,
+        username,
+        avatar_url
+      FROM users
+      WHERE telegram_id = $1
+    `,
     [telegramId]
   );
 
@@ -124,6 +188,7 @@ async function completeLesson(telegramId, courseId, lessonNumber) {
 
 module.exports = {
   getOrCreateUser,
+  syncTelegramProfile,
   setOnboardingComplete,
   completeLesson,
 };

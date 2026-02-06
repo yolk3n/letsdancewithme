@@ -37,7 +37,11 @@ async function initDb() {
       lessons_completed INTEGER NOT NULL DEFAULT 0,
       xp INTEGER NOT NULL DEFAULT 0,
       role TEXT NOT NULL DEFAULT 'student',
-      is_onboarded BOOLEAN NOT NULL DEFAULT false
+      is_onboarded BOOLEAN NOT NULL DEFAULT false,
+      first_name TEXT,
+      last_name TEXT,
+      username TEXT,
+      avatar_url TEXT
     )
   `);
 
@@ -117,6 +121,10 @@ async function initDb() {
   // Backward-compatible migration for existing environments.
   await query("ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'student'");
   await query("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_onboarded BOOLEAN NOT NULL DEFAULT false");
+  await query("ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name TEXT");
+  await query("ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name TEXT");
+  await query("ALTER TABLE users ADD COLUMN IF NOT EXISTS username TEXT");
+  await query("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT");
 
   await query("ALTER TABLE teachers ADD COLUMN IF NOT EXISTS user_id BIGINT UNIQUE");
   await query("ALTER TABLE teachers ADD COLUMN IF NOT EXISTS avatar_url TEXT");

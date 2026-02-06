@@ -2,7 +2,7 @@ const express = require("express");
 const path = require("path");
 
 const db = require("./db");
-const { getOrCreateUser, setOnboardingComplete, completeLesson } = require("./userService");
+const { getOrCreateUser, syncTelegramProfile, setOnboardingComplete, completeLesson } = require("./userService");
 const COURSE_MIN_PRICE = 199;
 const MAX_FREE_LESSONS_PER_COURSE = 3;
 
@@ -114,6 +114,21 @@ app.get(
   requireUser(),
   asyncRoute(async (req, res) => {
     res.json(req.currentUser);
+  })
+);
+
+app.post(
+  "/api/profile/sync",
+  requireUser(),
+  asyncRoute(async (req, res) => {
+    const profile = req.body || {};
+    const user = await syncTelegramProfile(req.currentUser.telegram_id, {
+      first_name: profile.first_name,
+      last_name: profile.last_name,
+      username: profile.username,
+      avatar_url: profile.avatar_url,
+    });
+    res.json(user);
   })
 );
 
@@ -691,7 +706,16 @@ app.get(
   asyncRoute(async (req, res) => {
     const result = await db.query(
       `
-        SELECT telegram_id, role, is_onboarded, lessons_completed, xp
+        SELECT
+          telegram_id,
+          role,
+          is_onboarded,
+          lessons_completed,
+          xp,
+          first_name,
+          last_name,
+          username,
+          avatar_url
         FROM users
         ORDER BY telegram_id
       `
