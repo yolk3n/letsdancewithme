@@ -33,8 +33,60 @@
       .pill { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #333; }
       .pill.free { background: #245b2e; }
       .pill.paid { background: #5b2d24; }
-      .mode-label { display: block; margin-top: 8px; }
-      .mode-label input[type="checkbox"] { width: auto; margin-right: 8px; }
+      .mode-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 8px;
+      }
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 46px;
+        height: 26px;
+        flex: 0 0 46px;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #3a3a3a;
+        transition: 0.2s;
+        border-radius: 999px;
+      }
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        top: 3px;
+        background-color: white;
+        transition: 0.2s;
+        border-radius: 50%;
+      }
+      .switch input:checked + .slider {
+        background-color: #ff4d6d;
+      }
+      .switch input:checked + .slider:before {
+        transform: translateX(20px);
+      }
+      .role-switch-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 8px;
+      }
       a { color: #ff9ab0; }
     </style>
   </head>
@@ -44,12 +96,18 @@
     <div class="card hidden" id="modeCard">
       <b>Режим</b>
       <label id="teacherModeWrap" class="hidden mode-label">
-        <input type="checkbox" id="teacherModeToggle" />
-        Режим преподавателя
+        <span>Режим преподавателя</span>
+        <span class="switch">
+          <input type="checkbox" id="teacherModeToggle" />
+          <span class="slider"></span>
+        </span>
       </label>
       <label id="adminModeWrap" class="hidden mode-label">
-        <input type="checkbox" id="adminModeToggle" />
-        Режим администратора
+        <span>Режим администратора</span>
+        <span class="switch">
+          <input type="checkbox" id="adminModeToggle" />
+          <span class="slider"></span>
+        </span>
       </label>
     </div>
 
@@ -626,11 +684,17 @@
                   <div class="user-row">
                     <b>ID:</b> ${user.telegram_id}<br/>
                     <small class="muted">Роль: ${escapeHtml(user.role)} | XP: ${user.xp} | Уроков: ${user.lessons_completed}</small><br/>
-                    ${
-                      user.role !== "teacher"
-                        ? `<button class="compact" onclick="setUserRole(${user.telegram_id}, 'teacher')">Сделать преподавателем</button>`
-                        : `<button class="compact secondary" onclick="setUserRole(${user.telegram_id}, 'student')">Сделать пользователем</button>`
-                    }
+                    <div class="role-switch-row">
+                      <small>Преподаватель</small>
+                      <span class="switch">
+                        <input
+                          type="checkbox"
+                          ${user.role === "teacher" ? "checked" : ""}
+                          onchange="setTeacherRoleSwitch(${user.telegram_id}, this.checked)"
+                        />
+                        <span class="slider"></span>
+                      </span>
+                    </div>
                   </div>
                 `
               )
@@ -638,7 +702,8 @@
           : "Пользователей пока нет";
       }
 
-      window.setUserRole = async function setUserRole(telegramId, role) {
+      window.setTeacherRoleSwitch = async function setTeacherRoleSwitch(telegramId, checked) {
+        const role = checked ? "teacher" : "student";
         await apiFetch(`/api/admin/users/${telegramId}/role`, {
           method: "PUT",
           body: JSON.stringify({ role }),
