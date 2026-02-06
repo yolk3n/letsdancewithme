@@ -10,7 +10,7 @@ const TEACHER_DEFS = [
   {
     name: "Иванов Иван",
     description: "Сальса, бачата",
-    avatarUrl: "https://api.dicebear.com/7.x/adventurer/svg?seed=IvanovIvan",
+    avatarUrl: "https://i.pravatar.cc/300?img=12",
     courses: [
       { title: "Сальса: базовая техника", styleSlug: "salsa", price: 2490, level: "beginner", lessons: 6 },
       { title: "Сальса: партнёрские связки", styleSlug: "salsa", price: 2990, level: "advanced", lessons: 8 },
@@ -20,7 +20,7 @@ const TEACHER_DEFS = [
   {
     name: "Петрова Анна",
     description: "Бачата, lady style",
-    avatarUrl: "https://api.dicebear.com/7.x/adventurer/svg?seed=PetrovaAnna",
+    avatarUrl: "https://i.pravatar.cc/300?img=47",
     courses: [
       { title: "Бачата: с нуля", styleSlug: "bachata", price: 2390, level: "beginner", lessons: 5 },
       { title: "Бачата: работа корпусом", styleSlug: "bachata", price: 2890, level: "advanced", lessons: 9 },
@@ -30,7 +30,7 @@ const TEACHER_DEFS = [
   {
     name: "Сидоров Максим",
     description: "Кизомба, body movement",
-    avatarUrl: "https://api.dicebear.com/7.x/adventurer/svg?seed=SidorovMaxim",
+    avatarUrl: "https://i.pravatar.cc/300?img=15",
     courses: [
       { title: "Кизомба: основы", styleSlug: "kizomba", price: 2590, level: "beginner", lessons: 6 },
       { title: "Кизомба: ведение и follow", styleSlug: "kizomba", price: 3090, level: "advanced", lessons: 8 },
@@ -39,7 +39,7 @@ const TEACHER_DEFS = [
   {
     name: "Кузнецова Мария",
     description: "Сальса, кизомба",
-    avatarUrl: "https://api.dicebear.com/7.x/adventurer/svg?seed=KuznetsovaMaria",
+    avatarUrl: "https://i.pravatar.cc/300?img=32",
     courses: [
       { title: "Сальса: женская техника", styleSlug: "salsa", price: 2790, level: "beginner", lessons: 7 },
       { title: "Кизомба: пластика и flow", styleSlug: "kizomba", price: 3190, level: "advanced", lessons: 8 },

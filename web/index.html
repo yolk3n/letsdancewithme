@@ -7,27 +7,27 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap"
       rel="stylesheet"
     />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="/strings.ru.js"></script>
     <style>
       :root {
-        --bg-main: #f6f2ea;
-        --bg-soft: #fefcf8;
+        --bg-main: #fffaf8;
+        --bg-soft: #fffdfb;
         --card-bg: rgba(255, 255, 255, 0.9);
-        --card-border: rgba(38, 30, 20, 0.12);
-        --text-main: #1f1b16;
-        --text-muted: #6f665c;
+        --card-border: rgba(20, 24, 40, 0.1);
+        --text-main: #07122f;
+        --text-muted: #7a859a;
         --accent-pink: #f24f88;
         --accent-cyan: #00a8c7;
         --accent-yellow: #f1b341;
         --danger: #c93e57;
         --radius-lg: 18px;
         --radius-md: 12px;
-        --font-body: "Manrope", sans-serif;
-        --font-display: "Bebas Neue", sans-serif;
+        --font-body: "Nunito Sans", sans-serif;
+        --font-display: "Nunito Sans", sans-serif;
       }
       * { box-sizing: border-box; }
       body {
@@ -36,12 +36,10 @@
         padding: 16px;
         color: var(--text-main);
         font-family: var(--font-body);
-        background:
-          radial-gradient(120% 80% at 0% 0%, rgba(242, 79, 136, 0.1) 0%, rgba(242, 79, 136, 0) 55%),
-          linear-gradient(180deg, #fffdf9 0%, var(--bg-main) 100%);
+        background: linear-gradient(180deg, #fffdfa 0%, var(--bg-main) 100%);
       }
       .app-shell {
-        max-width: 860px;
+        max-width: 760px;
         margin: 0 auto;
       }
       .card {
@@ -117,23 +115,28 @@
       .profile-top {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         justify-content: flex-start;
         cursor: pointer;
       }
-      .profile-greeting { font-weight: 700; }
+      .profile-greeting {
+        font-weight: 900;
+        font-size: 24px;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+      }
       #user {
         background: transparent;
         border: 0;
         box-shadow: none;
-        padding: 0 0 8px;
-        margin-bottom: 8px;
+        padding: 4px 0 14px;
+        margin-bottom: 6px;
       }
       .profile-avatar,
       .profile-avatar-fallback {
-        width: 42px;
-        height: 42px;
-        flex: 0 0 42px;
+        width: 56px;
+        height: 56px;
+        flex: 0 0 56px;
         border-radius: 50%;
       }
       .profile-avatar {
@@ -161,20 +164,21 @@
       .style-chips {
         display: flex;
         flex-wrap: wrap;
-        gap: 6px;
-        margin-bottom: 10px;
+        gap: 10px;
+        margin-bottom: 14px;
       }
       .style-chip {
         width: auto;
         margin: 0;
-        padding: 8px 11px;
+        padding: 12px 20px;
         border-radius: 999px;
-        border: 1px solid rgba(45, 31, 20, 0.18);
-        background: rgba(255, 255, 255, 0.86);
-        color: #2d251e;
-        font-size: 13px;
-        font-weight: 600;
+        border: 1px solid rgba(255, 111, 103, 0.12);
+        background: #fff4f2;
+        color: #8e5d59;
+        font-size: 14px;
         line-height: 1;
+        font-family: var(--font-display);
+        font-weight: 800;
         box-shadow: none;
       }
       .style-chip.active {
@@ -194,7 +198,7 @@
       .catalog-bar {
         display: grid;
         gap: 8px;
-        margin-bottom: 14px;
+        margin-bottom: 16px;
       }
       .catalog-row {
         display: flex;
@@ -209,18 +213,19 @@
       .teacher-filter-btn {
         width: auto;
         margin: 0;
-        padding: 8px 11px;
+        padding: 12px 20px;
         border-radius: 999px;
-        border: 1px solid rgba(45, 31, 20, 0.18);
-        background: rgba(255, 255, 255, 0.86);
-        color: #2d251e;
+        border: 1px solid rgba(255, 111, 103, 0.12);
+        background: #fff4f2;
+        color: #8e5d59;
         box-shadow: none;
         display: inline-flex;
         align-items: center;
         gap: 8px;
+        font-size: 14px;
         line-height: 1;
-        font-size: 13px;
-        font-weight: 600;
+        font-family: var(--font-display);
+        font-weight: 800;
       }
       .teacher-filter-btn.active {
         color: #fff;
@@ -229,10 +234,10 @@
       }
       .teacher-filter-avatar,
       .teacher-filter-fallback {
-        width: 22px;
-        height: 22px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
-        flex: 0 0 22px;
+        flex: 0 0 28px;
       }
       .teacher-filter-avatar { object-fit: cover; }
       .teacher-filter-fallback {
@@ -388,13 +393,13 @@
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        margin-top: 12px;
-        padding-top: 10px;
-        border-top: 1px solid rgba(38, 30, 20, 0.12);
+        margin-top: 18px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(20, 24, 40, 0.1);
       }
       .course-progress-inline {
-        width: 24%;
-        min-width: 84px;
+        width: 28%;
+        min-width: 92px;
       }
       .course-progress-inline .course-progress-track { margin-top: 2px; }
       .course-progress-inline .course-progress-label {
@@ -403,9 +408,9 @@
       }
       .course-author-avatar,
       .course-author-fallback {
-        width: 46px;
-        height: 46px;
-        flex: 0 0 46px;
+        width: 54px;
+        height: 54px;
+        flex: 0 0 54px;
         border-radius: 50%;
       }
       .course-author-avatar {
@@ -425,12 +430,12 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        min-height: 46px;
-        max-width: 150px;
-        font-size: 13px;
-        line-height: 1.15;
-        font-weight: 600;
-        color: var(--text-muted);
+        min-height: 54px;
+        max-width: 168px;
+        font-size: 15px;
+        line-height: 1.02;
+        font-weight: 800;
+        color: #1f2b4b;
       }
       .course-author-name.single {
         justify-content: center;
@@ -549,13 +554,13 @@
       }
       .catalog-courses-grid {
         display: grid;
-        gap: 12px;
+        gap: 14px;
       }
       .catalog-course-card {
         cursor: pointer;
-        border-color: rgba(38, 30, 20, 0.1);
+        border-color: rgba(18, 23, 43, 0.08);
         background: #fff;
-        box-shadow: 0 6px 16px rgba(31, 24, 19, 0.06);
+        box-shadow: 0 4px 12px rgba(13, 20, 44, 0.06);
         transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
       }
       .catalog-course-card.level-beginner {
@@ -579,27 +584,27 @@
       }
       .course-card-title {
         flex: 1 1 auto;
-        font-size: 19px;
-        line-height: 1.2;
-        font-weight: 700;
+        font-size: 17px;
+        line-height: 1.18;
+        font-weight: 800;
         letter-spacing: -0.01em;
       }
       .catalog-course-card.level-beginner .course-card-title {
-        color: #1f5f77;
+        color: #091632;
       }
       .catalog-course-card.level-advanced .course-card-title {
-        color: #8f4d1d;
+        color: #091632;
       }
       .catalog-course-card.level-professional .course-card-title {
-        color: #5a3b93;
+        color: #091632;
       }
       .course-level-badge {
         border-radius: 999px;
-        padding: 4px 8px;
-        font-size: 13px;
+        padding: 4px 10px;
+        font-size: 14px;
         line-height: 1.2;
-        font-weight: 700;
-        border: 1px solid rgba(38, 30, 20, 0.12);
+        font-weight: 800;
+        border: 1px solid rgba(30, 39, 77, 0.12);
         background: #f3f0f9;
         color: #7a6a98;
         white-space: nowrap;
@@ -627,22 +632,7 @@
         display: flex;
         flex-direction: column;
         align-items: flex-end;
-        gap: 8px;
-      }
-      .course-access-badge {
-        border-radius: 8px;
-        padding: 3px 8px;
-        font-size: 12px;
-        font-weight: 800;
-        line-height: 1;
-      }
-      .course-access-badge.free {
-        color: #1f9c64;
-        background: #e9faef;
-      }
-      .course-access-badge.paid {
-        color: #fff;
-        background: #ff6f67;
+        gap: 0;
       }
       .lesson-btn[disabled] {
         cursor: not-allowed;
@@ -878,20 +868,11 @@
         align-items: center;
         gap: 8px;
       }
-      .lesson-type-pill,
       .lesson-duration-pill {
         border-radius: 8px;
         padding: 4px 8px;
         font-size: 12px;
         font-weight: 800;
-      }
-      .lesson-type-pill.free {
-        color: #1f9c64;
-        background: #e9faef;
-      }
-      .lesson-type-pill.paid {
-        color: #fff;
-        background: #ff6f67;
       }
       .lesson-duration-pill {
         color: #5c4e45;
@@ -1590,14 +1571,12 @@
                       const levelLabel = getCourseLevelLabel(course.level);
                       const author = formatTeacherNameForCard(course.teacher_name);
                       const progressPercent = Number(course.progress_percent || 0);
-                      const purchaseBadge = course.is_purchased ? "FREE" : "PAID";
                       return `
                 <div class="course-card catalog-course-card level-${levelClass}" onclick="openCourse(${course.id})">
                   <div class="course-head">
                     <div class="course-card-title">${escapeHtml(course.title)}</div>
                     <div class="course-head-side">
                       <span class="course-level-badge ${levelClass}">${levelLabel}</span>
-                      <span class="course-access-badge ${course.is_purchased ? "free" : "paid"}">${purchaseBadge}</span>
                     </div>
                   </div>
                   <div class="course-top-row">
@@ -1790,7 +1769,7 @@
           <div class="lesson-page-wrap">
             <div class="lesson-page-card">
               <div class="lesson-page-meta">
-                <span class="lesson-type-pill ${lesson.is_free ? "free" : "paid"}">${lesson.is_free ? "FREE" : "PAID"}</span>
+                <span class="lesson-type-icon" title="${lesson.is_free ? S.free : S.paid}">${lesson.is_free ? "🆓" : "💳"}</span>
                 <span class="lesson-duration-pill">⏱ ${durationText}</span>
               </div>
               <h3>${escapeHtml(normalizeLessonTitle(lesson))}</h3>
