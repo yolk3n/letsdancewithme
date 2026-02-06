@@ -363,6 +363,31 @@
         padding: 10px;
         background: rgba(255, 255, 255, 0.72);
       }
+      .catalog-courses-grid {
+        display: grid;
+        gap: 8px;
+      }
+      .catalog-course-card {
+        display: grid;
+        grid-template-columns: 64px 1fr;
+        gap: 10px;
+      }
+      .catalog-course-side {
+        display: grid;
+        justify-items: center;
+        align-content: start;
+        gap: 6px;
+      }
+      .catalog-course-teacher {
+        text-align: center;
+        font-size: 11px;
+        line-height: 1.2;
+        color: var(--text-muted);
+        word-break: break-word;
+      }
+      .catalog-course-main {
+        min-width: 0;
+      }
       .course-card-title { font-weight: 700; margin-bottom: 3px; }
       .course-card-meta {
         margin-top: 8px;
@@ -422,6 +447,11 @@
       @keyframes cardIn {
         from { opacity: 0; transform: translateY(6px); }
         to { opacity: 1; transform: translateY(0); }
+      }
+      @media (min-width: 860px) {
+        .catalog-courses-grid {
+          grid-template-columns: 1fr 1fr;
+        }
       }
       @media (max-width: 700px) {
         body { padding: 12px; }
@@ -846,29 +876,31 @@
             </div>
           </div>
           ${renderStyleFilterChips(styles)}
-          <div class="stack">
+          <div class="catalog-courses-grid">
           ${
             courses.length
               ? courses
                   .map(
                     (course) => `
-                <div class="course-card">
-                  <div class="course-card-title">${escapeHtml(course.title)}</div>
-                  <div class="course-author">
+                <div class="course-card catalog-course-card">
+                  <div class="catalog-course-side">
                     ${renderCourseAuthorAvatar(course)}
-                    <small class="muted">${escapeHtml(course.teacher_name || "Преподаватель")}</small>
+                    <div class="catalog-course-teacher">${escapeHtml(course.teacher_name || "Преподаватель")}</div>
                   </div>
-                  <div class="course-progress">
-                    <div class="course-progress-track">
-                      <div class="course-progress-fill" style="width:${Math.max(0, Math.min(100, Number(course.progress_percent || 0)))}%"></div>
+                  <div class="catalog-course-main">
+                    <div class="course-card-title">${escapeHtml(course.title)}</div>
+                    <div class="course-progress">
+                      <div class="course-progress-track">
+                        <div class="course-progress-fill" style="width:${Math.max(0, Math.min(100, Number(course.progress_percent || 0)))}%"></div>
+                      </div>
+                      <div class="course-progress-label">${Number(course.completed_lessons || 0)}/${Number(course.total_lessons || 0)} уроков • ${Number(course.progress_percent || 0)}%</div>
                     </div>
-                    <div class="course-progress-label">${Number(course.completed_lessons || 0)}/${Number(course.total_lessons || 0)} уроков • ${Number(course.progress_percent || 0)}%</div>
+                    <div class="course-card-meta">
+                      <small class="muted">${S.priceLabel}: ${formatRub(course.price)}</small>
+                      <small class="pill ${course.is_purchased ? "free" : "paid"}">${course.is_purchased ? S.purchased : S.notPurchased}</small>
+                    </div>
+                    <button onclick="openCourse(${course.id})">${course.is_purchased ? "Продолжить" : "Открыть курс"}</button>
                   </div>
-                  <div class="course-card-meta">
-                    <small class="muted">${S.priceLabel}: ${formatRub(course.price)}</small>
-                    <small class="pill ${course.is_purchased ? "free" : "paid"}">${course.is_purchased ? S.purchased : S.notPurchased}</small>
-                  </div>
-                  <button onclick="openCourse(${course.id})">${course.is_purchased ? "Продолжить" : "Открыть курс"}</button>
                 </div>
               `
                   )
