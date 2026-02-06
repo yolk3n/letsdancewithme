@@ -13,30 +13,24 @@
         background: #111;
         color: #fff;
       }
-
       h1 {
         margin-top: 0;
       }
-
       .card {
         background: #1e1e1e;
         padding: 16px;
         border-radius: 12px;
         margin-bottom: 16px;
       }
-
       .hidden {
         display: none;
       }
-
       .muted {
         color: #bbb;
       }
-
       .error {
         color: #ff8080;
       }
-
       button,
       input,
       select,
@@ -49,21 +43,14 @@
         border: none;
         box-sizing: border-box;
       }
-
       button {
         background: #ff4d6d;
         color: #fff;
         cursor: pointer;
       }
-
       button.secondary {
         background: #333;
       }
-
-      button:active {
-        background: #e03a58;
-      }
-
       input,
       select,
       textarea {
@@ -71,14 +58,12 @@
         color: #fff;
         border: 1px solid #3a3a3a;
       }
-
       .teacher-btn {
         display: flex;
         align-items: center;
         gap: 12px;
         text-align: left;
       }
-
       .teacher-avatar {
         width: 44px;
         height: 44px;
@@ -86,7 +71,6 @@
         object-fit: cover;
         flex: 0 0 44px;
       }
-
       .teacher-avatar-fallback {
         width: 44px;
         height: 44px;
@@ -100,18 +84,37 @@
         background: #2b2b2b;
         color: #fff;
       }
-
       .teacher-content {
         min-width: 0;
       }
-
       .row {
         display: flex;
         gap: 8px;
       }
-
       .row > * {
         flex: 1;
+      }
+      .lesson-row {
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 8px;
+        margin-bottom: 8px;
+      }
+      .pill {
+        display: inline-block;
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: #333;
+      }
+      .pill.free {
+        background: #245b2e;
+      }
+      .pill.paid {
+        background: #5b2d24;
+      }
+      a {
+        color: #ff9ab0;
       }
     </style>
   </head>
@@ -122,35 +125,54 @@
 
     <div class="card hidden" id="onboardingCard">
       <b>Добро пожаловать!</b>
-      <p class="muted">
-        Здесь ты найдешь курсы по разным танцевальным направлениям. Выбери преподавателя и начни с бесплатных уроков.
-      </p>
-      <button id="onboardingBtn">Начать обучение</button>
+      <p class="muted">Выбери преподавателя и начни обучение.</p>
+      <button id="onboardingBtn">Начать</button>
     </div>
 
     <div class="card hidden" id="studentScreen">Загрузка...</div>
 
     <div class="card hidden" id="teacherScreen">
       <b>Кабинет преподавателя</b>
+
       <p class="muted">Профиль</p>
       <input id="teacherName" placeholder="Имя преподавателя" />
       <input id="teacherDescription" placeholder="Описание" />
       <input id="teacherAvatarUrl" placeholder="URL аватарки" />
       <button id="saveTeacherProfileBtn">Сохранить профиль</button>
+
       <hr />
+
       <p class="muted">Новый курс</p>
       <input id="courseTitle" placeholder="Название курса" />
       <input id="courseDescription" placeholder="Описание курса" />
       <div class="row">
-        <input id="coursePrice" type="number" placeholder="Цена" />
+        <input id="coursePrice" type="number" placeholder="Цена" min="0" />
         <select id="coursePublished">
           <option value="true">Опубликован</option>
           <option value="false">Скрыт</option>
         </select>
       </div>
       <button id="createCourseBtn">Создать курс</button>
+
       <hr />
-      <div id="teacherCourses" class="muted">Курсы преподавателя: загрузка...</div>
+
+      <p class="muted">Уроки курса</p>
+      <select id="teacherCourseSelect"></select>
+      <div class="row">
+        <input id="lessonNumber" type="number" min="1" placeholder="№ урока" />
+        <input id="lessonDuration" type="number" min="1" placeholder="Длительность (сек)" />
+      </div>
+      <input id="lessonTitle" placeholder="Название урока" />
+      <input id="lessonPreviewUrl" placeholder="Ссылка на превью" />
+      <textarea id="lessonDescription" placeholder="Описание урока"></textarea>
+      <select id="lessonIsFree">
+        <option value="true">Бесплатный урок</option>
+        <option value="false">Платный урок</option>
+      </select>
+      <button id="saveLessonBtn">Сохранить урок</button>
+
+      <div id="teacherCourses" class="muted">Курсы: загрузка...</div>
+      <div id="teacherLessons" class="muted">Уроки: выбери курс</div>
     </div>
 
     <script>
@@ -165,6 +187,7 @@
       const studentScreen = document.getElementById("studentScreen");
       const teacherScreen = document.getElementById("teacherScreen");
       const teacherCourses = document.getElementById("teacherCourses");
+      const teacherLessons = document.getElementById("teacherLessons");
 
       const teacherNameInput = document.getElementById("teacherName");
       const teacherDescriptionInput = document.getElementById("teacherDescription");
@@ -177,15 +200,26 @@
       const coursePublishedInput = document.getElementById("coursePublished");
       const createCourseBtn = document.getElementById("createCourseBtn");
 
+      const teacherCourseSelect = document.getElementById("teacherCourseSelect");
+      const lessonNumberInput = document.getElementById("lessonNumber");
+      const lessonDurationInput = document.getElementById("lessonDuration");
+      const lessonTitleInput = document.getElementById("lessonTitle");
+      const lessonPreviewInput = document.getElementById("lessonPreviewUrl");
+      const lessonDescriptionInput = document.getElementById("lessonDescription");
+      const lessonIsFreeInput = document.getElementById("lessonIsFree");
+      const saveLessonBtn = document.getElementById("saveLessonBtn");
+
       let currentUser = null;
       let selectedStyleId = "";
+      let currentTeacherCourses = [];
+      let currentTeacherLessons = [];
+      let editingLessonId = null;
 
       if (!tgUser) {
-        userBlock.innerHTML =
-          '<span class="error">Не удалось получить данные Telegram</span>';
+        userBlock.innerHTML = '<span class="error">Не удалось получить данные Telegram</span>';
       } else {
-        bootstrap().catch(() => {
-          userBlock.innerHTML = '<span class="error">Ошибка инициализации приложения</span>';
+        bootstrap().catch((error) => {
+          userBlock.innerHTML = `<span class="error">${escapeHtml(error.message || "Ошибка инициализации")}</span>`;
         });
       }
 
@@ -195,14 +229,18 @@
           "x-telegram-id": String(tgUser.id),
           ...(options.headers || {}),
         };
-
         const response = await fetch(url, { ...options, headers });
         const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          const message = data.error || "Request failed";
-          throw new Error(message);
-        }
+        if (!response.ok) throw new Error(data.error || "Request failed");
         return data;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;");
       }
 
       function getLevel(xp) {
@@ -212,9 +250,17 @@
       }
 
       async function bootstrap() {
-        await loadCurrentUser();
         bindEvents();
+        await loadCurrentUser();
         await routeByRole();
+      }
+
+      function bindEvents() {
+        onboardingBtn.addEventListener("click", completeOnboarding);
+        saveTeacherProfileBtn.addEventListener("click", saveTeacherProfile);
+        createCourseBtn.addEventListener("click", createCourse);
+        teacherCourseSelect.addEventListener("change", loadSelectedTeacherCourseLessons);
+        saveLessonBtn.addEventListener("click", saveLesson);
       }
 
       async function loadCurrentUser() {
@@ -224,19 +270,14 @@
           Роль: ${escapeHtml(currentUser.role)}<br/>
           ⭐ XP: ${currentUser.xp}<br/>
           🎖 Уровень: ${getLevel(currentUser.xp)}<br/>
-          📚 Уроков пройдено: ${currentUser.lessons_completed}
+          📚 Пройдено уроков: ${currentUser.lessons_completed}
         `;
       }
 
-      function bindEvents() {
-        onboardingBtn.addEventListener("click", async () => {
-          await apiFetch("/api/onboarding/complete", { method: "POST" });
-          await loadCurrentUser();
-          await routeByRole();
-        });
-
-        saveTeacherProfileBtn.addEventListener("click", saveTeacherProfile);
-        createCourseBtn.addEventListener("click", createCourse);
+      async function completeOnboarding() {
+        await apiFetch("/api/onboarding/complete", { method: "POST" });
+        await loadCurrentUser();
+        await routeByRole();
       }
 
       async function routeByRole() {
@@ -244,9 +285,7 @@
         studentScreen.classList.add("hidden");
         teacherScreen.classList.add("hidden");
 
-        if (!currentUser.is_onboarded) {
-          onboardingCard.classList.remove("hidden");
-        }
+        if (!currentUser.is_onboarded) onboardingCard.classList.remove("hidden");
 
         if (currentUser.role === "teacher" || currentUser.role === "admin") {
           teacherScreen.classList.remove("hidden");
@@ -259,31 +298,43 @@
         await loadTeachers();
       }
 
-      async function loadTeachers() {
-        const [teachers, styles] = await Promise.all([
-          apiFetch("/api/teachers"),
-          apiFetch("/api/styles"),
-        ]);
+      function getInitials(name) {
+        return String(name || "")
+          .trim()
+          .split(/\s+/)
+          .slice(0, 2)
+          .map((part) => part[0].toUpperCase())
+          .join("") || "T";
+      }
 
+      function renderTeacherAvatar(teacher) {
+        if (teacher.avatar_url) {
+          return `<img class="teacher-avatar" src="${escapeHtml(teacher.avatar_url)}" alt="${escapeHtml(
+            teacher.name || "Teacher"
+          )}" />`;
+        }
+        return `<span class="teacher-avatar-fallback">${escapeHtml(getInitials(teacher.name))}</span>`;
+      }
+
+      async function loadTeachers() {
+        const [teachers, styles] = await Promise.all([apiFetch("/api/teachers"), apiFetch("/api/styles")]);
         studentScreen.innerHTML = `
           <b>Выбери преподавателя</b><br/><br/>
           <select id="styleFilter">
             <option value="">Все направления</option>
-            ${styles
-              .map((s) => `<option value="${s.id}">${escapeHtml(s.name)}</option>`)
-              .join("")}
+            ${styles.map((s) => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join("")}
           </select>
           ${teachers
             .map(
               (t) => `
-              <button class="teacher-btn" onclick="loadCourses(${t.id})">
-                ${renderTeacherAvatar(t)}
-                <span class="teacher-content">
-                  ${escapeHtml(t.name)}<br/>
-                  <small class="muted">${escapeHtml(t.description || "")}</small>
-                </span>
-              </button>
-            `
+                <button class="teacher-btn" onclick="loadCourses(${t.id})">
+                  ${renderTeacherAvatar(t)}
+                  <span class="teacher-content">
+                    ${escapeHtml(t.name)}<br/>
+                    <small class="muted">${escapeHtml(t.description || "")}</small>
+                  </span>
+                </button>
+              `
             )
             .join("")}
         `;
@@ -322,16 +373,22 @@
         studentScreen.innerHTML =
           "<b>Уроки</b><br/><br/>" +
           lessons
-            .map(
-              (l) => `
-              <button onclick="doLesson(${l.lesson_number})">
-                Урок ${l.lesson_number}: ${escapeHtml(l.title)}<br/>
-                <small class="muted">${l.is_free ? "Бесплатно" : "Платно"} · ${
-                l.duration_sec ? Math.round(l.duration_sec / 60) + " мин" : "без длительности"
-              }</small>
-              </button>
-            `
-            )
+            .map((l) => {
+              const typeClass = l.is_free ? "free" : "paid";
+              const typeText = l.is_free ? "Бесплатно" : "Платно";
+              const durationText = l.duration_sec ? `${Math.round(l.duration_sec / 60)} мин` : "без длительности";
+              const previewHtml = l.preview_url
+                ? `<br/><small><a href="${escapeHtml(l.preview_url)}" target="_blank" rel="noopener noreferrer">Превью</a></small>`
+                : "";
+              return `
+                <button onclick="doLesson(${l.lesson_number})">
+                  Урок ${l.lesson_number}: ${escapeHtml(l.title)}<br/>
+                  <small class="pill ${typeClass}">${typeText}</small>
+                  <small class="muted"> · ${durationText}</small>
+                  ${previewHtml}
+                </button>
+              `;
+            })
             .join("") +
           `<button class="secondary" onclick="loadTeachers()">⬅ К преподавателям</button>`;
       }
@@ -339,10 +396,7 @@
       async function doLesson(lessonNumber) {
         const data = await apiFetch("/api/lesson", {
           method: "POST",
-          body: JSON.stringify({
-            telegramId: tgUser.id,
-            lessonNumber,
-          }),
+          body: JSON.stringify({ telegramId: tgUser.id, lessonNumber }),
         });
 
         if (data.blocked) {
@@ -368,28 +422,82 @@
         await apiFetch("/api/teacher/profile", {
           method: "PUT",
           body: JSON.stringify({
-            name: teacherNameInput.value,
-            description: teacherDescriptionInput.value,
-            avatarUrl: teacherAvatarInput.value,
+            name: teacherNameInput.value.trim(),
+            description: teacherDescriptionInput.value.trim(),
+            avatarUrl: teacherAvatarInput.value.trim(),
           }),
         });
-        tg.showAlert("Профиль преподавателя сохранен");
+        tg.showAlert("Профиль сохранен");
+      }
+
+      function resetLessonForm() {
+        editingLessonId = null;
+        lessonNumberInput.value = "";
+        lessonDurationInput.value = "";
+        lessonTitleInput.value = "";
+        lessonPreviewInput.value = "";
+        lessonDescriptionInput.value = "";
+        lessonIsFreeInput.value = "true";
+        saveLessonBtn.textContent = "Сохранить урок";
       }
 
       async function loadTeacherCourses() {
-        const courses = await apiFetch("/api/teacher/courses");
+        currentTeacherCourses = await apiFetch("/api/teacher/courses");
         teacherCourses.innerHTML =
           "<b>Ваши курсы</b><br/><br/>" +
-          (courses.length
-            ? courses
+          (currentTeacherCourses.length
+            ? currentTeacherCourses
                 .map(
                   (c) =>
-                    `• ${escapeHtml(c.title)} — ${Number(c.price || 0)} ₽ (${
-                      c.is_published ? "опубликован" : "скрыт"
-                    })`
+                    `• ${escapeHtml(c.title)} — ${Number(c.price || 0)} ₽ (${c.is_published ? "опубликован" : "скрыт"})`
                 )
                 .join("<br/>")
             : "Пока нет курсов");
+
+        teacherCourseSelect.innerHTML = currentTeacherCourses.length
+          ? currentTeacherCourses.map((c) => `<option value="${c.id}">${escapeHtml(c.title)}</option>`).join("")
+          : '<option value="">Нет курсов</option>';
+
+        if (currentTeacherCourses.length) {
+          await loadSelectedTeacherCourseLessons();
+        } else {
+          teacherLessons.textContent = "Уроки: сначала создай курс";
+        }
+      }
+
+      async function loadSelectedTeacherCourseLessons() {
+        const courseId = Number(teacherCourseSelect.value);
+        if (!courseId) {
+          teacherLessons.textContent = "Уроки: выбери курс";
+          return;
+        }
+        const lessons = await apiFetch(`/api/teacher/courses/${courseId}/lessons`);
+        currentTeacherLessons = lessons;
+        teacherLessons.innerHTML =
+          "<b>Уроки выбранного курса</b><br/><br/>" +
+          (lessons.length
+            ? lessons
+                .map(
+                  (l) => `
+                    <div class="lesson-row">
+                      <b>${l.lesson_number}. ${escapeHtml(l.title)}</b><br/>
+                      <small class="muted">${escapeHtml(l.description || "")}</small><br/>
+                      <small class="muted">${l.is_free ? "Бесплатный" : "Платный"} · ${
+                        l.duration_sec ? `${l.duration_sec} сек` : "без длительности"
+                      }</small><br/>
+                      ${
+                        l.preview_url
+                          ? `<small><a href="${escapeHtml(
+                              l.preview_url
+                            )}" target="_blank" rel="noopener noreferrer">Превью</a></small><br/>`
+                          : ""
+                      }
+                      <button class="secondary" onclick="editLessonById(${l.id})">Редактировать</button>
+                    </div>
+                  `
+                )
+                .join("")
+            : "Пока нет уроков");
       }
 
       async function createCourse() {
@@ -398,7 +506,6 @@
           tg.showAlert("Укажи название курса");
           return;
         }
-
         await apiFetch("/api/teacher/courses", {
           method: "POST",
           body: JSON.stringify({
@@ -409,7 +516,6 @@
             styleIds: [],
           }),
         });
-
         courseTitleInput.value = "";
         courseDescriptionInput.value = "";
         coursePriceInput.value = "";
@@ -417,32 +523,55 @@
         tg.showAlert("Курс создан");
       }
 
-      function getInitials(name) {
-        return String(name || "")
-          .trim()
-          .split(/\s+/)
-          .slice(0, 2)
-          .map((part) => part.charAt(0).toUpperCase())
-          .join("") || "T";
-      }
+      window.editLessonById = function editLessonById(lessonId) {
+        const lesson = currentTeacherLessons.find((item) => item.id === lessonId);
+        if (!lesson) return;
+        editingLessonId = lesson.id;
+        lessonNumberInput.value = lesson.lesson_number;
+        lessonDurationInput.value = lesson.duration_sec || "";
+        lessonTitleInput.value = lesson.title || "";
+        lessonPreviewInput.value = lesson.preview_url || "";
+        lessonDescriptionInput.value = lesson.description || "";
+        lessonIsFreeInput.value = lesson.is_free ? "true" : "false";
+        saveLessonBtn.textContent = "Обновить урок";
+      };
 
-      function escapeHtml(value) {
-        return String(value)
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;");
-      }
-
-      function renderTeacherAvatar(teacher) {
-        if (teacher.avatar_url) {
-          return `<img class="teacher-avatar" src="${escapeHtml(
-            teacher.avatar_url
-          )}" alt="${escapeHtml(teacher.name || "Teacher")}"/>`;
+      async function saveLesson() {
+        const courseId = Number(teacherCourseSelect.value);
+        if (!courseId) {
+          tg.showAlert("Выбери курс");
+          return;
         }
-        return `<span class="teacher-avatar-fallback">${escapeHtml(
-          getInitials(teacher.name)
-        )}</span>`;
+
+        const payload = {
+          lessonNumber: Number(lessonNumberInput.value),
+          title: lessonTitleInput.value.trim(),
+          description: lessonDescriptionInput.value.trim(),
+          isFree: lessonIsFreeInput.value === "true",
+          durationSec: lessonDurationInput.value ? Number(lessonDurationInput.value) : null,
+          previewUrl: lessonPreviewInput.value.trim() || null,
+        };
+
+        if (!payload.lessonNumber || !payload.title) {
+          tg.showAlert("Заполни номер и название урока");
+          return;
+        }
+
+        if (editingLessonId) {
+          await apiFetch(`/api/teacher/lessons/${editingLessonId}`, {
+            method: "PUT",
+            body: JSON.stringify(payload),
+          });
+        } else {
+          await apiFetch(`/api/teacher/courses/${courseId}/lessons`, {
+            method: "POST",
+            body: JSON.stringify(payload),
+          });
+        }
+
+        resetLessonForm();
+        await loadSelectedTeacherCourseLessons();
+        tg.showAlert("Урок сохранен");
       }
 
       window.loadTeachers = loadTeachers;

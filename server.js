@@ -46,6 +46,17 @@ function requireRole(...allowedRoles) {
   };
 }
 
+function isFiniteNumber(value) {
+  return Number.isFinite(Number(value));
+}
+
+function asOptionalTrimmedString(value) {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length ? trimmed : null;
+}
+
 async function getOrCreateTeacherProfile(telegramId) {
   const existing = await db.query(
     "SELECT id, user_id, name, description, avatar_url FROM teachers WHERE user_id = $1",
@@ -263,6 +274,12 @@ app.post(
     if (!title || typeof title !== "string") {
       return res.status(400).json({ error: "title is required" });
     }
+    if (!isFiniteNumber(price) || Number(price) < 0) {
+      return res.status(400).json({ error: "price must be a non-negative number" });
+    }
+    if (typeof isPublished !== "boolean") {
+      return res.status(400).json({ error: "isPublished must be boolean" });
+    }
 
     const created = await db.query(
       `
@@ -270,7 +287,7 @@ app.post(
         VALUES ($1, $2, $3, $4, $5)
         RETURNING id, teacher_id, title, description, price, is_published
       `,
-      [teacher.id, title.trim(), description, Number(price) || 0, Boolean(isPublished)]
+      [teacher.id, title.trim(), description, Number(price), isPublished]
     );
 
     if (Array.isArray(styleIds) && styleIds.length > 0) {
@@ -313,13 +330,14 @@ app.put(
       return res.status(404).json({ error: "Course not found" });
     }
 
-    const {
-      title,
-      description,
-      price,
-      isPublished,
-      styleIds,
-    } = req.body;
+    const { title, description, price, isPublished, styleIds } = req.body;
+
+    if (price !== undefined && (!isFiniteNumber(price) || Number(price) < 0)) {
+      return res.status(400).json({ error: "price must be a non-negative number" });
+    }
+    if (isPublished !== undefined && typeof isPublished !== "boolean") {
+      return res.status(400).json({ error: "isPublished must be boolean" });
+    }
 
     const updated = await db.query(
       `
@@ -334,9 +352,9 @@ app.put(
       `,
       [
         typeof title === "string" ? title.trim() : null,
-        typeof description === "string" ? description : null,
+        asOptionalTrimmedString(description),
         price === undefined ? null : Number(price),
-        isPublished === undefined ? null : Boolean(isPublished),
+        isPublished === undefined ? null : isPublished,
         courseId,
       ]
     );
@@ -393,6 +411,18 @@ app.post(
     if (!lessonNumber || !title) {
       return res.status(400).json({ error: "lessonNumber and title are required" });
     }
+    if (!Number.isInteger(Number(lessonNumber)) || Number(lessonNumber) < 1) {
+      return res.status(400).json({ error: "lessonNumber must be a positive integer" });
+    }
+    if (typeof isFree !== "boolean") {
+      return res.status(400).json({ error: "isFree must be boolean" });
+    }
+    if (
+      durationSec !== null &&
+      (!Number.isInteger(Number(durationSec)) || Number(durationSec) < 1)
+    ) {
+      return res.status(400).json({ error: "durationSec must be null or positive integer" });
+    }
 
     const created = await db.query(
       `
@@ -418,11 +448,11 @@ app.post(
       [
         courseId,
         Number(lessonNumber),
-        title,
+        title.trim(),
         description,
-        Boolean(isFree),
+        isFree,
         durationSec === null ? null : Number(durationSec),
-        previewUrl,
+        asOptionalTrimmedString(previewUrl),
       ]
     );
 
@@ -463,6 +493,23 @@ app.put(
       lessonNumber,
     } = req.body;
 
+    if (isFree !== undefined && typeof isFree !== "boolean") {
+      return res.status(400).json({ error: "isFree must be boolean" });
+    }
+    if (
+      durationSec !== undefined &&
+      durationSec !== null &&
+      (!Number.isInteger(Number(durationSec)) || Number(durationSec) < 1)
+    ) {
+      return res.status(400).json({ error: "durationSec must be null or positive integer" });
+    }
+    if (
+      lessonNumber !== undefined &&
+      (!Number.isInteger(Number(lessonNumber)) || Number(lessonNumber) < 1)
+    ) {
+      return res.status(400).json({ error: "lessonNumber must be a positive integer" });
+    }
+
     const updated = await db.query(
       `
         UPDATE lessons
@@ -477,17 +524,49 @@ app.put(
         RETURNING id, course_id, lesson_number, title, description, is_free, duration_sec, preview_url
       `,
       [
-        title === undefined ? null : title,
-        description === undefined ? null : description,
-        isFree === undefined ? null : Boolean(isFree),
-        durationSec === undefined ? null : Number(durationSec),
-        previewUrl === undefined ? null : previewUrl,
+        title === undefined ? null : asOptionalTrimmedString(title),
+        description === undefined ? null : asOptionalTrimmedString(description),
+        isFree === undefined ? null : isFree,
+        durationSec === undefined ? null : durationSec === null ? null : Number(durationSec),
+        previewUrl === undefined ? null : asOptionalTrimmedString(previewUrl),
         lessonNumber === undefined ? null : Number(lessonNumber),
         lessonId,
       ]
     );
 
     res.json(updated.rows[0]);
+  })
+);
+
+app.get(
+  "/api/teacher/courses/:courseId/lessons",
+  requireUser(),
+  requireRole("teacher", "admin"),
+  asyncRoute(async (req, res) => {
+    const courseId = Number(req.params.courseId);
+    if (!courseId) {
+      return res.status(400).json({ error: "Invalid courseId" });
+    }
+
+    const teacher = await getOrCreateTeacherProfile(req.currentUser.telegram_id);
+    const owns = await db.query(
+      "SELECT id FROM courses WHERE id = $1 AND teacher_id = $2",
+      [courseId, teacher.id]
+    );
+    if (!owns.rows[0]) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    const lessons = await db.query(
+      `
+        SELECT id, course_id, lesson_number, title, description, is_free, duration_sec, preview_url
+        FROM lessons
+        WHERE course_id = $1
+        ORDER BY lesson_number
+      `,
+      [courseId]
+    );
+    res.json(lessons.rows);
   })
 );
 
