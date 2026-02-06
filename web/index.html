@@ -126,13 +126,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
-      }
-      .profile-meta { min-width: 0; }
-      .profile-name { font-weight: 800; line-height: 1.1; }
-      .profile-handle {
-        margin-top: 2px;
-        font-size: 12px;
-        color: var(--text-muted);
+        justify-content: center;
       }
       .profile-avatar,
       .profile-avatar-fallback {
@@ -154,6 +148,14 @@
         color: #2a2118;
         background: linear-gradient(145deg, #ffd7e8, #cceef7);
         border: 1px solid rgba(54, 34, 20, 0.17);
+      }
+      .profile-menu {
+        margin-top: 10px;
+        display: grid;
+        gap: 6px;
+      }
+      .profile-menu button {
+        margin: 0;
       }
       .style-chips {
         display: flex;
@@ -180,11 +182,11 @@
         background: rgba(0, 168, 199, 0.11);
       }
       .teacher-card {
-        border: 1px solid rgba(38, 30, 20, 0.12);
+        border: 1px solid rgba(38, 30, 20, 0.22);
         border-radius: 14px;
         padding: 10px;
-        background: linear-gradient(145deg, rgba(255, 255, 255, 0.85), var(--teacher-grad, rgba(255, 255, 255, 0.75)));
-        box-shadow: none;
+        background: #ffffff;
+        box-shadow: 0 6px 16px rgba(55, 38, 23, 0.12);
         cursor: pointer;
         transition: transform 120ms ease, filter 120ms ease;
       }
@@ -195,13 +197,6 @@
         border: 0;
         box-shadow: none;
         padding: 0;
-      }
-      .teacher-card-accent {
-        height: 2px;
-        border-radius: 999px;
-        margin: -2px -2px 10px;
-        background: var(--teacher-accent, rgba(0, 0, 0, 0.2));
-        opacity: 0.75;
       }
       .teacher-card-head {
         display: flex;
@@ -330,6 +325,7 @@
       }
       .pill.free { background: linear-gradient(135deg, #2d9050, #2f7f95); }
       .pill.paid { background: linear-gradient(135deg, #8e3a55, #a35333); }
+      .role-switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
       .mode-label { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
       .switch { position: relative; display: inline-block; width: 46px; height: 26px; flex: 0 0 46px; }
       .switch input { opacity: 0; width: 0; height: 0; }
@@ -344,7 +340,6 @@
       }
       .switch input:checked + .slider { background-color: #f24f88; }
       .switch input:checked + .slider:before { transform: translateX(20px); }
-      .role-switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
       hr {
         border: 0;
         height: 1px;
@@ -368,17 +363,6 @@
     <main class="app-shell">
     <h1 id="appTitle"></h1>
 
-    <div class="card hidden" id="modeCard">
-      <b id="modeTitle"></b>
-      <label id="modeToggleWrap" class="hidden mode-label">
-        <span id="modeToggleText"></span>
-        <span class="switch">
-          <input type="checkbox" id="modeToggle" />
-          <span class="slider"></span>
-        </span>
-      </label>
-    </div>
-
     <div class="card" id="user"></div>
 
     <div class="card hidden" id="onboardingCard">
@@ -401,12 +385,6 @@
       const tgUser = tg.initDataUnsafe?.user;
 
       const appTitle = document.getElementById("appTitle");
-      const modeCard = document.getElementById("modeCard");
-      const modeTitle = document.getElementById("modeTitle");
-      const modeToggleWrap = document.getElementById("modeToggleWrap");
-      const modeToggleText = document.getElementById("modeToggleText");
-      const modeToggle = document.getElementById("modeToggle");
-
       const userBlock = document.getElementById("user");
       const onboardingCard = document.getElementById("onboardingCard");
       const onboardingTitle = document.getElementById("onboardingTitle");
@@ -427,7 +405,7 @@
       let currentTeacherLessons = [];
       let currentAdminUsers = [];
       let editingLessonId = null;
-      let specialModeEnabled = false;
+      let selectedAppScreen = "student";
 
       renderStaticTexts();
 
@@ -441,7 +419,6 @@
 
       function renderStaticTexts() {
         appTitle.textContent = S.appTitle;
-        modeTitle.textContent = S.modeTitle;
         onboardingTitle.textContent = S.onboardingTitle;
         onboardingText.textContent = S.onboardingText;
         onboardingBtn.textContent = S.onboardingStart;
@@ -466,18 +443,6 @@
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || "Request failed");
         return data;
-      }
-
-      function getModeStorageKey() {
-        return `ldwm_special_mode_${tgUser.id}`;
-      }
-
-      function loadModeState() {
-        specialModeEnabled = localStorage.getItem(getModeStorageKey()) === "1";
-      }
-
-      function persistModeState() {
-        localStorage.setItem(getModeStorageKey(), specialModeEnabled ? "1" : "0");
       }
 
       function getLevel(xp) {
@@ -523,12 +488,12 @@
 
       function getTeacherAccent(teacherId) {
         const palette = [
-          { line: "#f08ca4", chipBg: "#fde8ee", grad: "rgba(248, 208, 224, 0.72)" },
-          { line: "#75bad4", chipBg: "#e3f5fb", grad: "rgba(207, 236, 247, 0.74)" },
-          { line: "#e3ac67", chipBg: "#faefde", grad: "rgba(245, 229, 202, 0.76)" },
-          { line: "#9bbf84", chipBg: "#edf5e7", grad: "rgba(224, 238, 211, 0.72)" },
-          { line: "#b39ddd", chipBg: "#f0eafa", grad: "rgba(226, 216, 247, 0.72)" },
-          { line: "#db8ea3", chipBg: "#fbe9ef", grad: "rgba(245, 216, 225, 0.73)" },
+          { chipBg: "#fde8ee" },
+          { chipBg: "#e3f5fb" },
+          { chipBg: "#faefde" },
+          { chipBg: "#edf5e7" },
+          { chipBg: "#f0eafa" },
+          { chipBg: "#fbe9ef" },
         ];
         const index = Math.abs(Number(teacherId) || 0) % palette.length;
         return palette[index];
@@ -578,8 +543,7 @@
         const visibleStyles = styles.slice(0, 2);
         const overflowCount = Math.max(styles.length - visibleStyles.length, 0);
         return `
-          <div class="teacher-card" onclick="loadCourses(${teacher.id})" style="--teacher-accent:${accent.line};--teacher-chip-bg:${accent.chipBg};--teacher-grad:${accent.grad};">
-            <div class="teacher-card-accent"></div>
+          <div class="teacher-card" onclick="loadCourses(${teacher.id})" style="--teacher-chip-bg:${accent.chipBg};">
             <div class="teacher-card-head">
               ${renderTeacherAvatar(teacher)}
               <div class="teacher-content">
@@ -615,8 +579,6 @@
         bindEvents();
         await syncProfileFromTelegram();
         await loadCurrentUser();
-        loadModeState();
-        renderModeControls();
         await routeByRole();
       }
 
@@ -634,52 +596,55 @@
 
       function bindEvents() {
         onboardingBtn.addEventListener("click", completeOnboarding);
-        modeToggle.addEventListener("change", async () => {
-          specialModeEnabled = modeToggle.checked;
-          persistModeState();
-          await routeByRole();
-        });
-      }
-
-      function renderModeControls() {
-        modeCard.classList.add("hidden");
-        modeToggleWrap.classList.add("hidden");
-
-        if (currentUser.role === "teacher" || currentUser.role === "admin") {
-          modeCard.classList.remove("hidden");
-          modeToggleWrap.classList.remove("hidden");
-          modeToggle.checked = specialModeEnabled;
-          modeToggleText.textContent = currentUser.role === "admin" ? S.adminMode : S.teacherMode;
-        }
       }
 
       async function loadCurrentUser() {
         currentUser = await apiFetch("/api/me");
-
-        if (currentUser.role !== "teacher" && currentUser.role !== "admin") {
-          specialModeEnabled = false;
-          localStorage.removeItem(getModeStorageKey());
-        }
-
-        renderModeControls();
-
-        const profileName = [currentUser.first_name, currentUser.last_name].filter(Boolean).join(" ") || tgUser.first_name || S.userDefaultName;
-        const profileHandle = currentUser.username ? `@${currentUser.username}` : "";
         const avatarUrl = currentUser.avatar_url || tgUser.photo_url || "";
+        const studentMenu =
+          currentUser.role === "teacher" || currentUser.role === "admin"
+            ? `<button class="secondary" onclick="openStudentScreen()">К обучению</button>`
+            : "";
+        const teacherMenu =
+          currentUser.role === "teacher" || currentUser.role === "admin"
+            ? `<button class="secondary" onclick="openTeacherCabinet()">Редактировать курсы</button>`
+            : "";
+        const adminMenu =
+          currentUser.role === "admin"
+            ? `<button class="secondary" onclick="openAdminPanel()">Администрирование</button>`
+            : "";
 
         userBlock.innerHTML = `
           <div class="profile-top">
             ${
               avatarUrl
                 ? `<img class="profile-avatar" src="${escapeHtml(avatarUrl)}" alt="profile avatar" />`
-                : `<span class="profile-avatar-fallback">${escapeHtml(getInitials(profileName))}</span>`
+                : `<span class="profile-avatar-fallback">${escapeHtml(getInitials(currentUser.first_name || tgUser.first_name || "U"))}</span>`
             }
-            <div class="profile-meta">
-              <div class="profile-name">${escapeHtml(profileName)}</div>
-              ${profileHandle ? `<div class="profile-handle">${escapeHtml(profileHandle)}</div>` : ""}
-            </div>
           </div>
+          ${studentMenu || teacherMenu || adminMenu ? `<div class="profile-menu">${studentMenu}${teacherMenu}${adminMenu}</div>` : ""}
         `;
+      }
+
+      function openStudentScreen() {
+        selectedAppScreen = "student";
+        routeByRole().catch((error) => {
+          studentScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
+        });
+      }
+
+      function openTeacherCabinet() {
+        selectedAppScreen = "teacher";
+        routeByRole().catch((error) => {
+          teacherScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
+        });
+      }
+
+      function openAdminPanel() {
+        selectedAppScreen = "admin";
+        routeByRole().catch((error) => {
+          adminScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
+        });
       }
 
       async function completeOnboarding() {
@@ -694,20 +659,22 @@
         teacherScreen.classList.add("hidden");
         adminScreen.classList.add("hidden");
 
-        const teacherSpecialMode = currentUser.role === "teacher" && specialModeEnabled;
-        const adminSpecialMode = currentUser.role === "admin" && specialModeEnabled;
+        const canUseTeacher = currentUser.role === "teacher" || currentUser.role === "admin";
+        const canUseAdmin = currentUser.role === "admin";
+        const showTeacherScreen = selectedAppScreen === "teacher" && canUseTeacher;
+        const showAdminScreen = selectedAppScreen === "admin" && canUseAdmin;
 
-        if (!currentUser.is_onboarded && !(teacherSpecialMode || adminSpecialMode)) {
+        if (!currentUser.is_onboarded && !(showTeacherScreen || showAdminScreen)) {
           onboardingCard.classList.remove("hidden");
         }
 
-        if (adminSpecialMode) {
+        if (showAdminScreen) {
           adminScreen.classList.remove("hidden");
           await renderAdminScreen();
           return;
         }
 
-        if (teacherSpecialMode) {
+        if (showTeacherScreen) {
           teacherScreen.classList.remove("hidden");
           await renderTeacherScreen();
           return;
@@ -1171,6 +1138,9 @@
       window.purchaseCourse = purchaseCourse;
       window.doLesson = doLesson;
       window.setStyleFilter = setStyleFilter;
+      window.openStudentScreen = openStudentScreen;
+      window.openTeacherCabinet = openTeacherCabinet;
+      window.openAdminPanel = openAdminPanel;
     </script>
   </body>
 </html>
