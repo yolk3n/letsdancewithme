@@ -261,27 +261,35 @@
         font-weight: 700;
       }
       .stack { display: grid; gap: 8px; }
-      .student-breadcrumb {
+      .student-header {
+        margin-bottom: 10px;
+      }
+      .student-header-top {
         display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-bottom: 12px;
+        align-items: center;
+        gap: 8px;
       }
-      .crumb {
-        border-radius: 999px;
-        border: 1px solid rgba(38, 30, 20, 0.14);
-        padding: 4px 10px;
-        font-size: 12px;
-        color: var(--text-muted);
-        background: rgba(255, 255, 255, 0.72);
+      .student-header-title {
+        margin: 0;
+        font-size: 24px;
+        line-height: 1;
+        letter-spacing: 0.01em;
+        font-family: var(--font-display);
+        font-weight: 400;
       }
-      .crumb.active {
-        color: #1d1711;
-        border-color: rgba(0, 168, 199, 0.32);
-        background: rgba(0, 168, 199, 0.12);
+      .back-btn {
+        width: auto;
+        min-width: 90px;
+        margin: 0;
+        text-align: center;
+      }
+      .back-spacer {
+        display: inline-block;
+        width: 90px;
+        flex: 0 0 90px;
       }
       .section-subtitle {
-        margin: -4px 0 10px;
+        margin: 6px 0 10px;
         color: var(--text-muted);
         font-size: 13px;
       }
@@ -568,11 +576,19 @@
         return `${Number(value || 0)} ₽`;
       }
 
-      function renderStudentBreadcrumb(step) {
-        const labels = ["1. Преподаватели", "2. Курсы", "3. Уроки"];
-        return `<div class="student-breadcrumb">${labels
-          .map((label, index) => `<span class="crumb ${index + 1 === step ? "active" : ""}">${label}</span>`)
-          .join("")}</div>`;
+      function renderStudentHeader(title, subtitle = "", backAction = "") {
+        const backPart = backAction
+          ? `<button class="secondary back-btn" onclick="${backAction}">← Назад</button>`
+          : `<span class="back-spacer"></span>`;
+        return `
+          <div class="student-header">
+            <div class="student-header-top">
+              ${backPart}
+              <h2 class="student-header-title">${escapeHtml(title)}</h2>
+            </div>
+            ${subtitle ? `<p class="section-subtitle">${escapeHtml(subtitle)}</p>` : ""}
+          </div>
+        `;
       }
 
       async function bootstrap() {
@@ -700,8 +716,7 @@
           : teachers;
 
         studentScreen.innerHTML = `
-          ${renderStudentBreadcrumb(1)}
-          <b>Преподаватели</b>
+          ${renderStudentHeader("Преподаватели")}
           ${renderStyleFilterChips(styles)}
           <div class="stack">
           ${filteredTeachers.length
@@ -717,28 +732,21 @@
         openedStudentCourseId = null;
         const selectedTeacher = currentStudentTeachers.find((teacher) => Number(teacher.id) === Number(teacherId));
         studentScreen.innerHTML = `
-          ${renderStudentBreadcrumb(2)}
-          <b>${S.coursesTitle}</b>
-          <p class="section-subtitle">${S.loadingCourses}</p>
+          ${renderStudentHeader(S.coursesTitle, S.loadingCourses, "renderStudentScreen()")}
         `;
         const styleQuery = selectedStyleId ? `?styleId=${selectedStyleId}` : "";
         const courses = await apiFetch(`/api/courses/${teacherId}${styleQuery}`);
         currentStudentCourses = courses;
+        const coursesSubtitle = selectedTeacher
+          ? `Преподаватель: ${selectedTeacher.name}${
+              selectedStyleId
+                ? ` • ${currentStyles.find((item) => String(item.id) === String(selectedStyleId))?.name || ""}`
+                : ""
+            }`
+          : "Выбери курс для старта.";
 
         studentScreen.innerHTML = `
-          ${renderStudentBreadcrumb(2)}
-          <b>${S.coursesTitle}</b>
-          <p class="section-subtitle">
-            ${
-              selectedTeacher
-                ? `Преподаватель: ${escapeHtml(selectedTeacher.name)}${
-                    selectedStyleId
-                      ? ` • ${escapeHtml(currentStyles.find((item) => String(item.id) === String(selectedStyleId))?.name || "")}`
-                      : ""
-                  }`
-                : "Выбери курс для старта."
-            }
-          </p>
+          ${renderStudentHeader(S.coursesTitle, coursesSubtitle, "renderStudentScreen()")}
           <div class="stack">
             ${
               courses.length
@@ -759,7 +767,6 @@
                     .join("")
                 : `<small class="muted">По выбранным фильтрам курсы не найдены.</small>`
             }
-            <button class="secondary" onclick="renderStudentScreen()">${S.toTeachers}</button>
           </div>
         `;
       }
@@ -768,9 +775,7 @@
         studentScreen.classList.remove("flat-list");
         openedStudentCourseId = courseId;
         studentScreen.innerHTML = `
-          ${renderStudentBreadcrumb(3)}
-          <b>${S.lessonsTitle}</b>
-          <p class="section-subtitle">${S.loadingLessons}</p>
+          ${renderStudentHeader(S.lessonsTitle, S.loadingLessons, "loadCourses(" + selectedTeacherId + ")")}
         `;
         const lessons = await apiFetch(`/api/lessons/${courseId}`);
         const course = currentStudentCourses.find((item) => item.id === courseId);
@@ -778,9 +783,7 @@
         const showBuyButton = hasPaidLessons && course && !course.is_purchased;
 
         studentScreen.innerHTML = `
-          ${renderStudentBreadcrumb(3)}
-          <b>${S.lessonsTitle}</b>
-          <p class="section-subtitle">${course ? escapeHtml(course.title) : "Выбранный курс"}</p>
+          ${renderStudentHeader(S.lessonsTitle, course ? course.title : "Выбранный курс", "loadCourses(" + selectedTeacherId + ")")}
           <div class="stack">
             ${showBuyButton ? `<button onclick="purchaseCourse(${courseId})">${S.buyCourse} ${formatRub(course.price)}</button>` : ""}
             ${
@@ -813,8 +816,6 @@
                     .join("")
                 : `<small class="muted">В этом курсе пока нет уроков.</small>`
             }
-            <button class="secondary" onclick="loadCourses(${selectedTeacherId})">← К курсам</button>
-            <button class="secondary" onclick="renderStudentScreen()">${S.toTeachers}</button>
           </div>
         `;
       }
