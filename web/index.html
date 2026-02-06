@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
@@ -91,77 +91,77 @@
     </style>
   </head>
   <body>
-    <h1>💃 Let's Dance With Me</h1>
-    <div class="card" id="user">Загрузка пользователя...</div>
+    <h1>рџ’ѓ Let's Dance With Me</h1>
     <div class="card hidden" id="modeCard">
-      <b>Режим</b>
+      <b>Р РµР¶РёРј</b>
       <label id="teacherModeWrap" class="hidden mode-label">
-        <span>Режим преподавателя</span>
+        <span>Р РµР¶РёРј РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏ</span>
         <span class="switch">
           <input type="checkbox" id="teacherModeToggle" />
           <span class="slider"></span>
         </span>
       </label>
       <label id="adminModeWrap" class="hidden mode-label">
-        <span>Режим администратора</span>
+        <span>Р РµР¶РёРј Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°</span>
         <span class="switch">
           <input type="checkbox" id="adminModeToggle" />
           <span class="slider"></span>
         </span>
       </label>
     </div>
+    <div class="card" id="user">Р—Р°РіСЂСѓР·РєР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ...</div>
 
     <div class="card hidden" id="onboardingCard">
-      <b>Добро пожаловать!</b>
-      <p class="muted">Выбери преподавателя и начни обучение.</p>
-      <button id="onboardingBtn">Начать</button>
+      <b>Р”РѕР±СЂРѕ РїРѕР¶Р°Р»РѕРІР°С‚СЊ!</b>
+      <p class="muted">Р’С‹Р±РµСЂРё РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏ Рё РЅР°С‡РЅРё РѕР±СѓС‡РµРЅРёРµ.</p>
+      <button id="onboardingBtn">РќР°С‡Р°С‚СЊ</button>
     </div>
 
-    <div class="card hidden" id="studentScreen">Загрузка...</div>
+    <div class="card hidden" id="studentScreen">Р—Р°РіСЂСѓР·РєР°...</div>
 
     <div class="card hidden" id="teacherScreen">
-      <b>Кабинет преподавателя</b>
-      <p class="muted">Профиль</p>
-      <input id="teacherName" placeholder="Имя преподавателя" />
-      <input id="teacherDescription" placeholder="Описание" />
-      <input id="teacherAvatarUrl" placeholder="URL аватарки" />
-      <button id="saveTeacherProfileBtn">Сохранить профиль</button>
+      <b>РљР°Р±РёРЅРµС‚ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏ</b>
+      <p class="muted">РџСЂРѕС„РёР»СЊ</p>
+      <input id="teacherName" placeholder="РРјСЏ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏ" />
+      <input id="teacherDescription" placeholder="РћРїРёСЃР°РЅРёРµ" />
+      <input id="teacherAvatarUrl" placeholder="URL Р°РІР°С‚Р°СЂРєРё" />
+      <button id="saveTeacherProfileBtn">РЎРѕС…СЂР°РЅРёС‚СЊ РїСЂРѕС„РёР»СЊ</button>
       <hr />
-      <p class="muted">Новый курс</p>
-      <input id="courseTitle" placeholder="Название курса" />
-      <input id="courseDescription" placeholder="Описание курса" />
+      <p class="muted">РќРѕРІС‹Р№ РєСѓСЂСЃ</p>
+      <input id="courseTitle" placeholder="РќР°Р·РІР°РЅРёРµ РєСѓСЂСЃР°" />
+      <input id="courseDescription" placeholder="РћРїРёСЃР°РЅРёРµ РєСѓСЂСЃР°" />
       <div class="row">
-        <input id="coursePrice" type="number" placeholder="Цена" min="199" />
+        <input id="coursePrice" type="number" placeholder="Р¦РµРЅР°" min="199" />
         <select id="coursePublished">
-          <option value="true">Опубликован</option>
-          <option value="false">Скрыт</option>
+          <option value="true">РћРїСѓР±Р»РёРєРѕРІР°РЅ</option>
+          <option value="false">РЎРєСЂС‹С‚</option>
         </select>
       </div>
-      <button id="createCourseBtn">Создать курс</button>
+      <button id="createCourseBtn">РЎРѕР·РґР°С‚СЊ РєСѓСЂСЃ</button>
       <hr />
-      <p class="muted">Уроки курса</p>
+      <p class="muted">РЈСЂРѕРєРё РєСѓСЂСЃР°</p>
       <select id="teacherCourseSelect"></select>
       <div class="row">
-        <input id="lessonNumber" type="number" min="1" placeholder="№ урока" />
-        <input id="lessonDuration" type="number" min="1" placeholder="Длительность (сек)" />
+        <input id="lessonNumber" type="number" min="1" placeholder="в„– СѓСЂРѕРєР°" />
+        <input id="lessonDuration" type="number" min="1" placeholder="Р”Р»РёС‚РµР»СЊРЅРѕСЃС‚СЊ (СЃРµРє)" />
       </div>
-      <input id="lessonTitle" placeholder="Название урока" />
-      <input id="lessonPreviewUrl" placeholder="Ссылка на превью" />
-      <textarea id="lessonDescription" placeholder="Описание урока"></textarea>
+      <input id="lessonTitle" placeholder="РќР°Р·РІР°РЅРёРµ СѓСЂРѕРєР°" />
+      <input id="lessonPreviewUrl" placeholder="РЎСЃС‹Р»РєР° РЅР° РїСЂРµРІСЊСЋ" />
+      <textarea id="lessonDescription" placeholder="РћРїРёСЃР°РЅРёРµ СѓСЂРѕРєР°"></textarea>
       <select id="lessonIsFree">
-        <option value="true">Бесплатный урок</option>
-        <option value="false">Платный урок</option>
+        <option value="true">Р‘РµСЃРїР»Р°С‚РЅС‹Р№ СѓСЂРѕРє</option>
+        <option value="false">РџР»Р°С‚РЅС‹Р№ СѓСЂРѕРє</option>
       </select>
-      <button id="saveLessonBtn">Сохранить урок</button>
-      <div id="teacherCourses" class="muted">Курсы: загрузка...</div>
-      <div id="teacherLessons" class="muted">Уроки: выбери курс</div>
+      <button id="saveLessonBtn">РЎРѕС…СЂР°РЅРёС‚СЊ СѓСЂРѕРє</button>
+      <div id="teacherCourses" class="muted">РљСѓСЂСЃС‹: Р·Р°РіСЂСѓР·РєР°...</div>
+      <div id="teacherLessons" class="muted">РЈСЂРѕРєРё: РІС‹Р±РµСЂРё РєСѓСЂСЃ</div>
     </div>
 
     <div class="card hidden" id="adminScreen">
-      <b>Админ-панель</b>
-      <p class="muted">Список пользователей и назначение преподавателей</p>
-      <button class="secondary" id="refreshAdminUsersBtn">Обновить список</button>
-      <div id="adminUsersList" class="muted">Загрузка...</div>
+      <b>РђРґРјРёРЅ-РїР°РЅРµР»СЊ</b>
+      <p class="muted">РЎРїРёСЃРѕРє РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№ Рё РЅР°Р·РЅР°С‡РµРЅРёРµ РїСЂРµРїРѕРґР°РІР°С‚РµР»РµР№</p>
+      <button class="secondary" id="refreshAdminUsersBtn">РћР±РЅРѕРІРёС‚СЊ СЃРїРёСЃРѕРє</button>
+      <div id="adminUsersList" class="muted">Р—Р°РіСЂСѓР·РєР°...</div>
     </div>
 
     <script>
@@ -218,10 +218,10 @@
       let adminModeEnabled = false;
 
       if (!tgUser) {
-        userBlock.innerHTML = '<span class="error">Не удалось получить данные Telegram</span>';
+        userBlock.innerHTML = '<span class="error">РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ РґР°РЅРЅС‹Рµ Telegram</span>';
       } else {
         bootstrap().catch((error) => {
-          userBlock.innerHTML = `<span class="error">${escapeHtml(error.message || "Ошибка инициализации")}</span>`;
+          userBlock.innerHTML = `<span class="error">${escapeHtml(error.message || "РћС€РёР±РєР° РёРЅРёС†РёР°Р»РёР·Р°С†РёРё")}</span>`;
         });
       }
 
@@ -246,9 +246,9 @@
       }
 
       function getLevel(xp) {
-        if (xp >= 60) return "💃 Танцор";
-        if (xp >= 30) return "🥋 Ученик";
-        return "🌱 Новичок";
+        if (xp >= 60) return "рџ’ѓ РўР°РЅС†РѕСЂ";
+        if (xp >= 30) return "рџҐ‹ РЈС‡РµРЅРёРє";
+        return "рџЊ± РќРѕРІРёС‡РѕРє";
       }
 
       function getModeStorageKey(modeName) {
@@ -323,11 +323,11 @@
         }
         renderModeControls();
         userBlock.innerHTML = `
-          <b>${escapeHtml(tgUser.first_name || "Пользователь")}</b><br/>
-          Роль: ${escapeHtml(currentUser.role)}<br/>
-          ⭐ XP: ${currentUser.xp}<br/>
-          🎖 Уровень: ${getLevel(currentUser.xp)}<br/>
-          📚 Пройдено уроков: ${currentUser.lessons_completed}
+          <b>${escapeHtml(tgUser.first_name || "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ")}</b><br/>
+          Р РѕР»СЊ: ${escapeHtml(currentUser.role)}<br/>
+          в­ђ XP: ${currentUser.xp}<br/>
+          рџЋ– РЈСЂРѕРІРµРЅСЊ: ${getLevel(currentUser.xp)}<br/>
+          рџ“љ РџСЂРѕР№РґРµРЅРѕ СѓСЂРѕРєРѕРІ: ${currentUser.lessons_completed}
         `;
       }
 
@@ -342,16 +342,21 @@
         studentScreen.classList.add("hidden");
         teacherScreen.classList.add("hidden");
         adminScreen.classList.add("hidden");
+        const specialModeEnabled =
+          (currentUser.role === "teacher" && teacherModeEnabled) ||
+          (currentUser.role === "admin" && adminModeEnabled);
 
-        if (!currentUser.is_onboarded) onboardingCard.classList.remove("hidden");
+        if (!currentUser.is_onboarded && !specialModeEnabled) {
+          onboardingCard.classList.remove("hidden");
+        }
 
-        if (currentUser.role === "admin" && adminModeEnabled) {
+        if (currentUser.role === "admin" && specialModeEnabled) {
           adminScreen.classList.remove("hidden");
           await loadAdminUsers();
           return;
         }
 
-        if (currentUser.role === "teacher" && teacherModeEnabled) {
+        if (currentUser.role === "teacher" && specialModeEnabled) {
           teacherScreen.classList.remove("hidden");
           await loadTeacherProfile();
           await loadTeacherCourses();
@@ -383,9 +388,9 @@
       async function loadTeachers() {
         const [teachers, styles] = await Promise.all([apiFetch("/api/teachers"), apiFetch("/api/styles")]);
         studentScreen.innerHTML = `
-          <b>Выбери преподавателя</b><br/><br/>
+          <b>Р’С‹Р±РµСЂРё РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏ</b><br/><br/>
           <select id="styleFilter">
-            <option value="">Все направления</option>
+            <option value="">Р’СЃРµ РЅР°РїСЂР°РІР»РµРЅРёСЏ</option>
             ${styles.map((s) => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join("")}
           </select>
           ${teachers
@@ -411,73 +416,73 @@
       }
 
       async function loadCourses(teacherId) {
-        studentScreen.innerHTML = "Загрузка курсов...";
+        studentScreen.innerHTML = "Р—Р°РіСЂСѓР·РєР° РєСѓСЂСЃРѕРІ...";
         const styleQuery = selectedStyleId ? `?styleId=${selectedStyleId}` : "";
         const courses = await apiFetch(`/api/courses/${teacherId}${styleQuery}`);
         currentStudentCourses = courses;
 
         studentScreen.innerHTML =
-          "<b>Курсы</b><br/><br/>" +
+          "<b>РљСѓСЂСЃС‹</b><br/><br/>" +
           courses
             .map(
               (c) => `
                 <button onclick="openCourse(${c.id})">
                   ${escapeHtml(c.title)}<br/>
                   <small class="muted">${escapeHtml(c.description || "")}</small><br/>
-                  <small class="muted">Цена: ${Number(c.price || 0)} ₽</small><br/>
-                  <small class="muted">${c.is_purchased ? "Куплен" : "Не куплен"}</small>
+                  <small class="muted">Р¦РµРЅР°: ${Number(c.price || 0)} в‚Ѕ</small><br/>
+                  <small class="muted">${c.is_purchased ? "РљСѓРїР»РµРЅ" : "РќРµ РєСѓРїР»РµРЅ"}</small>
                 </button>
               `
             )
             .join("") +
-          `<button class="secondary" onclick="loadTeachers()">⬅ К преподавателям</button>`;
+          `<button class="secondary" onclick="loadTeachers()">в¬… Рљ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏРј</button>`;
       }
 
       async function openCourse(courseId) {
         openedStudentCourseId = courseId;
-        studentScreen.innerHTML = "Загрузка уроков...";
+        studentScreen.innerHTML = "Р—Р°РіСЂСѓР·РєР° СѓСЂРѕРєРѕРІ...";
         const lessons = await apiFetch(`/api/lessons/${courseId}`);
         const course = currentStudentCourses.find((item) => item.id === courseId);
         const hasPaidLessons = lessons.some((lesson) => !lesson.is_free);
         const showBuyButton = hasPaidLessons && course && !course.is_purchased;
 
         studentScreen.innerHTML =
-          "<b>Уроки</b><br/><br/>" +
+          "<b>РЈСЂРѕРєРё</b><br/><br/>" +
           (showBuyButton
-            ? `<button onclick="purchaseCourse(${courseId})">Купить курс за ${Number(course.price || 0)} ₽</button>`
+            ? `<button onclick="purchaseCourse(${courseId})">РљСѓРїРёС‚СЊ РєСѓСЂСЃ Р·Р° ${Number(course.price || 0)} в‚Ѕ</button>`
             : "") +
           lessons
             .map((lesson) => {
               const typeClass = lesson.is_free ? "free" : "paid";
-              const typeText = lesson.is_free ? "Бесплатно" : "Платно";
+              const typeText = lesson.is_free ? "Р‘РµСЃРїР»Р°С‚РЅРѕ" : "РџР»Р°С‚РЅРѕ";
               const durationText = lesson.duration_sec
-                ? `${Math.round(lesson.duration_sec / 60)} мин`
-                : "без длительности";
-              const unlockText = lesson.is_unlocked ? "Открыт" : "Закрыт";
+                ? `${Math.round(lesson.duration_sec / 60)} РјРёРЅ`
+                : "Р±РµР· РґР»РёС‚РµР»СЊРЅРѕСЃС‚Рё";
+              const unlockText = lesson.is_unlocked ? "РћС‚РєСЂС‹С‚" : "Р—Р°РєСЂС‹С‚";
               const previewHtml = lesson.preview_url
                 ? `<br/><small><a href="${escapeHtml(
                     lesson.preview_url
-                  )}" target="_blank" rel="noopener noreferrer">Превью</a></small>`
+                  )}" target="_blank" rel="noopener noreferrer">РџСЂРµРІСЊСЋ</a></small>`
                 : "";
               return `
                 <button onclick="doLesson(${courseId}, ${lesson.lesson_number})">
-                  Урок ${lesson.lesson_number}: ${escapeHtml(lesson.title)}<br/>
+                  РЈСЂРѕРє ${lesson.lesson_number}: ${escapeHtml(lesson.title)}<br/>
                   <small class="pill ${typeClass}">${typeText}</small>
-                  <small class="muted"> · ${durationText}</small>
-                  <small class="muted"> · ${unlockText}</small>
+                  <small class="muted"> В· ${durationText}</small>
+                  <small class="muted"> В· ${unlockText}</small>
                   ${previewHtml}
                 </button>
               `;
             })
             .join("") +
-          `<button class="secondary" onclick="loadTeachers()">⬅ К преподавателям</button>`;
+          `<button class="secondary" onclick="loadTeachers()">в¬… Рљ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏРј</button>`;
       }
 
       async function purchaseCourse(courseId) {
         await apiFetch(`/api/courses/${courseId}/purchase`, { method: "POST" });
         const selectedCourse = currentStudentCourses.find((item) => item.id === courseId);
         if (selectedCourse) selectedCourse.is_purchased = true;
-        tg.showAlert("Курс успешно куплен");
+        tg.showAlert("РљСѓСЂСЃ СѓСЃРїРµС€РЅРѕ РєСѓРїР»РµРЅ");
         await openCourse(courseId);
       }
 
@@ -490,9 +495,9 @@
         if (data.blocked) {
           const message =
             data.reason === "course_purchase_required"
-              ? "Сначала купи курс, чтобы открыть этот урок"
-              : "Этот урок недоступен";
-          tg.showPopup({ title: "🔒 Урок закрыт", message, buttons: [{ type: "ok" }] });
+              ? "РЎРЅР°С‡Р°Р»Р° РєСѓРїРё РєСѓСЂСЃ, С‡С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ СЌС‚РѕС‚ СѓСЂРѕРє"
+              : "Р­С‚РѕС‚ СѓСЂРѕРє РЅРµРґРѕСЃС‚СѓРїРµРЅ";
+          tg.showPopup({ title: "рџ”’ РЈСЂРѕРє Р·Р°РєСЂС‹С‚", message, buttons: [{ type: "ok" }] });
           return;
         }
 
@@ -516,7 +521,7 @@
             avatarUrl: teacherAvatarInput.value.trim(),
           }),
         });
-        tg.showAlert("Профиль сохранен");
+        tg.showAlert("РџСЂРѕС„РёР»СЊ СЃРѕС…СЂР°РЅРµРЅ");
       }
 
       function resetLessonForm() {
@@ -527,48 +532,48 @@
         lessonPreviewInput.value = "";
         lessonDescriptionInput.value = "";
         lessonIsFreeInput.value = "true";
-        saveLessonBtn.textContent = "Сохранить урок";
+        saveLessonBtn.textContent = "РЎРѕС…СЂР°РЅРёС‚СЊ СѓСЂРѕРє";
       }
 
       async function loadTeacherCourses() {
         currentTeacherCourses = await apiFetch("/api/teacher/courses");
         teacherCourses.innerHTML =
-          "<b>Ваши курсы</b><br/><br/>" +
+          "<b>Р’Р°С€Рё РєСѓСЂСЃС‹</b><br/><br/>" +
           (currentTeacherCourses.length
             ? currentTeacherCourses
                 .map(
                   (course) =>
-                    `• ${escapeHtml(course.title)} — ${Number(course.price || 0)} ₽ (${
-                      course.is_published ? "опубликован" : "скрыт"
+                    `вЂў ${escapeHtml(course.title)} вЂ” ${Number(course.price || 0)} в‚Ѕ (${
+                      course.is_published ? "РѕРїСѓР±Р»РёРєРѕРІР°РЅ" : "СЃРєСЂС‹С‚"
                     })`
                 )
                 .join("<br/>")
-            : "Пока нет курсов");
+            : "РџРѕРєР° РЅРµС‚ РєСѓСЂСЃРѕРІ");
 
         teacherCourseSelect.innerHTML = currentTeacherCourses.length
           ? currentTeacherCourses
               .map((course) => `<option value="${course.id}">${escapeHtml(course.title)}</option>`)
               .join("")
-          : '<option value="">Нет курсов</option>';
+          : '<option value="">РќРµС‚ РєСѓСЂСЃРѕРІ</option>';
 
         if (currentTeacherCourses.length) {
           await loadSelectedTeacherCourseLessons();
         } else {
-          teacherLessons.textContent = "Уроки: сначала создай курс";
+          teacherLessons.textContent = "РЈСЂРѕРєРё: СЃРЅР°С‡Р°Р»Р° СЃРѕР·РґР°Р№ РєСѓСЂСЃ";
         }
       }
 
       async function loadSelectedTeacherCourseLessons() {
         const courseId = Number(teacherCourseSelect.value);
         if (!courseId) {
-          teacherLessons.textContent = "Уроки: выбери курс";
+          teacherLessons.textContent = "РЈСЂРѕРєРё: РІС‹Р±РµСЂРё РєСѓСЂСЃ";
           return;
         }
 
         const lessons = await apiFetch(`/api/teacher/courses/${courseId}/lessons`);
         currentTeacherLessons = lessons;
         teacherLessons.innerHTML =
-          "<b>Уроки выбранного курса</b><br/><br/>" +
+          "<b>РЈСЂРѕРєРё РІС‹Р±СЂР°РЅРЅРѕРіРѕ РєСѓСЂСЃР°</b><br/><br/>" +
           (lessons.length
             ? lessons
                 .map(
@@ -576,33 +581,33 @@
                     <div class="lesson-row">
                       <b>${lesson.lesson_number}. ${escapeHtml(lesson.title)}</b><br/>
                       <small class="muted">${escapeHtml(lesson.description || "")}</small><br/>
-                      <small class="muted">${lesson.is_free ? "Бесплатный" : "Платный"} · ${
-                        lesson.duration_sec ? `${lesson.duration_sec} сек` : "без длительности"
+                      <small class="muted">${lesson.is_free ? "Р‘РµСЃРїР»Р°С‚РЅС‹Р№" : "РџР»Р°С‚РЅС‹Р№"} В· ${
+                        lesson.duration_sec ? `${lesson.duration_sec} СЃРµРє` : "Р±РµР· РґР»РёС‚РµР»СЊРЅРѕСЃС‚Рё"
                       }</small><br/>
                       ${
                         lesson.preview_url
                           ? `<small><a href="${escapeHtml(
                               lesson.preview_url
-                            )}" target="_blank" rel="noopener noreferrer">Превью</a></small><br/>`
+                            )}" target="_blank" rel="noopener noreferrer">РџСЂРµРІСЊСЋ</a></small><br/>`
                           : ""
                       }
-                      <button class="secondary" onclick="editLessonById(${lesson.id})">Редактировать</button>
+                      <button class="secondary" onclick="editLessonById(${lesson.id})">Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ</button>
                     </div>
                   `
                 )
                 .join("")
-            : "Пока нет уроков");
+            : "РџРѕРєР° РЅРµС‚ СѓСЂРѕРєРѕРІ");
       }
 
       async function createCourse() {
         const title = courseTitleInput.value.trim();
         const price = Number(coursePriceInput.value || 0);
         if (!title) {
-          tg.showAlert("Укажи название курса");
+          tg.showAlert("РЈРєР°Р¶Рё РЅР°Р·РІР°РЅРёРµ РєСѓСЂСЃР°");
           return;
         }
         if (!Number.isFinite(price) || price < 199) {
-          tg.showAlert("Цена курса должна быть не меньше 199 ₽");
+          tg.showAlert("Р¦РµРЅР° РєСѓСЂСЃР° РґРѕР»Р¶РЅР° Р±С‹С‚СЊ РЅРµ РјРµРЅСЊС€Рµ 199 в‚Ѕ");
           return;
         }
 
@@ -621,7 +626,7 @@
         courseDescriptionInput.value = "";
         coursePriceInput.value = "";
         await loadTeacherCourses();
-        tg.showAlert("Курс создан");
+        tg.showAlert("РљСѓСЂСЃ СЃРѕР·РґР°РЅ");
       }
 
       window.editLessonById = function editLessonById(lessonId) {
@@ -634,13 +639,13 @@
         lessonPreviewInput.value = lesson.preview_url || "";
         lessonDescriptionInput.value = lesson.description || "";
         lessonIsFreeInput.value = lesson.is_free ? "true" : "false";
-        saveLessonBtn.textContent = "Обновить урок";
+        saveLessonBtn.textContent = "РћР±РЅРѕРІРёС‚СЊ СѓСЂРѕРє";
       };
 
       async function saveLesson() {
         const courseId = Number(teacherCourseSelect.value);
         if (!courseId) {
-          tg.showAlert("Выбери курс");
+          tg.showAlert("Р’С‹Р±РµСЂРё РєСѓСЂСЃ");
           return;
         }
 
@@ -654,7 +659,7 @@
         };
 
         if (!payload.lessonNumber || !payload.title) {
-          tg.showAlert("Заполни номер и название урока");
+          tg.showAlert("Р—Р°РїРѕР»РЅРё РЅРѕРјРµСЂ Рё РЅР°Р·РІР°РЅРёРµ СѓСЂРѕРєР°");
           return;
         }
 
@@ -672,7 +677,7 @@
 
         resetLessonForm();
         await loadSelectedTeacherCourseLessons();
-        tg.showAlert("Урок сохранен");
+        tg.showAlert("РЈСЂРѕРє СЃРѕС…СЂР°РЅРµРЅ");
       }
 
       async function loadAdminUsers() {
@@ -683,9 +688,9 @@
                 (user) => `
                   <div class="user-row">
                     <b>ID:</b> ${user.telegram_id}<br/>
-                    <small class="muted">Роль: ${escapeHtml(user.role)} | XP: ${user.xp} | Уроков: ${user.lessons_completed}</small><br/>
+                    <small class="muted">Р РѕР»СЊ: ${escapeHtml(user.role)} | XP: ${user.xp} | РЈСЂРѕРєРѕРІ: ${user.lessons_completed}</small><br/>
                     <div class="role-switch-row">
-                      <small>Преподаватель</small>
+                      <small>РџСЂРµРїРѕРґР°РІР°С‚РµР»СЊ</small>
                       <span class="switch">
                         <input
                           type="checkbox"
@@ -699,7 +704,7 @@
                 `
               )
               .join("")
-          : "Пользователей пока нет";
+          : "РџРѕР»СЊР·РѕРІР°С‚РµР»РµР№ РїРѕРєР° РЅРµС‚";
       }
 
       window.setTeacherRoleSwitch = async function setTeacherRoleSwitch(telegramId, checked) {
@@ -708,7 +713,7 @@
           method: "PUT",
           body: JSON.stringify({ role }),
         });
-        tg.showAlert("Роль обновлена");
+        tg.showAlert("Р РѕР»СЊ РѕР±РЅРѕРІР»РµРЅР°");
         await loadAdminUsers();
       };
 
@@ -720,3 +725,4 @@
     </script>
   </body>
 </html>
+
