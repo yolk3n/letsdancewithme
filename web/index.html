@@ -209,18 +209,21 @@
       .teacher-filter-btn {
         width: auto;
         margin: 0;
-        padding: 8px 12px;
+        padding: 8px 11px;
         border-radius: 999px;
         border: 1px solid rgba(45, 31, 20, 0.18);
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.86);
         color: #2d251e;
         box-shadow: none;
         display: inline-flex;
         align-items: center;
         gap: 8px;
         line-height: 1;
+        font-size: 13px;
+        font-weight: 600;
       }
       .teacher-filter-btn.active {
+        color: #1d1711;
         border-color: rgba(0, 168, 199, 0.33);
         background: rgba(0, 168, 199, 0.11);
       }
@@ -253,13 +256,15 @@
         line-height: 1;
       }
       .teacher-picker {
-        margin-top: 6px;
         border: 1px solid rgba(38, 30, 20, 0.14);
         border-radius: 12px;
         background: rgba(255, 255, 255, 0.95);
         padding: 8px;
         display: grid;
         gap: 6px;
+        width: min(420px, calc(100vw - 28px));
+        max-height: 62vh;
+        overflow: auto;
       }
       .teacher-picker-item {
         margin: 0;
@@ -272,6 +277,16 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
+      }
+      .teacher-picker-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        background: rgba(18, 14, 10, 0.26);
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 112px 12px 16px;
       }
       .course-progress {
         margin-top: 10px;
@@ -487,15 +502,25 @@
       .course-card-title { font-weight: 700; margin-bottom: 3px; }
       .course-head {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
         gap: 8px;
         margin-top: 0;
       }
       .course-card-title {
+        flex: 1 1 auto;
         font-size: 20px;
         line-height: 1.22;
         font-weight: 700;
+      }
+      .catalog-course-card.level-beginner .course-card-title {
+        color: #1f5f77;
+      }
+      .catalog-course-card.level-advanced .course-card-title {
+        color: #8f4d1d;
+      }
+      .catalog-course-card.level-professional .course-card-title {
+        color: #5a3b93;
       }
       .course-level-badge {
         border-radius: 999px;
@@ -828,6 +853,13 @@
         });
       }
 
+      function closeTeacherPicker() {
+        showTeacherPicker = false;
+        renderStudentScreen().catch((error) => {
+          studentScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
+        });
+      }
+
       function selectTeacherFilter(teacherId) {
         selectedTeacherFilterId = String(teacherId || "");
         showTeacherPicker = false;
@@ -863,17 +895,19 @@
       function renderTeacherPicker(teachers) {
         if (!showTeacherPicker) return "";
         return `
-          <div class="teacher-picker">
-            ${teachers
-              .map(
-                (teacher) => `
-                  <button class="teacher-picker-item" onclick="selectTeacherFilter(${teacher.id})">
-                    ${renderTeacherFilterAvatar(teacher)}
-                    <span>${escapeHtml(teacher.name || "Преподаватель")}</span>
-                  </button>
-                `
-              )
-              .join("")}
+          <div class="teacher-picker-overlay" onclick="closeTeacherPicker()">
+            <div class="teacher-picker" onclick="event.stopPropagation()">
+              ${teachers
+                .map(
+                  (teacher) => `
+                    <button class="teacher-picker-item" onclick="selectTeacherFilter(${teacher.id})">
+                      ${renderTeacherFilterAvatar(teacher)}
+                      <span>${escapeHtml(teacher.name || "Преподаватель")}</span>
+                    </button>
+                  `
+                )
+                .join("")}
+            </div>
           </div>
         `;
       }
@@ -1557,6 +1591,7 @@
       window.doLesson = doLesson;
       window.setStyleFilter = setStyleFilter;
       window.toggleTeacherPicker = toggleTeacherPicker;
+      window.closeTeacherPicker = closeTeacherPicker;
       window.selectTeacherFilter = selectTeacherFilter;
       window.clearTeacherFilter = clearTeacherFilter;
       window.openProfileMenu = openProfileMenu;
