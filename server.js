@@ -165,7 +165,84 @@ app.get(
   "/api/teachers",
   asyncRoute(async (req, res) => {
     const result = await db.query(
-      "SELECT id, name, description, avatar_url FROM teachers ORDER BY id"
+      `
+        WITH published_courses AS (
+          SELECT id, teacher_id
+          FROM courses
+          WHERE is_published = true
+        ),
+        teacher_styles AS (
+          SELECT
+            x.teacher_id,
+            json_agg(
+              json_build_object('id', x.style_id, 'name', x.style_name)
+              ORDER BY x.style_name
+            ) AS styles
+          FROM (
+            SELECT DISTINCT
+              pc.teacher_id,
+              ds.id AS style_id,
+              ds.name AS style_name
+            FROM published_courses pc
+            JOIN course_styles cs ON cs.course_id = pc.id
+            JOIN dance_styles ds ON ds.id = cs.style_id
+          ) x
+          GROUP BY x.teacher_id
+        ),
+        teacher_students AS (
+          SELECT
+            pc.teacher_id,
+            COUNT(DISTINCT cp.telegram_id)::int AS students_count
+          FROM published_courses pc
+          JOIN course_purchases cp ON cp.course_id = pc.id AND cp.status = 'paid'
+          GROUP BY pc.teacher_id
+        ),
+        student_last_purchase AS (
+          SELECT
+            pc.teacher_id,
+            u.telegram_id,
+            u.avatar_url,
+            MAX(cp.purchased_at) AS last_purchase_at
+          FROM published_courses pc
+          JOIN course_purchases cp ON cp.course_id = pc.id AND cp.status = 'paid'
+          JOIN users u ON u.telegram_id = cp.telegram_id
+          WHERE u.avatar_url IS NOT NULL
+          GROUP BY pc.teacher_id, u.telegram_id, u.avatar_url
+        ),
+        student_preview AS (
+          SELECT teacher_id, json_agg(avatar_url ORDER BY last_purchase_at DESC) AS student_avatars_preview
+          FROM (
+            SELECT
+              teacher_id,
+              avatar_url,
+              last_purchase_at,
+              ROW_NUMBER() OVER (PARTITION BY teacher_id ORDER BY last_purchase_at DESC) AS rn
+            FROM student_last_purchase
+          ) ranked
+          WHERE ranked.rn <= 5
+          GROUP BY teacher_id
+        ),
+        published_count AS (
+          SELECT teacher_id, COUNT(*)::int AS published_courses_count
+          FROM published_courses
+          GROUP BY teacher_id
+        )
+        SELECT
+          t.id,
+          t.name,
+          t.description,
+          t.avatar_url,
+          COALESCE(pc.published_courses_count, 0) AS published_courses_count,
+          COALESCE(ts.styles, '[]'::json) AS styles,
+          COALESCE(st.students_count, 0) AS students_count,
+          COALESCE(sp.student_avatars_preview, '[]'::json) AS student_avatars_preview
+        FROM teachers t
+        LEFT JOIN published_count pc ON pc.teacher_id = t.id
+        LEFT JOIN teacher_styles ts ON ts.teacher_id = t.id
+        LEFT JOIN teacher_students st ON st.teacher_id = t.id
+        LEFT JOIN student_preview sp ON sp.teacher_id = t.id
+        ORDER BY COALESCE(pc.published_courses_count, 0) DESC, t.name ASC
+      `
     );
     res.json(result.rows);
   })
@@ -204,6 +281,7 @@ app.get(
       FROM courses c
       ${telegramId ? "LEFT JOIN course_purchases cp ON cp.course_id = c.id AND cp.telegram_id = $2 AND cp.status = 'paid'" : ""}
       WHERE c.teacher_id = $1
+        AND c.is_published = true
     `;
     const params = [teacherId];
     if (telegramId) params.push(telegramId);
