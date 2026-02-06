@@ -183,8 +183,18 @@
         border: 1px solid rgba(38, 30, 20, 0.12);
         border-radius: 14px;
         padding: 10px;
-        background: rgba(255, 255, 255, 0.82);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.85), var(--teacher-grad, rgba(255, 255, 255, 0.75)));
         box-shadow: none;
+        cursor: pointer;
+        transition: transform 120ms ease, filter 120ms ease;
+      }
+      .teacher-card:hover { transform: translateY(-1px); filter: brightness(1.01); }
+      .teacher-card:active { transform: translateY(0); }
+      #studentScreen.flat-list {
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        padding: 0;
       }
       .teacher-card-accent {
         height: 2px;
@@ -513,12 +523,12 @@
 
       function getTeacherAccent(teacherId) {
         const palette = [
-          { line: "#f08ca4", chipBg: "#fde8ee" },
-          { line: "#75bad4", chipBg: "#e3f5fb" },
-          { line: "#e3ac67", chipBg: "#faefde" },
-          { line: "#9bbf84", chipBg: "#edf5e7" },
-          { line: "#b39ddd", chipBg: "#f0eafa" },
-          { line: "#db8ea3", chipBg: "#fbe9ef" },
+          { line: "#f08ca4", chipBg: "#fde8ee", grad: "rgba(248, 208, 224, 0.72)" },
+          { line: "#75bad4", chipBg: "#e3f5fb", grad: "rgba(207, 236, 247, 0.74)" },
+          { line: "#e3ac67", chipBg: "#faefde", grad: "rgba(245, 229, 202, 0.76)" },
+          { line: "#9bbf84", chipBg: "#edf5e7", grad: "rgba(224, 238, 211, 0.72)" },
+          { line: "#b39ddd", chipBg: "#f0eafa", grad: "rgba(226, 216, 247, 0.72)" },
+          { line: "#db8ea3", chipBg: "#fbe9ef", grad: "rgba(245, 216, 225, 0.73)" },
         ];
         const index = Math.abs(Number(teacherId) || 0) % palette.length;
         return palette[index];
@@ -568,7 +578,7 @@
         const visibleStyles = styles.slice(0, 2);
         const overflowCount = Math.max(styles.length - visibleStyles.length, 0);
         return `
-          <div class="teacher-card" style="--teacher-accent:${accent.line};--teacher-chip-bg:${accent.chipBg};">
+          <div class="teacher-card" onclick="loadCourses(${teacher.id})" style="--teacher-accent:${accent.line};--teacher-chip-bg:${accent.chipBg};--teacher-grad:${accent.grad};">
             <div class="teacher-card-accent"></div>
             <div class="teacher-card-head">
               ${renderTeacherAvatar(teacher)}
@@ -586,7 +596,6 @@
               ${overflowCount ? `<span class="teacher-style-chip">+${overflowCount}</span>` : ""}
             </div>
             ${renderStudentProof(teacher)}
-            <button onclick="loadCourses(${teacher.id})">Смотреть курсы</button>
           </div>
         `;
       }
@@ -709,6 +718,7 @@
       }
 
       async function renderStudentScreen() {
+        studentScreen.classList.add("flat-list");
         selectedTeacherId = null;
         openedStudentCourseId = null;
         const [teachers, styles] = await Promise.all([apiFetch("/api/teachers"), apiFetch("/api/styles")]);
@@ -724,8 +734,7 @@
 
         studentScreen.innerHTML = `
           ${renderStudentBreadcrumb(1)}
-          <b>${S.studentTitle}</b>
-          <p class="section-subtitle">Выбери наставника, чтобы посмотреть доступные курсы.</p>
+          <b>Преподаватели</b>
           ${renderStyleFilterChips(styles)}
           <div class="stack">
           ${filteredTeachers.length
@@ -736,6 +745,7 @@
       }
 
       async function loadCourses(teacherId) {
+        studentScreen.classList.remove("flat-list");
         selectedTeacherId = teacherId;
         openedStudentCourseId = null;
         const selectedTeacher = currentStudentTeachers.find((teacher) => Number(teacher.id) === Number(teacherId));
@@ -788,6 +798,7 @@
       }
 
       async function openCourse(courseId) {
+        studentScreen.classList.remove("flat-list");
         openedStudentCourseId = courseId;
         studentScreen.innerHTML = `
           ${renderStudentBreadcrumb(3)}
