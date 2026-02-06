@@ -602,9 +602,49 @@
         border-radius: 12px;
         padding: 10px;
         background: #fff;
+        cursor: pointer;
+        transition: transform 100ms ease, box-shadow 100ms ease, opacity 100ms ease;
+      }
+      .lesson-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 12px rgba(28, 20, 15, 0.07);
+      }
+      .lesson-card.locked {
+        opacity: 0.72;
+        cursor: not-allowed;
       }
       .lesson-card + .lesson-card {
         margin-top: 8px;
+      }
+      .lesson-roadmap {
+        position: relative;
+      }
+      .lesson-roadmap::before {
+        content: "";
+        position: absolute;
+        left: 8px;
+        top: 8px;
+        bottom: 8px;
+        width: 2px;
+        background: rgba(38, 30, 20, 0.16);
+      }
+      .lesson-node {
+        position: relative;
+        margin-left: 24px;
+      }
+      .lesson-node::before {
+        content: "";
+        position: absolute;
+        left: -20px;
+        top: 18px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #6f665c;
+        border: 2px solid #fff;
+      }
+      .lesson-node.unlocked::before {
+        background: #3e9db4;
       }
       .lesson-card-head {
         display: flex;
@@ -625,8 +665,15 @@
         gap: 6px;
         flex-wrap: wrap;
       }
-      .lesson-open-btn {
-        margin-top: 8px;
+      .lesson-type-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(38, 30, 20, 0.08);
+        font-size: 12px;
       }
       .lesson-page-card {
         border: 1px solid rgba(38, 30, 20, 0.12);
@@ -880,6 +927,17 @@
         if (level === "advanced") return "advanced";
         if (level === "professional") return "professional";
         return "beginner";
+      }
+
+      function normalizeLessonTitle(lesson) {
+        let rawTitle = String(lesson?.title || "").trim();
+        if (!rawTitle) {
+          return `${S.lessonsTitle.slice(0, -1)} ${lesson?.lesson_number || ""}`.trim();
+        }
+        while (/^урок\s*\d+\s*:\s*/i.test(rawTitle)) {
+          rawTitle = rawTitle.replace(/^урок\s*\d+\s*:\s*/i, "").trim();
+        }
+        return rawTitle;
       }
 
       function renderLessonHero(course) {
@@ -1330,8 +1388,9 @@
         studentScreen.classList.remove("flat-list");
         selectedTeacherId = null;
         openedStudentCourseId = courseId;
+        openedLessonNumber = null;
         studentScreen.innerHTML = `
-          ${renderStudentHeader(S.lessonsTitle, S.loadingLessons, "renderStudentScreen()")}
+          <div class="section-subtitle">${S.loadingLessons}</div>
         `;
         const lessons = await apiFetch(`/api/lessons/${courseId}`);
         currentCourseLessons = lessons;
@@ -1340,47 +1399,46 @@
         const showBuyButton = hasPaidLessons && course && !course.is_purchased;
 
         studentScreen.innerHTML = `
-          ${renderStudentHeader(S.lessonsTitle, course ? course.title : "Выбранный курс", "renderStudentScreen()")}
           ${renderLessonHero(course || {})}
           <div class="lesson-list-wrap">
             ${showBuyButton ? `<button onclick="purchaseCourse(${courseId})">${S.buyCourse} ${formatRub(course.price)}</button>` : ""}
-            ${
-              lessons.length
-                ? lessons
-                    .map((lesson) => {
-                      const typeClass = lesson.is_free ? "free" : "paid";
-                      const typeText = lesson.is_free ? S.free : S.paid;
-                      const durationText = lesson.duration_sec
-                        ? `${Math.round(lesson.duration_sec / 60)} ${S.minutes}`
-                        : S.noDuration;
-                      const unlockText = lesson.is_unlocked ? S.unlocked : S.locked;
-                      const previewHtml = lesson.preview_url
-                        ? `<br/><small><a href="${escapeHtml(
-                            lesson.preview_url
-                          )}" target="_blank" rel="noopener noreferrer">${S.preview}</a></small>`
-                        : "";
-                      const disabledAttr = lesson.is_unlocked ? "" : "disabled";
-                      const action = lesson.is_unlocked ? `onclick="openLessonPage(${courseId}, ${lesson.lesson_number})"` : "";
-                      return `
-                <div class="lesson-card">
-                  <div class="lesson-card-head">
-                    <h3 class="lesson-card-title">${S.lessonsTitle.slice(0, -1)} ${lesson.lesson_number}: ${escapeHtml(lesson.title)}</h3>
-                    <small class="muted">${unlockText}</small>
+            <div class="lesson-roadmap">
+              ${
+                lessons.length
+                  ? lessons
+                      .map((lesson) => {
+                        const typeIcon = lesson.is_free ? "🆓" : "💳";
+                        const durationText = lesson.duration_sec
+                          ? `${Math.round(lesson.duration_sec / 60)} ${S.minutes}`
+                          : S.noDuration;
+                        const unlockText = lesson.is_unlocked ? S.unlocked : S.locked;
+                        const previewHtml = lesson.preview_url
+                          ? `<small><a href="${escapeHtml(
+                              lesson.preview_url
+                            )}" target="_blank" rel="noopener noreferrer">${S.preview}</a></small>`
+                          : "";
+                        const title = normalizeLessonTitle(lesson);
+                        const action = lesson.is_unlocked ? `onclick="openLessonPage(${courseId}, ${lesson.lesson_number})"` : "";
+                        return `
+                  <div class="lesson-node ${lesson.is_unlocked ? "unlocked" : ""}">
+                    <div class="lesson-card ${lesson.is_unlocked ? "" : "locked"}" ${action}>
+                      <div class="lesson-card-head">
+                        <h3 class="lesson-card-title">${escapeHtml(title)}</h3>
+                        <small class="muted">${unlockText}</small>
+                      </div>
+                      <div class="lesson-card-meta">
+                        <span class="lesson-type-icon" title="${lesson.is_free ? S.free : S.paid}">${typeIcon}</span>
+                        <small class="muted">${durationText}</small>
+                        ${previewHtml}
+                      </div>
+                    </div>
                   </div>
-                  <div class="lesson-card-meta">
-                    <small class="pill ${typeClass}">${typeText}</small>
-                    <small class="muted">${durationText}</small>
-                    ${previewHtml}
-                  </div>
-                  <button class="lesson-open-btn ${lesson.is_unlocked ? "" : "secondary"}" ${action} ${disabledAttr}>
-                    ${lesson.is_unlocked ? "Открыть урок" : "Урок закрыт"}
-                  </button>
-                </div>
-              `;
-                    })
-                    .join("")
-                : `<small class="muted">В этом курсе пока нет уроков.</small>`
-            }
+                `;
+                      })
+                      .join("")
+                  : `<small class="muted">В этом курсе пока нет уроков.</small>`
+              }
+            </div>
           </div>
         `;
       }
@@ -1391,7 +1449,7 @@
         if (!lesson) return;
         openedLessonNumber = lessonNumber;
 
-        const typeClass = lesson.is_free ? "free" : "paid";
+        const typeIcon = lesson.is_free ? "🆓" : "💳";
         const typeText = lesson.is_free ? S.free : S.paid;
         const durationText = lesson.duration_sec ? `${Math.round(lesson.duration_sec / 60)} ${S.minutes}` : S.noDuration;
         const previewHtml = lesson.preview_url
@@ -1403,16 +1461,16 @@
         studentScreen.innerHTML = `
           ${renderStudentHeader(
             `${S.lessonsTitle.slice(0, -1)} ${lesson.lesson_number}`,
-            lesson.title,
+            normalizeLessonTitle(lesson),
             `openCourse(${courseId})`
           )}
           ${renderLessonHero(course || {})}
           <div class="lesson-list-wrap">
             <div class="lesson-page-card">
-              <h3>${escapeHtml(lesson.title)}</h3>
+              <h3>${escapeHtml(normalizeLessonTitle(lesson))}</h3>
               <p class="lesson-page-description">${escapeHtml(lesson.description || "Описание будет добавлено позже.")}</p>
               <div class="lesson-card-meta">
-                <small class="pill ${typeClass}">${typeText}</small>
+                <span class="lesson-type-icon" title="${typeText}">${typeIcon}</span>
                 <small class="muted">${durationText}</small>
               </div>
               ${previewHtml}

@@ -127,6 +127,11 @@ async function insertLesson(courseId, lessonNumber, title, description, isFree, 
   );
 }
 
+function buildLessonTitle(courseTitle, lessonNumber) {
+  const cleanCourseTitle = String(courseTitle || "").replace(/^Урок\s*\d+\s*:\s*/i, "").trim();
+  return `Практика ${lessonNumber}: ${cleanCourseTitle}`;
+}
+
 async function seed() {
   await db.initDb();
   await clearDb();
@@ -169,7 +174,7 @@ async function seed() {
         await insertLesson(
           courseId,
           lessonNumber,
-          `Урок ${lessonNumber}: ${courseDef.title}`,
+          buildLessonTitle(courseDef.title, lessonNumber),
           `Практика по теме "${courseDef.title}", часть ${lessonNumber}.`,
           isFree,
           durationSec
