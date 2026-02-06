@@ -5,6 +5,7 @@ const db = require("./db");
 const { getOrCreateUser, syncTelegramProfile, setOnboardingComplete, completeLesson } = require("./userService");
 const COURSE_MIN_PRICE = 199;
 const MAX_FREE_LESSONS_PER_COURSE = 3;
+const COURSE_LEVELS = new Set(["beginner", "advanced", "professional"]);
 
 const app = express();
 app.use(express.json());
@@ -57,6 +58,12 @@ function asOptionalTrimmedString(value) {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed.length ? trimmed : null;
+}
+
+function asCourseLevel(value, fallback = "beginner") {
+  if (typeof value !== "string") return fallback;
+  const normalized = value.trim().toLowerCase();
+  return COURSE_LEVELS.has(normalized) ? normalized : fallback;
 }
 
 async function getOrCreateTeacherProfile(telegramId) {
@@ -301,6 +308,7 @@ app.get(
         c.title,
         c.description,
         c.price,
+        c.level,
         c.is_published,
         t.id AS teacher_id,
         t.name AS teacher_name,
@@ -375,6 +383,7 @@ app.get(
         c.title,
         c.description,
         c.price,
+        c.level,
         c.is_published,
         ${telegramId ? "CASE WHEN cp.telegram_id IS NULL THEN false ELSE true END" : "false"} AS is_purchased
       FROM courses c
@@ -522,7 +531,7 @@ app.get(
     const teacher = await getOrCreateTeacherProfile(req.currentUser.telegram_id);
     const result = await db.query(
       `
-        SELECT id, teacher_id, title, description, price, is_published
+        SELECT id, teacher_id, title, description, price, is_published, level
         FROM courses
         WHERE teacher_id = $1
         ORDER BY id
@@ -539,7 +548,7 @@ app.post(
   requireRole("teacher", "admin"),
   asyncRoute(async (req, res) => {
     const teacher = await getOrCreateTeacherProfile(req.currentUser.telegram_id);
-    const { title, description = "", price = 0, isPublished = true, styleIds = [] } = req.body;
+    const { title, description = "", price = 0, isPublished = true, styleIds = [], level = "beginner" } = req.body;
 
     if (!title || typeof title !== "string") {
       return res.status(400).json({ error: "title is required" });
@@ -552,14 +561,15 @@ app.post(
     if (typeof isPublished !== "boolean") {
       return res.status(400).json({ error: "isPublished must be boolean" });
     }
+    const safeLevel = asCourseLevel(level);
 
     const created = await db.query(
       `
-        INSERT INTO courses (teacher_id, title, description, price, is_published)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING id, teacher_id, title, description, price, is_published
+        INSERT INTO courses (teacher_id, title, description, price, is_published, level)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING id, teacher_id, title, description, price, is_published, level
       `,
-      [teacher.id, title.trim(), description, Number(price), isPublished]
+      [teacher.id, title.trim(), description, Number(price), isPublished, safeLevel]
     );
 
     if (Array.isArray(styleIds) && styleIds.length > 0) {
@@ -602,7 +612,7 @@ app.put(
       return res.status(404).json({ error: "Course not found" });
     }
 
-    const { title, description, price, isPublished, styleIds } = req.body;
+    const { title, description, price, isPublished, styleIds, level } = req.body;
 
     if (price !== undefined && (!isFiniteNumber(price) || Number(price) < COURSE_MIN_PRICE)) {
       return res
@@ -613,6 +623,10 @@ app.put(
       return res.status(400).json({ error: "isPublished must be boolean" });
     }
 
+    if (level !== undefined && !COURSE_LEVELS.has(String(level).trim().toLowerCase())) {
+      return res.status(400).json({ error: "level must be one of: beginner, advanced, professional" });
+    }
+
     const updated = await db.query(
       `
         UPDATE courses
@@ -620,15 +634,17 @@ app.put(
           title = COALESCE($1, title),
           description = COALESCE($2, description),
           price = COALESCE($3, price),
-          is_published = COALESCE($4, is_published)
-        WHERE id = $5
-        RETURNING id, teacher_id, title, description, price, is_published
+          is_published = COALESCE($4, is_published),
+          level = COALESCE($5, level)
+        WHERE id = $6
+        RETURNING id, teacher_id, title, description, price, is_published, level
       `,
       [
         typeof title === "string" ? title.trim() : null,
         asOptionalTrimmedString(description),
         price === undefined ? null : Number(price),
         isPublished === undefined ? null : isPublished,
+        level === undefined ? null : asCourseLevel(level),
         courseId,
       ]
     );

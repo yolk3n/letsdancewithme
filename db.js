@@ -63,7 +63,9 @@ async function initDb() {
       title TEXT NOT NULL,
       description TEXT,
       price NUMERIC(10,2) NOT NULL DEFAULT 0,
+      level TEXT NOT NULL DEFAULT 'beginner',
       is_published BOOLEAN NOT NULL DEFAULT true,
+      CONSTRAINT courses_level_check CHECK (level IN ('beginner', 'advanced', 'professional')),
       UNIQUE (teacher_id, title)
     )
   `);
@@ -146,8 +148,25 @@ async function initDb() {
   `);
 
   await query("ALTER TABLE courses ADD COLUMN IF NOT EXISTS price NUMERIC(10,2) NOT NULL DEFAULT 0");
+  await query("ALTER TABLE courses ADD COLUMN IF NOT EXISTS level TEXT NOT NULL DEFAULT 'beginner'");
   await query("ALTER TABLE courses ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT true");
+  await query("UPDATE courses SET level = 'beginner' WHERE level IS NULL OR level NOT IN ('beginner', 'advanced', 'professional')");
   await query("UPDATE courses SET price = 199 WHERE price < 199");
+  await query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'courses_level_check'
+      ) THEN
+        ALTER TABLE courses
+          ADD CONSTRAINT courses_level_check
+          CHECK (level IN ('beginner', 'advanced', 'professional'));
+      END IF;
+    END
+    $$;
+  `);
 
   await query("ALTER TABLE lessons ADD COLUMN IF NOT EXISTS is_free BOOLEAN NOT NULL DEFAULT true");
   await query("ALTER TABLE lessons ADD COLUMN IF NOT EXISTS duration_sec INTEGER");

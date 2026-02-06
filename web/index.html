@@ -366,9 +366,47 @@
         box-shadow: 0 8px 20px rgba(55, 38, 23, 0.08);
         transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
       }
+      .catalog-course-card.level-beginner {
+        background: linear-gradient(150deg, #fffefb 0%, #eef8ff 100%);
+      }
+      .catalog-course-card.level-advanced {
+        background: linear-gradient(150deg, #fffdf8 0%, #fff2e6 100%);
+      }
+      .catalog-course-card.level-professional {
+        background: linear-gradient(150deg, #fffafc 0%, #f3eefe 100%);
+      }
       .catalog-course-card:hover { transform: translateY(-1px); }
       .catalog-course-card:active { transform: translateY(0); }
       .course-card-title { font-weight: 700; margin-bottom: 3px; }
+      .course-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .course-level-badge {
+        border-radius: 999px;
+        padding: 3px 8px;
+        font-size: 11px;
+        line-height: 1.2;
+        font-weight: 700;
+        border: 1px solid rgba(38, 30, 20, 0.2);
+        background: rgba(255, 255, 255, 0.84);
+        color: #3a2f24;
+        white-space: nowrap;
+      }
+      .course-level-badge.beginner {
+        border-color: rgba(61, 143, 171, 0.35);
+        background: rgba(220, 244, 255, 0.86);
+      }
+      .course-level-badge.advanced {
+        border-color: rgba(203, 126, 61, 0.34);
+        background: rgba(255, 236, 214, 0.9);
+      }
+      .course-level-badge.professional {
+        border-color: rgba(117, 87, 178, 0.35);
+        background: rgba(235, 227, 255, 0.88);
+      }
       .course-card-meta {
         margin-top: 8px;
         display: flex;
@@ -575,6 +613,18 @@
 
       function studentCountLabel(count) {
         return `${count} ${pluralizeRu(count, ["ученик", "ученика", "учеников"])}`;
+      }
+
+      function getCourseLevelLabel(level) {
+        if (level === "advanced") return "Продвинутый";
+        if (level === "professional") return "Профессионал";
+        return "Новичок";
+      }
+
+      function getCourseLevelClass(level) {
+        if (level === "advanced") return "advanced";
+        if (level === "professional") return "professional";
+        return "beginner";
       }
 
       function getTeacherAccent(teacherId) {
@@ -856,13 +906,19 @@
             courses.length
               ? courses
                   .map(
-                    (course) => `
-                <div class="course-card catalog-course-card" onclick="openCourse(${course.id})">
+                    (course) => {
+                      const levelClass = getCourseLevelClass(course.level);
+                      const levelLabel = getCourseLevelLabel(course.level);
+                      return `
+                <div class="course-card catalog-course-card level-${levelClass}" onclick="openCourse(${course.id})">
                   <div class="course-author">
                     ${renderCourseAuthorAvatar(course)}
                     <small class="muted">${escapeHtml(course.teacher_name || "Преподаватель")}</small>
                   </div>
-                  <div class="course-card-title">${escapeHtml(course.title)}</div>
+                  <div class="course-head">
+                    <div class="course-card-title">${escapeHtml(course.title)}</div>
+                    <span class="course-level-badge ${levelClass}">${levelLabel}</span>
+                  </div>
                   <div class="course-progress">
                     <div class="course-progress-track">
                       <div class="course-progress-fill" style="width:${Math.max(0, Math.min(100, Number(course.progress_percent || 0)))}%"></div>
@@ -870,7 +926,8 @@
                     <div class="course-progress-label">${Number(course.progress_percent || 0)}%</div>
                   </div>
                 </div>
-              `
+              `;
+                    }
                   )
                   .join("")
               : `<small class="muted">Курсы не найдены.</small>`
@@ -1025,6 +1082,13 @@
           <input id="courseDescription" placeholder="${S.courseDescriptionPh}" />
           <div class="row">
             <input id="coursePrice" type="number" placeholder="${S.coursePricePh}" min="199" />
+            <select id="courseLevel">
+              <option value="beginner">Новичок</option>
+              <option value="advanced">Продвинутый</option>
+              <option value="professional">Профессионал</option>
+            </select>
+          </div>
+          <div class="row">
             <select id="coursePublished">
               <option value="true">${S.published}</option>
               <option value="false">${S.hidden}</option>
@@ -1057,6 +1121,7 @@
         const courseTitleInput = document.getElementById("courseTitle");
         const courseDescriptionInput = document.getElementById("courseDescription");
         const coursePriceInput = document.getElementById("coursePrice");
+        const courseLevelInput = document.getElementById("courseLevel");
         const coursePublishedInput = document.getElementById("coursePublished");
         const createCourseBtn = document.getElementById("createCourseBtn");
         const teacherCourseSelect = document.getElementById("teacherCourseSelect");
@@ -1095,7 +1160,7 @@
               ? currentTeacherCourses
                   .map(
                     (course) =>
-                      `• ${escapeHtml(course.title)} — ${Number(course.price || 0)} ₽ (${
+                      `• ${escapeHtml(course.title)} — ${getCourseLevelLabel(course.level)} — ${Number(course.price || 0)} ₽ (${
                         course.is_published ? S.published.toLowerCase() : S.hidden.toLowerCase()
                       })`
                   )
@@ -1153,6 +1218,7 @@
               title,
               description: courseDescriptionInput.value.trim(),
               price,
+              level: courseLevelInput.value,
               isPublished: coursePublishedInput.value === "true",
               styleIds: [],
             }),
@@ -1160,6 +1226,7 @@
           courseTitleInput.value = "";
           courseDescriptionInput.value = "";
           coursePriceInput.value = "";
+          courseLevelInput.value = "beginner";
           await loadTeacherCoursesData();
           await loadTeacherLessonsData();
           tg.showAlert(S.courseCreated);
