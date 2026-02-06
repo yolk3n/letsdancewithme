@@ -126,8 +126,10 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        justify-content: center;
+        justify-content: space-between;
+        cursor: pointer;
       }
+      .profile-greeting { font-weight: 700; }
       .profile-avatar,
       .profile-avatar-fallback {
         width: 42px;
@@ -189,6 +191,72 @@
         box-shadow: 0 6px 16px rgba(55, 38, 23, 0.12);
         cursor: pointer;
         transition: transform 120ms ease, filter 120ms ease;
+      }
+      .catalog-bar {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .catalog-row {
+        display: flex;
+        gap: 8px;
+      }
+      .catalog-row > * { flex: 1; }
+      .course-progress {
+        margin-top: 8px;
+      }
+      .course-progress-track {
+        height: 7px;
+        border-radius: 999px;
+        background: rgba(38, 30, 20, 0.12);
+        overflow: hidden;
+      }
+      .course-progress-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #3e9db4, #5bb58a);
+      }
+      .course-progress-label {
+        margin-top: 4px;
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+      .course-author {
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .course-author-avatar,
+      .course-author-fallback {
+        width: 24px;
+        height: 24px;
+        flex: 0 0 24px;
+        border-radius: 50%;
+      }
+      .course-author-avatar {
+        object-fit: cover;
+        border: 1px solid rgba(38, 30, 20, 0.2);
+      }
+      .course-author-fallback {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 700;
+        color: #2d251e;
+        background: #ece7df;
+      }
+      .profile-arrow {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 999px;
+        border: 1px solid rgba(38, 30, 20, 0.15);
+        color: #5b4c3e;
+        font-size: 12px;
       }
       .teacher-card:hover { transform: translateY(-1px); filter: brightness(1.01); }
       .teacher-card:active { transform: translateY(0); }
@@ -380,6 +448,7 @@
     </div>
 
     <div class="card hidden" id="studentScreen"></div>
+    <div class="card hidden" id="profileScreen"></div>
     <div class="card hidden" id="teacherScreen"></div>
     <div class="card hidden" id="adminScreen"></div>
     </main>
@@ -399,11 +468,15 @@
       const onboardingText = document.getElementById("onboardingText");
       const onboardingBtn = document.getElementById("onboardingBtn");
       const studentScreen = document.getElementById("studentScreen");
+      const profileScreen = document.getElementById("profileScreen");
       const teacherScreen = document.getElementById("teacherScreen");
       const adminScreen = document.getElementById("adminScreen");
 
       let currentUser = null;
       let selectedStyleId = "";
+      let selectedTeacherFilterId = "";
+      let courseSearchQuery = "";
+      let studentCatalogMode = "all";
       let currentStyles = [];
       let currentStudentTeachers = [];
       let selectedTeacherId = null;
@@ -477,6 +550,15 @@
         return `<span class="teacher-avatar-fallback">${escapeHtml(getInitials(teacher.name))}</span>`;
       }
 
+      function renderCourseAuthorAvatar(course) {
+        if (course.teacher_avatar_url) {
+          return `<img class="course-author-avatar" src="${escapeHtml(course.teacher_avatar_url)}" alt="${escapeHtml(
+            course.teacher_name || "Teacher"
+          )}" />`;
+        }
+        return `<span class="course-author-fallback">${escapeHtml(getInitials(course.teacher_name || "T"))}</span>`;
+      }
+
       function pluralizeRu(count, forms) {
         const value = Math.abs(Number(count) || 0);
         const mod10 = value % 10;
@@ -540,6 +622,8 @@
 
       function setStyleFilter(styleId) {
         selectedStyleId = styleId ? String(styleId) : "";
+        selectedTeacherFilterId = "";
+        courseSearchQuery = "";
         renderStudentScreen().catch((error) => {
           studentScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
@@ -617,29 +701,26 @@
       async function loadCurrentUser() {
         currentUser = await apiFetch("/api/me");
         const avatarUrl = currentUser.avatar_url || tgUser.photo_url || "";
-        const studentMenu =
-          currentUser.role === "teacher" || currentUser.role === "admin"
-            ? `<button class="secondary" onclick="openStudentScreen()">К обучению</button>`
-            : "";
-        const teacherMenu =
-          currentUser.role === "teacher" || currentUser.role === "admin"
-            ? `<button class="secondary" onclick="openTeacherCabinet()">Редактировать курсы</button>`
-            : "";
-        const adminMenu =
-          currentUser.role === "admin"
-            ? `<button class="secondary" onclick="openAdminPanel()">Администрирование</button>`
-            : "";
+        const helloName = currentUser.username || currentUser.first_name || tgUser.first_name || S.userDefaultName;
 
         userBlock.innerHTML = `
-          <div class="profile-top">
+          <div class="profile-top" onclick="openProfileMenu()">
+            <div class="profile-greeting">Привет, ${escapeHtml(helloName)}!</div>
             ${
               avatarUrl
                 ? `<img class="profile-avatar" src="${escapeHtml(avatarUrl)}" alt="profile avatar" />`
                 : `<span class="profile-avatar-fallback">${escapeHtml(getInitials(currentUser.first_name || tgUser.first_name || "U"))}</span>`
             }
+            <span class="profile-arrow">☰</span>
           </div>
-          ${studentMenu || teacherMenu || adminMenu ? `<div class="profile-menu">${studentMenu}${teacherMenu}${adminMenu}</div>` : ""}
         `;
+      }
+
+      function openProfileMenu() {
+        selectedAppScreen = "profile";
+        routeByRole().catch((error) => {
+          profileScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
+        });
       }
 
       function openStudentScreen() {
@@ -663,6 +744,33 @@
         });
       }
 
+      function openSupport() {
+        tg.showAlert("Напиши в поддержку: @letsdancewithme_support");
+      }
+
+      function openMySubscriptions() {
+        studentCatalogMode = "subscriptions";
+        openStudentScreen();
+      }
+
+      function openAllCourses() {
+        studentCatalogMode = "all";
+        openStudentScreen();
+      }
+
+      async function renderProfileScreen() {
+        profileScreen.innerHTML = `
+          ${renderStudentHeader("Профиль", "", "openStudentScreen()")}
+          <div class="profile-menu">
+            <button onclick="openMySubscriptions()">Мои подписки</button>
+            ${currentUser.role === "teacher" || currentUser.role === "admin" ? `<button onclick="openTeacherCabinet()">Мои курсы</button>` : ""}
+            ${currentUser.role === "admin" ? `<button onclick="openAdminPanel()">Администрирование</button>` : ""}
+            <button class="secondary" onclick="openSupport()">Поддержка</button>
+            <button class="secondary" onclick="openAllCourses()">Все курсы</button>
+          </div>
+        `;
+      }
+
       async function completeOnboarding() {
         await apiFetch("/api/onboarding/complete", { method: "POST" });
         await loadCurrentUser();
@@ -672,8 +780,15 @@
       async function routeByRole() {
         onboardingCard.classList.add("hidden");
         studentScreen.classList.add("hidden");
+        profileScreen.classList.add("hidden");
         teacherScreen.classList.add("hidden");
         adminScreen.classList.add("hidden");
+
+        if (selectedAppScreen === "profile") {
+          profileScreen.classList.remove("hidden");
+          await renderProfileScreen();
+          return;
+        }
 
         const canUseTeacher = currentUser.role === "teacher" || currentUser.role === "admin";
         const canUseAdmin = currentUser.role === "admin";
@@ -701,29 +816,84 @@
       }
 
       async function renderStudentScreen() {
-        studentScreen.classList.add("flat-list");
+        studentScreen.classList.remove("flat-list");
         selectedTeacherId = null;
         openedStudentCourseId = null;
         const [teachers, styles] = await Promise.all([apiFetch("/api/teachers"), apiFetch("/api/styles")]);
         currentStudentTeachers = teachers;
         currentStyles = styles;
-        const filteredTeachers = selectedStyleId
-          ? teachers.filter(
-              (teacher) =>
-                Array.isArray(teacher.styles) &&
-                teacher.styles.some((style) => String(style.id) === String(selectedStyleId))
-            )
-          : teachers;
+        const styleQuery = selectedStyleId ? `&styleId=${selectedStyleId}` : "";
+        const teacherQuery = selectedTeacherFilterId ? `&teacherId=${selectedTeacherFilterId}` : "";
+        const purchasedQuery = studentCatalogMode === "subscriptions" ? "&purchased=1" : "";
+        const searchQuery = courseSearchQuery ? `&search=${encodeURIComponent(courseSearchQuery)}` : "";
+        const courses = await apiFetch(`/api/student/courses?1=1${styleQuery}${teacherQuery}${purchasedQuery}${searchQuery}`);
+        currentStudentCourses = courses;
+        const hasActiveCourse = courses.some(
+          (course) => course.is_purchased && Number(course.total_lessons || 0) > 0 && Number(course.completed_lessons || 0) < Number(course.total_lessons || 0)
+        );
+        const heroTitle = hasActiveCourse ? "Готов продолжить обучение?" : "Курсы для старта";
 
         studentScreen.innerHTML = `
-          ${renderStudentHeader("Преподаватели")}
+          ${renderStudentHeader(heroTitle)}
+          <div class="catalog-bar">
+            <div class="catalog-row">
+              <input
+                id="courseSearchInput"
+                value="${escapeHtml(courseSearchQuery)}"
+                placeholder="Поиск по курсам и преподавателям"
+              />
+            </div>
+            <div class="catalog-row">
+              <select id="teacherFilter">
+                <option value="">Все преподаватели</option>
+                ${teachers.map((teacher) => `<option value="${teacher.id}" ${String(teacher.id) === String(selectedTeacherFilterId) ? "selected" : ""}>${escapeHtml(teacher.name || "Преподаватель")}</option>`).join("")}
+              </select>
+            </div>
+          </div>
           ${renderStyleFilterChips(styles)}
           <div class="stack">
-          ${filteredTeachers.length
-            ? filteredTeachers.map((teacher) => renderTeacherCard(teacher)).join("")
-            : `<small class="muted">Сейчас нет доступных преподавателей.</small>`}
+          ${
+            courses.length
+              ? courses
+                  .map(
+                    (course) => `
+                <div class="course-card">
+                  <div class="course-card-title">${escapeHtml(course.title)}</div>
+                  <div class="course-author">
+                    ${renderCourseAuthorAvatar(course)}
+                    <small class="muted">${escapeHtml(course.teacher_name || "Преподаватель")}</small>
+                  </div>
+                  <div class="course-progress">
+                    <div class="course-progress-track">
+                      <div class="course-progress-fill" style="width:${Math.max(0, Math.min(100, Number(course.progress_percent || 0)))}%"></div>
+                    </div>
+                    <div class="course-progress-label">${Number(course.completed_lessons || 0)}/${Number(course.total_lessons || 0)} уроков • ${Number(course.progress_percent || 0)}%</div>
+                  </div>
+                  <div class="course-card-meta">
+                    <small class="muted">${S.priceLabel}: ${formatRub(course.price)}</small>
+                    <small class="pill ${course.is_purchased ? "free" : "paid"}">${course.is_purchased ? S.purchased : S.notPurchased}</small>
+                  </div>
+                  <button onclick="openCourse(${course.id})">${course.is_purchased ? "Продолжить" : "Открыть курс"}</button>
+                </div>
+              `
+                  )
+                  .join("")
+              : `<small class="muted">Курсы не найдены.</small>`
+          }
           </div>
         `;
+
+        const searchInput = document.getElementById("courseSearchInput");
+        searchInput.addEventListener("change", () => {
+          courseSearchQuery = searchInput.value.trim();
+          renderStudentScreen();
+        });
+
+        const teacherFilter = document.getElementById("teacherFilter");
+        teacherFilter.addEventListener("change", () => {
+          selectedTeacherFilterId = teacherFilter.value;
+          renderStudentScreen();
+        });
       }
 
       async function loadCourses(teacherId) {
@@ -773,9 +943,10 @@
 
       async function openCourse(courseId) {
         studentScreen.classList.remove("flat-list");
+        selectedTeacherId = null;
         openedStudentCourseId = courseId;
         studentScreen.innerHTML = `
-          ${renderStudentHeader(S.lessonsTitle, S.loadingLessons, "loadCourses(" + selectedTeacherId + ")")}
+          ${renderStudentHeader(S.lessonsTitle, S.loadingLessons, "renderStudentScreen()")}
         `;
         const lessons = await apiFetch(`/api/lessons/${courseId}`);
         const course = currentStudentCourses.find((item) => item.id === courseId);
@@ -783,7 +954,7 @@
         const showBuyButton = hasPaidLessons && course && !course.is_purchased;
 
         studentScreen.innerHTML = `
-          ${renderStudentHeader(S.lessonsTitle, course ? course.title : "Выбранный курс", "loadCourses(" + selectedTeacherId + ")")}
+          ${renderStudentHeader(S.lessonsTitle, course ? course.title : "Выбранный курс", "renderStudentScreen()")}
           <div class="stack">
             ${showBuyButton ? `<button onclick="purchaseCourse(${courseId})">${S.buyCourse} ${formatRub(course.price)}</button>` : ""}
             ${
@@ -1139,9 +1310,13 @@
       window.purchaseCourse = purchaseCourse;
       window.doLesson = doLesson;
       window.setStyleFilter = setStyleFilter;
+      window.openProfileMenu = openProfileMenu;
       window.openStudentScreen = openStudentScreen;
+      window.openMySubscriptions = openMySubscriptions;
+      window.openAllCourses = openAllCourses;
       window.openTeacherCabinet = openTeacherCabinet;
       window.openAdminPanel = openAdminPanel;
+      window.openSupport = openSupport;
     </script>
   </body>
 </html>
