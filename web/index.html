@@ -984,7 +984,11 @@
       async function loadCurrentUser() {
         currentUser = await apiFetch("/api/me");
         const avatarUrl = currentUser.avatar_url || tgUser.photo_url || "";
-        const helloName = currentUser.username || currentUser.first_name || tgUser.first_name || S.userDefaultName;
+        const helloName =
+          [currentUser.last_name, currentUser.first_name].filter(Boolean).join(" ") ||
+          [tgUser.last_name, tgUser.first_name].filter(Boolean).join(" ") ||
+          currentUser.username ||
+          S.userDefaultName;
 
         userBlock.innerHTML = `
           <div class="profile-top" onclick="openProfileMenu()">
@@ -993,7 +997,7 @@
                 ? `<img class="profile-avatar" src="${escapeHtml(avatarUrl)}" alt="profile avatar" />`
                 : `<span class="profile-avatar-fallback">${escapeHtml(getInitials(currentUser.first_name || tgUser.first_name || "U"))}</span>`
             }
-            <div class="profile-greeting">Привет, ${escapeHtml(helloName)}!</div>
+            <div class="profile-greeting">Привет, ${escapeHtml(helloName)}</div>
           </div>
         `;
       }
