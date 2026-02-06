@@ -650,7 +650,7 @@
                       <small class="muted">${S.userRoleLabel}: ${escapeHtml(user.role)} | XP: ${user.xp} | ${S.userLessonsLabel}: ${user.lessons_completed}</small>
                       <div class="role-switch-row">
                         <small>${S.teacherRoleSwitch}${user.telegram_id === currentUser.telegram_id ? " (недоступно для себя)" : ""}</small>
-                        <span class="switch">
+                        <label class="switch">
                           <input
                             type="checkbox"
                             ${user.role === "teacher" ? "checked" : ""}
@@ -658,7 +658,7 @@
                             onchange="setTeacherRoleSwitch(${user.telegram_id}, this.checked)"
                           />
                           <span class="slider"></span>
-                        </span>
+                        </label>
                       </div>
                     </div>
                   `
