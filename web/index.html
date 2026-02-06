@@ -1,10 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Let's Dance With Me</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="/strings.ru.js"></script>
     <style>
       body { margin: 0; padding: 16px; font-family: Arial, sans-serif; background: #111; color: #fff; }
       h1 { margin-top: 0; }
@@ -18,13 +19,12 @@
       }
       button { background: #ff4d6d; color: #fff; cursor: pointer; }
       button.secondary { background: #333; }
-      button.compact { width: auto; margin-right: 8px; padding: 8px 10px; font-size: 13px; }
       input, select, textarea { background: #2a2a2a; color: #fff; border: 1px solid #3a3a3a; }
       .teacher-btn { display: flex; align-items: center; gap: 12px; text-align: left; }
       .teacher-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: 0 0 44px; }
       .teacher-avatar-fallback {
-        width: 44px; height: 44px; border-radius: 50%; flex: 0 0 44px; display: flex; align-items: center;
-        justify-content: center; font-size: 13px; font-weight: 700; background: #2b2b2b; color: #fff;
+        width: 44px; height: 44px; border-radius: 50%; flex: 0 0 44px; display: flex;
+        align-items: center; justify-content: center; font-size: 13px; font-weight: 700; background: #2b2b2b;
       }
       .teacher-content { min-width: 0; }
       .row { display: flex; gap: 8px; }
@@ -33,178 +33,82 @@
       .pill { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #333; }
       .pill.free { background: #245b2e; }
       .pill.paid { background: #5b2d24; }
-      .mode-label {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-top: 8px;
-      }
-      .switch {
-        position: relative;
-        display: inline-block;
-        width: 46px;
-        height: 26px;
-        flex: 0 0 46px;
-      }
-      .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-      }
+      .mode-label { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
+      .switch { position: relative; display: inline-block; width: 46px; height: 26px; flex: 0 0 46px; }
+      .switch input { opacity: 0; width: 0; height: 0; }
       .slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #3a3a3a;
-        transition: 0.2s;
-        border-radius: 999px;
+        position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #3a3a3a;
+        transition: 0.2s; border-radius: 999px;
       }
       .slider:before {
-        position: absolute;
-        content: "";
-        height: 20px;
-        width: 20px;
-        left: 3px;
-        top: 3px;
-        background-color: white;
-        transition: 0.2s;
-        border-radius: 50%;
+        position: absolute; content: ""; height: 20px; width: 20px; left: 3px; top: 3px; background: #fff;
+        transition: 0.2s; border-radius: 50%;
       }
-      .switch input:checked + .slider {
-        background-color: #ff4d6d;
-      }
-      .switch input:checked + .slider:before {
-        transform: translateX(20px);
-      }
-      .role-switch-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-top: 8px;
-      }
+      .switch input:checked + .slider { background-color: #ff4d6d; }
+      .switch input:checked + .slider:before { transform: translateX(20px); }
+      .role-switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
       a { color: #ff9ab0; }
     </style>
   </head>
   <body>
-    <h1>рџ’ѓ Let's Dance With Me</h1>
+    <h1 id="appTitle"></h1>
+
     <div class="card hidden" id="modeCard">
-      <b>Р РµР¶РёРј</b>
+      <b id="modeTitle"></b>
       <label id="teacherModeWrap" class="hidden mode-label">
-        <span>Р РµР¶РёРј РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏ</span>
+        <span id="teacherModeText"></span>
         <span class="switch">
           <input type="checkbox" id="teacherModeToggle" />
           <span class="slider"></span>
         </span>
       </label>
       <label id="adminModeWrap" class="hidden mode-label">
-        <span>Р РµР¶РёРј Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°</span>
+        <span id="adminModeText"></span>
         <span class="switch">
           <input type="checkbox" id="adminModeToggle" />
           <span class="slider"></span>
         </span>
       </label>
     </div>
-    <div class="card" id="user">Р—Р°РіСЂСѓР·РєР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ...</div>
+
+    <div class="card" id="user"></div>
 
     <div class="card hidden" id="onboardingCard">
-      <b>Р”РѕР±СЂРѕ РїРѕР¶Р°Р»РѕРІР°С‚СЊ!</b>
-      <p class="muted">Р’С‹Р±РµСЂРё РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏ Рё РЅР°С‡РЅРё РѕР±СѓС‡РµРЅРёРµ.</p>
-      <button id="onboardingBtn">РќР°С‡Р°С‚СЊ</button>
+      <b id="onboardingTitle"></b>
+      <p class="muted" id="onboardingText"></p>
+      <button id="onboardingBtn"></button>
     </div>
 
-    <div class="card hidden" id="studentScreen">Р—Р°РіСЂСѓР·РєР°...</div>
-
-    <div class="card hidden" id="teacherScreen">
-      <b>РљР°Р±РёРЅРµС‚ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏ</b>
-      <p class="muted">РџСЂРѕС„РёР»СЊ</p>
-      <input id="teacherName" placeholder="РРјСЏ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏ" />
-      <input id="teacherDescription" placeholder="РћРїРёСЃР°РЅРёРµ" />
-      <input id="teacherAvatarUrl" placeholder="URL Р°РІР°С‚Р°СЂРєРё" />
-      <button id="saveTeacherProfileBtn">РЎРѕС…СЂР°РЅРёС‚СЊ РїСЂРѕС„РёР»СЊ</button>
-      <hr />
-      <p class="muted">РќРѕРІС‹Р№ РєСѓСЂСЃ</p>
-      <input id="courseTitle" placeholder="РќР°Р·РІР°РЅРёРµ РєСѓСЂСЃР°" />
-      <input id="courseDescription" placeholder="РћРїРёСЃР°РЅРёРµ РєСѓСЂСЃР°" />
-      <div class="row">
-        <input id="coursePrice" type="number" placeholder="Р¦РµРЅР°" min="199" />
-        <select id="coursePublished">
-          <option value="true">РћРїСѓР±Р»РёРєРѕРІР°РЅ</option>
-          <option value="false">РЎРєСЂС‹С‚</option>
-        </select>
-      </div>
-      <button id="createCourseBtn">РЎРѕР·РґР°С‚СЊ РєСѓСЂСЃ</button>
-      <hr />
-      <p class="muted">РЈСЂРѕРєРё РєСѓСЂСЃР°</p>
-      <select id="teacherCourseSelect"></select>
-      <div class="row">
-        <input id="lessonNumber" type="number" min="1" placeholder="в„– СѓСЂРѕРєР°" />
-        <input id="lessonDuration" type="number" min="1" placeholder="Р”Р»РёС‚РµР»СЊРЅРѕСЃС‚СЊ (СЃРµРє)" />
-      </div>
-      <input id="lessonTitle" placeholder="РќР°Р·РІР°РЅРёРµ СѓСЂРѕРєР°" />
-      <input id="lessonPreviewUrl" placeholder="РЎСЃС‹Р»РєР° РЅР° РїСЂРµРІСЊСЋ" />
-      <textarea id="lessonDescription" placeholder="РћРїРёСЃР°РЅРёРµ СѓСЂРѕРєР°"></textarea>
-      <select id="lessonIsFree">
-        <option value="true">Р‘РµСЃРїР»Р°С‚РЅС‹Р№ СѓСЂРѕРє</option>
-        <option value="false">РџР»Р°С‚РЅС‹Р№ СѓСЂРѕРє</option>
-      </select>
-      <button id="saveLessonBtn">РЎРѕС…СЂР°РЅРёС‚СЊ СѓСЂРѕРє</button>
-      <div id="teacherCourses" class="muted">РљСѓСЂСЃС‹: Р·Р°РіСЂСѓР·РєР°...</div>
-      <div id="teacherLessons" class="muted">РЈСЂРѕРєРё: РІС‹Р±РµСЂРё РєСѓСЂСЃ</div>
-    </div>
-
-    <div class="card hidden" id="adminScreen">
-      <b>РђРґРјРёРЅ-РїР°РЅРµР»СЊ</b>
-      <p class="muted">РЎРїРёСЃРѕРє РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№ Рё РЅР°Р·РЅР°С‡РµРЅРёРµ РїСЂРµРїРѕРґР°РІР°С‚РµР»РµР№</p>
-      <button class="secondary" id="refreshAdminUsersBtn">РћР±РЅРѕРІРёС‚СЊ СЃРїРёСЃРѕРє</button>
-      <div id="adminUsersList" class="muted">Р—Р°РіСЂСѓР·РєР°...</div>
-    </div>
+    <div class="card hidden" id="studentScreen"></div>
+    <div class="card hidden" id="teacherScreen"></div>
+    <div class="card hidden" id="adminScreen"></div>
 
     <script>
+      const S = window.STRINGS_RU;
       const tg = window.Telegram.WebApp;
       tg.ready();
       tg.expand();
 
       const tgUser = tg.initDataUnsafe?.user;
-      const userBlock = document.getElementById("user");
+
+      const appTitle = document.getElementById("appTitle");
       const modeCard = document.getElementById("modeCard");
+      const modeTitle = document.getElementById("modeTitle");
       const teacherModeWrap = document.getElementById("teacherModeWrap");
       const adminModeWrap = document.getElementById("adminModeWrap");
+      const teacherModeText = document.getElementById("teacherModeText");
+      const adminModeText = document.getElementById("adminModeText");
       const teacherModeToggle = document.getElementById("teacherModeToggle");
       const adminModeToggle = document.getElementById("adminModeToggle");
+
+      const userBlock = document.getElementById("user");
       const onboardingCard = document.getElementById("onboardingCard");
+      const onboardingTitle = document.getElementById("onboardingTitle");
+      const onboardingText = document.getElementById("onboardingText");
       const onboardingBtn = document.getElementById("onboardingBtn");
       const studentScreen = document.getElementById("studentScreen");
       const teacherScreen = document.getElementById("teacherScreen");
       const adminScreen = document.getElementById("adminScreen");
-      const teacherCourses = document.getElementById("teacherCourses");
-      const teacherLessons = document.getElementById("teacherLessons");
-      const adminUsersList = document.getElementById("adminUsersList");
-      const refreshAdminUsersBtn = document.getElementById("refreshAdminUsersBtn");
-
-      const teacherNameInput = document.getElementById("teacherName");
-      const teacherDescriptionInput = document.getElementById("teacherDescription");
-      const teacherAvatarInput = document.getElementById("teacherAvatarUrl");
-      const saveTeacherProfileBtn = document.getElementById("saveTeacherProfileBtn");
-
-      const courseTitleInput = document.getElementById("courseTitle");
-      const courseDescriptionInput = document.getElementById("courseDescription");
-      const coursePriceInput = document.getElementById("coursePrice");
-      const coursePublishedInput = document.getElementById("coursePublished");
-      const createCourseBtn = document.getElementById("createCourseBtn");
-
-      const teacherCourseSelect = document.getElementById("teacherCourseSelect");
-      const lessonNumberInput = document.getElementById("lessonNumber");
-      const lessonDurationInput = document.getElementById("lessonDuration");
-      const lessonTitleInput = document.getElementById("lessonTitle");
-      const lessonPreviewInput = document.getElementById("lessonPreviewUrl");
-      const lessonDescriptionInput = document.getElementById("lessonDescription");
-      const lessonIsFreeInput = document.getElementById("lessonIsFree");
-      const saveLessonBtn = document.getElementById("saveLessonBtn");
 
       let currentUser = null;
       let selectedStyleId = "";
@@ -212,17 +116,38 @@
       let openedStudentCourseId = null;
       let currentTeacherCourses = [];
       let currentTeacherLessons = [];
-      let editingLessonId = null;
       let currentAdminUsers = [];
+      let editingLessonId = null;
       let teacherModeEnabled = false;
       let adminModeEnabled = false;
 
+      renderStaticTexts();
+
       if (!tgUser) {
-        userBlock.innerHTML = '<span class="error">РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ РґР°РЅРЅС‹Рµ Telegram</span>';
+        userBlock.innerHTML = `<span class="error">${S.noTelegramData}</span>`;
       } else {
         bootstrap().catch((error) => {
-          userBlock.innerHTML = `<span class="error">${escapeHtml(error.message || "РћС€РёР±РєР° РёРЅРёС†РёР°Р»РёР·Р°С†РёРё")}</span>`;
+          userBlock.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
+      }
+
+      function renderStaticTexts() {
+        appTitle.textContent = S.appTitle;
+        modeTitle.textContent = S.modeTitle;
+        teacherModeText.textContent = S.teacherMode;
+        adminModeText.textContent = S.adminMode;
+        onboardingTitle.textContent = S.onboardingTitle;
+        onboardingText.textContent = S.onboardingText;
+        onboardingBtn.textContent = S.onboardingStart;
+        userBlock.textContent = S.loadingUser;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;");
       }
 
       async function apiFetch(url, options = {}) {
@@ -237,20 +162,6 @@
         return data;
       }
 
-      function escapeHtml(value) {
-        return String(value)
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;");
-      }
-
-      function getLevel(xp) {
-        if (xp >= 60) return "рџ’ѓ РўР°РЅС†РѕСЂ";
-        if (xp >= 30) return "рџҐ‹ РЈС‡РµРЅРёРє";
-        return "рџЊ± РќРѕРІРёС‡РѕРє";
-      }
-
       function getModeStorageKey(modeName) {
         return `ldwm_${modeName}_${tgUser.id}`;
       }
@@ -263,6 +174,52 @@
       function persistModeState() {
         localStorage.setItem(getModeStorageKey("teacher_mode"), teacherModeEnabled ? "1" : "0");
         localStorage.setItem(getModeStorageKey("admin_mode"), adminModeEnabled ? "1" : "0");
+      }
+
+      function getLevel(xp) {
+        if (xp >= 60) return S.levelDancer;
+        if (xp >= 30) return S.levelStudent;
+        return S.levelBeginner;
+      }
+
+      function getInitials(name) {
+        return String(name || "")
+          .trim()
+          .split(/\s+/)
+          .slice(0, 2)
+          .map((part) => part[0]?.toUpperCase() || "")
+          .join("") || "T";
+      }
+
+      function renderTeacherAvatar(teacher) {
+        if (teacher.avatar_url) {
+          return `<img class="teacher-avatar" src="${escapeHtml(teacher.avatar_url)}" alt="${escapeHtml(
+            teacher.name || "Teacher"
+          )}" />`;
+        }
+        return `<span class="teacher-avatar-fallback">${escapeHtml(getInitials(teacher.name))}</span>`;
+      }
+
+      async function bootstrap() {
+        bindEvents();
+        await loadCurrentUser();
+        loadModeState();
+        renderModeControls();
+        await routeByRole();
+      }
+
+      function bindEvents() {
+        onboardingBtn.addEventListener("click", completeOnboarding);
+        teacherModeToggle.addEventListener("change", async () => {
+          teacherModeEnabled = teacherModeToggle.checked;
+          persistModeState();
+          await routeByRole();
+        });
+        adminModeToggle.addEventListener("change", async () => {
+          adminModeEnabled = adminModeToggle.checked;
+          persistModeState();
+          await routeByRole();
+        });
       }
 
       function renderModeControls() {
@@ -280,40 +237,16 @@
         if (currentUser.role === "admin") {
           modeCard.classList.remove("hidden");
           adminModeWrap.classList.remove("hidden");
+          teacherModeWrap.classList.remove("hidden");
           adminModeToggle.checked = adminModeEnabled;
+          teacherModeToggle.checked = teacherModeEnabled;
         }
-      }
-
-      async function bootstrap() {
-        bindEvents();
-        await loadCurrentUser();
-        loadModeState();
-        renderModeControls();
-        await routeByRole();
-      }
-
-      function bindEvents() {
-        onboardingBtn.addEventListener("click", completeOnboarding);
-        saveTeacherProfileBtn.addEventListener("click", saveTeacherProfile);
-        createCourseBtn.addEventListener("click", createCourse);
-        teacherCourseSelect.addEventListener("change", loadSelectedTeacherCourseLessons);
-        saveLessonBtn.addEventListener("click", saveLesson);
-        refreshAdminUsersBtn.addEventListener("click", loadAdminUsers);
-        teacherModeToggle.addEventListener("change", async () => {
-          teacherModeEnabled = teacherModeToggle.checked;
-          persistModeState();
-          await routeByRole();
-        });
-        adminModeToggle.addEventListener("change", async () => {
-          adminModeEnabled = adminModeToggle.checked;
-          persistModeState();
-          await routeByRole();
-        });
       }
 
       async function loadCurrentUser() {
         currentUser = await apiFetch("/api/me");
-        if (currentUser.role !== "teacher") {
+
+        if (currentUser.role !== "teacher" && currentUser.role !== "admin") {
           teacherModeEnabled = false;
           localStorage.removeItem(getModeStorageKey("teacher_mode"));
         }
@@ -321,13 +254,15 @@
           adminModeEnabled = false;
           localStorage.removeItem(getModeStorageKey("admin_mode"));
         }
+
         renderModeControls();
+
         userBlock.innerHTML = `
-          <b>${escapeHtml(tgUser.first_name || "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ")}</b><br/>
-          Р РѕР»СЊ: ${escapeHtml(currentUser.role)}<br/>
-          в­ђ XP: ${currentUser.xp}<br/>
-          рџЋ– РЈСЂРѕРІРµРЅСЊ: ${getLevel(currentUser.xp)}<br/>
-          рџ“љ РџСЂРѕР№РґРµРЅРѕ СѓСЂРѕРєРѕРІ: ${currentUser.lessons_completed}
+          <b>${escapeHtml(tgUser.first_name || S.userDefaultName)}</b><br/>
+          ${S.roleLabel}: ${escapeHtml(currentUser.role)}<br/>
+          ${S.xpLabel}: ${currentUser.xp}<br/>
+          ${S.levelLabel}: ${escapeHtml(getLevel(currentUser.xp))}<br/>
+          ${S.lessonsDoneLabel}: ${currentUser.lessons_completed}
         `;
       }
 
@@ -342,65 +277,49 @@
         studentScreen.classList.add("hidden");
         teacherScreen.classList.add("hidden");
         adminScreen.classList.add("hidden");
-        const specialModeEnabled =
+
+        const teacherSpecialMode =
           (currentUser.role === "teacher" && teacherModeEnabled) ||
-          (currentUser.role === "admin" && adminModeEnabled);
+          (currentUser.role === "admin" && teacherModeEnabled);
+        const adminSpecialMode = currentUser.role === "admin" && adminModeEnabled;
+        const specialModeEnabled = teacherSpecialMode || adminSpecialMode;
 
         if (!currentUser.is_onboarded && !specialModeEnabled) {
           onboardingCard.classList.remove("hidden");
         }
 
-        if (currentUser.role === "admin" && specialModeEnabled) {
+        if (adminSpecialMode) {
           adminScreen.classList.remove("hidden");
-          await loadAdminUsers();
+          await renderAdminScreen();
           return;
         }
 
-        if (currentUser.role === "teacher" && specialModeEnabled) {
+        if (teacherSpecialMode) {
           teacherScreen.classList.remove("hidden");
-          await loadTeacherProfile();
-          await loadTeacherCourses();
+          await renderTeacherScreen();
           return;
         }
 
         studentScreen.classList.remove("hidden");
-        await loadTeachers();
+        await renderStudentScreen();
       }
 
-      function getInitials(name) {
-        return String(name || "")
-          .trim()
-          .split(/\s+/)
-          .slice(0, 2)
-          .map((part) => part[0].toUpperCase())
-          .join("") || "T";
-      }
-
-      function renderTeacherAvatar(teacher) {
-        if (teacher.avatar_url) {
-          return `<img class="teacher-avatar" src="${escapeHtml(teacher.avatar_url)}" alt="${escapeHtml(
-            teacher.name || "Teacher"
-          )}" />`;
-        }
-        return `<span class="teacher-avatar-fallback">${escapeHtml(getInitials(teacher.name))}</span>`;
-      }
-
-      async function loadTeachers() {
+      async function renderStudentScreen() {
         const [teachers, styles] = await Promise.all([apiFetch("/api/teachers"), apiFetch("/api/styles")]);
         studentScreen.innerHTML = `
-          <b>Р’С‹Р±РµСЂРё РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏ</b><br/><br/>
+          <b>${S.studentTitle}</b><br/><br/>
           <select id="styleFilter">
-            <option value="">Р’СЃРµ РЅР°РїСЂР°РІР»РµРЅРёСЏ</option>
-            ${styles.map((s) => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join("")}
+            <option value="">${S.allStyles}</option>
+            ${styles.map((style) => `<option value="${style.id}">${escapeHtml(style.name)}</option>`).join("")}
           </select>
           ${teachers
             .map(
-              (t) => `
-                <button class="teacher-btn" onclick="loadCourses(${t.id})">
-                  ${renderTeacherAvatar(t)}
+              (teacher) => `
+                <button class="teacher-btn" onclick="loadCourses(${teacher.id})">
+                  ${renderTeacherAvatar(teacher)}
                   <span class="teacher-content">
-                    ${escapeHtml(t.name)}<br/>
-                    <small class="muted">${escapeHtml(t.description || "")}</small>
+                    ${escapeHtml(teacher.name)}<br/>
+                    <small class="muted">${escapeHtml(teacher.description || "")}</small>
                   </span>
                 </button>
               `
@@ -416,73 +335,71 @@
       }
 
       async function loadCourses(teacherId) {
-        studentScreen.innerHTML = "Р—Р°РіСЂСѓР·РєР° РєСѓСЂСЃРѕРІ...";
+        studentScreen.innerHTML = S.loadingCourses;
         const styleQuery = selectedStyleId ? `?styleId=${selectedStyleId}` : "";
         const courses = await apiFetch(`/api/courses/${teacherId}${styleQuery}`);
         currentStudentCourses = courses;
 
         studentScreen.innerHTML =
-          "<b>РљСѓСЂСЃС‹</b><br/><br/>" +
+          `<b>${S.coursesTitle}</b><br/><br/>` +
           courses
             .map(
-              (c) => `
-                <button onclick="openCourse(${c.id})">
-                  ${escapeHtml(c.title)}<br/>
-                  <small class="muted">${escapeHtml(c.description || "")}</small><br/>
-                  <small class="muted">Р¦РµРЅР°: ${Number(c.price || 0)} в‚Ѕ</small><br/>
-                  <small class="muted">${c.is_purchased ? "РљСѓРїР»РµРЅ" : "РќРµ РєСѓРїР»РµРЅ"}</small>
+              (course) => `
+                <button onclick="openCourse(${course.id})">
+                  ${escapeHtml(course.title)}<br/>
+                  <small class="muted">${escapeHtml(course.description || "")}</small><br/>
+                  <small class="muted">${S.priceLabel}: ${Number(course.price || 0)} ₽</small><br/>
+                  <small class="muted">${course.is_purchased ? S.purchased : S.notPurchased}</small>
                 </button>
               `
             )
             .join("") +
-          `<button class="secondary" onclick="loadTeachers()">в¬… Рљ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏРј</button>`;
+          `<button class="secondary" onclick="renderStudentScreen()">${S.toTeachers}</button>`;
       }
 
       async function openCourse(courseId) {
         openedStudentCourseId = courseId;
-        studentScreen.innerHTML = "Р—Р°РіСЂСѓР·РєР° СѓСЂРѕРєРѕРІ...";
+        studentScreen.innerHTML = S.loadingLessons;
         const lessons = await apiFetch(`/api/lessons/${courseId}`);
         const course = currentStudentCourses.find((item) => item.id === courseId);
         const hasPaidLessons = lessons.some((lesson) => !lesson.is_free);
         const showBuyButton = hasPaidLessons && course && !course.is_purchased;
 
         studentScreen.innerHTML =
-          "<b>РЈСЂРѕРєРё</b><br/><br/>" +
+          `<b>${S.lessonsTitle}</b><br/><br/>` +
           (showBuyButton
-            ? `<button onclick="purchaseCourse(${courseId})">РљСѓРїРёС‚СЊ РєСѓСЂСЃ Р·Р° ${Number(course.price || 0)} в‚Ѕ</button>`
+            ? `<button onclick="purchaseCourse(${courseId})">${S.buyCourse} ${Number(course.price || 0)} ₽</button>`
             : "") +
           lessons
             .map((lesson) => {
               const typeClass = lesson.is_free ? "free" : "paid";
-              const typeText = lesson.is_free ? "Р‘РµСЃРїР»Р°С‚РЅРѕ" : "РџР»Р°С‚РЅРѕ";
+              const typeText = lesson.is_free ? S.free : S.paid;
               const durationText = lesson.duration_sec
-                ? `${Math.round(lesson.duration_sec / 60)} РјРёРЅ`
-                : "Р±РµР· РґР»РёС‚РµР»СЊРЅРѕСЃС‚Рё";
-              const unlockText = lesson.is_unlocked ? "РћС‚РєСЂС‹С‚" : "Р—Р°РєСЂС‹С‚";
+                ? `${Math.round(lesson.duration_sec / 60)} ${S.minutes}`
+                : S.noDuration;
+              const unlockText = lesson.is_unlocked ? S.unlocked : S.locked;
               const previewHtml = lesson.preview_url
-                ? `<br/><small><a href="${escapeHtml(
-                    lesson.preview_url
-                  )}" target="_blank" rel="noopener noreferrer">РџСЂРµРІСЊСЋ</a></small>`
+                ? `<br/><small><a href="${escapeHtml(lesson.preview_url)}" target="_blank" rel="noopener noreferrer">${S.preview}</a></small>`
                 : "";
               return `
                 <button onclick="doLesson(${courseId}, ${lesson.lesson_number})">
-                  РЈСЂРѕРє ${lesson.lesson_number}: ${escapeHtml(lesson.title)}<br/>
+                  ${S.lessonsTitle.slice(0, -1)} ${lesson.lesson_number}: ${escapeHtml(lesson.title)}<br/>
                   <small class="pill ${typeClass}">${typeText}</small>
-                  <small class="muted"> В· ${durationText}</small>
-                  <small class="muted"> В· ${unlockText}</small>
+                  <small class="muted"> · ${durationText}</small>
+                  <small class="muted"> · ${unlockText}</small>
                   ${previewHtml}
                 </button>
               `;
             })
             .join("") +
-          `<button class="secondary" onclick="loadTeachers()">в¬… Рљ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏРј</button>`;
+          `<button class="secondary" onclick="renderStudentScreen()">${S.toTeachers}</button>`;
       }
 
       async function purchaseCourse(courseId) {
         await apiFetch(`/api/courses/${courseId}/purchase`, { method: "POST" });
         const selectedCourse = currentStudentCourses.find((item) => item.id === courseId);
         if (selectedCourse) selectedCourse.is_purchased = true;
-        tg.showAlert("РљСѓСЂСЃ СѓСЃРїРµС€РЅРѕ РєСѓРїР»РµРЅ");
+        tg.showAlert(S.coursePurchaseSuccess);
         await openCourse(courseId);
       }
 
@@ -494,10 +411,8 @@
 
         if (data.blocked) {
           const message =
-            data.reason === "course_purchase_required"
-              ? "РЎРЅР°С‡Р°Р»Р° РєСѓРїРё РєСѓСЂСЃ, С‡С‚РѕР±С‹ РѕС‚РєСЂС‹С‚СЊ СЌС‚РѕС‚ СѓСЂРѕРє"
-              : "Р­С‚РѕС‚ СѓСЂРѕРє РЅРµРґРѕСЃС‚СѓРїРµРЅ";
-          tg.showPopup({ title: "рџ”’ РЈСЂРѕРє Р·Р°РєСЂС‹С‚", message, buttons: [{ type: "ok" }] });
+            data.reason === "course_purchase_required" ? S.lessonLockedNeedPurchase : S.lessonLockedGeneric;
+          tg.showPopup({ title: S.lessonLockedTitle, message, buttons: [{ type: "ok" }] });
           return;
         }
 
@@ -505,224 +420,279 @@
         if (openedStudentCourseId) await openCourse(openedStudentCourseId);
       }
 
-      async function loadTeacherProfile() {
+      async function renderTeacherScreen() {
+        teacherScreen.innerHTML = `
+          <b>${S.teacherCabinet}</b>
+          <p class="muted">${S.profileTitle}</p>
+          <input id="teacherName" placeholder="${S.teacherNamePh}" />
+          <input id="teacherDescription" placeholder="${S.teacherDescriptionPh}" />
+          <input id="teacherAvatarUrl" placeholder="${S.teacherAvatarPh}" />
+          <button id="saveTeacherProfileBtn">${S.saveProfile}</button>
+          <hr />
+          <p class="muted">${S.newCourseTitle}</p>
+          <input id="courseTitle" placeholder="${S.courseNamePh}" />
+          <input id="courseDescription" placeholder="${S.courseDescriptionPh}" />
+          <div class="row">
+            <input id="coursePrice" type="number" placeholder="${S.coursePricePh}" min="199" />
+            <select id="coursePublished">
+              <option value="true">${S.published}</option>
+              <option value="false">${S.hidden}</option>
+            </select>
+          </div>
+          <button id="createCourseBtn">${S.createCourse}</button>
+          <hr />
+          <p class="muted">${S.teacherLessonsTitle}</p>
+          <select id="teacherCourseSelect"></select>
+          <div class="row">
+            <input id="lessonNumber" type="number" min="1" placeholder="${S.lessonNumberPh}" />
+            <input id="lessonDuration" type="number" min="1" placeholder="${S.lessonDurationPh}" />
+          </div>
+          <input id="lessonTitle" placeholder="${S.lessonNamePh}" />
+          <input id="lessonPreviewUrl" placeholder="${S.lessonPreviewPh}" />
+          <textarea id="lessonDescription" placeholder="${S.lessonDescriptionPh}"></textarea>
+          <select id="lessonIsFree">
+            <option value="true">${S.lessonFree}</option>
+            <option value="false">${S.lessonPaid}</option>
+          </select>
+          <button id="saveLessonBtn">${S.saveLesson}</button>
+          <div id="teacherCourses" class="muted">${S.loading}</div>
+          <div id="teacherLessons" class="muted">${S.chooseCourse}</div>
+        `;
+
+        const teacherNameInput = document.getElementById("teacherName");
+        const teacherDescriptionInput = document.getElementById("teacherDescription");
+        const teacherAvatarInput = document.getElementById("teacherAvatarUrl");
+        const saveTeacherProfileBtn = document.getElementById("saveTeacherProfileBtn");
+        const courseTitleInput = document.getElementById("courseTitle");
+        const courseDescriptionInput = document.getElementById("courseDescription");
+        const coursePriceInput = document.getElementById("coursePrice");
+        const coursePublishedInput = document.getElementById("coursePublished");
+        const createCourseBtn = document.getElementById("createCourseBtn");
+        const teacherCourseSelect = document.getElementById("teacherCourseSelect");
+        const lessonNumberInput = document.getElementById("lessonNumber");
+        const lessonDurationInput = document.getElementById("lessonDuration");
+        const lessonTitleInput = document.getElementById("lessonTitle");
+        const lessonPreviewInput = document.getElementById("lessonPreviewUrl");
+        const lessonDescriptionInput = document.getElementById("lessonDescription");
+        const lessonIsFreeInput = document.getElementById("lessonIsFree");
+        const saveLessonBtn = document.getElementById("saveLessonBtn");
+        const teacherCoursesBlock = document.getElementById("teacherCourses");
+        const teacherLessonsBlock = document.getElementById("teacherLessons");
+
         const profile = await apiFetch("/api/teacher/profile");
         teacherNameInput.value = profile.name || "";
         teacherDescriptionInput.value = profile.description || "";
         teacherAvatarInput.value = profile.avatar_url || "";
-      }
 
-      async function saveTeacherProfile() {
-        await apiFetch("/api/teacher/profile", {
-          method: "PUT",
-          body: JSON.stringify({
-            name: teacherNameInput.value.trim(),
-            description: teacherDescriptionInput.value.trim(),
-            avatarUrl: teacherAvatarInput.value.trim(),
-          }),
+        saveTeacherProfileBtn.addEventListener("click", async () => {
+          await apiFetch("/api/teacher/profile", {
+            method: "PUT",
+            body: JSON.stringify({
+              name: teacherNameInput.value.trim(),
+              description: teacherDescriptionInput.value.trim(),
+              avatarUrl: teacherAvatarInput.value.trim(),
+            }),
+          });
+          tg.showAlert(S.profileSaved);
         });
-        tg.showAlert("РџСЂРѕС„РёР»СЊ СЃРѕС…СЂР°РЅРµРЅ");
-      }
 
-      function resetLessonForm() {
-        editingLessonId = null;
-        lessonNumberInput.value = "";
-        lessonDurationInput.value = "";
-        lessonTitleInput.value = "";
-        lessonPreviewInput.value = "";
-        lessonDescriptionInput.value = "";
-        lessonIsFreeInput.value = "true";
-        saveLessonBtn.textContent = "РЎРѕС…СЂР°РЅРёС‚СЊ СѓСЂРѕРє";
-      }
+        async function loadTeacherCoursesData() {
+          currentTeacherCourses = await apiFetch("/api/teacher/courses");
+          teacherCoursesBlock.innerHTML =
+            `<b>${S.yourCourses}</b><br/><br/>` +
+            (currentTeacherCourses.length
+              ? currentTeacherCourses
+                  .map(
+                    (course) =>
+                      `• ${escapeHtml(course.title)} — ${Number(course.price || 0)} ₽ (${
+                        course.is_published ? S.published.toLowerCase() : S.hidden.toLowerCase()
+                      })`
+                  )
+                  .join("<br/>")
+              : S.noCoursesYet);
 
-      async function loadTeacherCourses() {
-        currentTeacherCourses = await apiFetch("/api/teacher/courses");
-        teacherCourses.innerHTML =
-          "<b>Р’Р°С€Рё РєСѓСЂСЃС‹</b><br/><br/>" +
-          (currentTeacherCourses.length
-            ? currentTeacherCourses
-                .map(
-                  (course) =>
-                    `вЂў ${escapeHtml(course.title)} вЂ” ${Number(course.price || 0)} в‚Ѕ (${
-                      course.is_published ? "РѕРїСѓР±Р»РёРєРѕРІР°РЅ" : "СЃРєСЂС‹С‚"
-                    })`
-                )
-                .join("<br/>")
-            : "РџРѕРєР° РЅРµС‚ РєСѓСЂСЃРѕРІ");
-
-        teacherCourseSelect.innerHTML = currentTeacherCourses.length
-          ? currentTeacherCourses
-              .map((course) => `<option value="${course.id}">${escapeHtml(course.title)}</option>`)
-              .join("")
-          : '<option value="">РќРµС‚ РєСѓСЂСЃРѕРІ</option>';
-
-        if (currentTeacherCourses.length) {
-          await loadSelectedTeacherCourseLessons();
-        } else {
-          teacherLessons.textContent = "РЈСЂРѕРєРё: СЃРЅР°С‡Р°Р»Р° СЃРѕР·РґР°Р№ РєСѓСЂСЃ";
-        }
-      }
-
-      async function loadSelectedTeacherCourseLessons() {
-        const courseId = Number(teacherCourseSelect.value);
-        if (!courseId) {
-          teacherLessons.textContent = "РЈСЂРѕРєРё: РІС‹Р±РµСЂРё РєСѓСЂСЃ";
-          return;
+          teacherCourseSelect.innerHTML = currentTeacherCourses.length
+            ? currentTeacherCourses.map((course) => `<option value="${course.id}">${escapeHtml(course.title)}</option>`).join("")
+            : `<option value="">${S.noCourses}</option>`;
         }
 
-        const lessons = await apiFetch(`/api/teacher/courses/${courseId}/lessons`);
-        currentTeacherLessons = lessons;
-        teacherLessons.innerHTML =
-          "<b>РЈСЂРѕРєРё РІС‹Р±СЂР°РЅРЅРѕРіРѕ РєСѓСЂСЃР°</b><br/><br/>" +
-          (lessons.length
-            ? lessons
+        async function loadTeacherLessonsData() {
+          const courseId = Number(teacherCourseSelect.value);
+          if (!courseId) {
+            teacherLessonsBlock.textContent = S.chooseCourse;
+            return;
+          }
+
+          const lessons = await apiFetch(`/api/teacher/courses/${courseId}/lessons`);
+          currentTeacherLessons = lessons;
+          teacherLessonsBlock.innerHTML =
+            `<b>${S.selectedCourseLessons}</b><br/><br/>` +
+            (lessons.length
+              ? lessons
+                  .map(
+                    (lesson) => `
+                      <div class="lesson-row">
+                        <b>${lesson.lesson_number}. ${escapeHtml(lesson.title)}</b><br/>
+                        <small class="muted">${escapeHtml(lesson.description || "")}</small><br/>
+                        <small class="muted">${lesson.is_free ? S.free : S.paid} · ${
+                          lesson.duration_sec ? `${lesson.duration_sec} ${S.seconds}` : S.noDuration
+                        }</small><br/>
+                        ${
+                          lesson.preview_url
+                            ? `<small><a href="${escapeHtml(lesson.preview_url)}" target="_blank" rel="noopener noreferrer">${S.preview}</a></small><br/>`
+                            : ""
+                        }
+                        <button class="secondary" onclick="editLessonById(${lesson.id})">${S.editLesson}</button>
+                      </div>
+                    `
+                  )
+                  .join("")
+              : S.noLessonsYet);
+        }
+
+        createCourseBtn.addEventListener("click", async () => {
+          const title = courseTitleInput.value.trim();
+          const price = Number(coursePriceInput.value || 0);
+          if (!title) return tg.showAlert(S.needCourseName);
+          if (!Number.isFinite(price) || price < 199) return tg.showAlert(S.minCoursePriceError);
+
+          await apiFetch("/api/teacher/courses", {
+            method: "POST",
+            body: JSON.stringify({
+              title,
+              description: courseDescriptionInput.value.trim(),
+              price,
+              isPublished: coursePublishedInput.value === "true",
+              styleIds: [],
+            }),
+          });
+          courseTitleInput.value = "";
+          courseDescriptionInput.value = "";
+          coursePriceInput.value = "";
+          await loadTeacherCoursesData();
+          await loadTeacherLessonsData();
+          tg.showAlert(S.courseCreated);
+        });
+
+        teacherCourseSelect.addEventListener("change", loadTeacherLessonsData);
+
+        function resetLessonForm() {
+          editingLessonId = null;
+          lessonNumberInput.value = "";
+          lessonDurationInput.value = "";
+          lessonTitleInput.value = "";
+          lessonPreviewInput.value = "";
+          lessonDescriptionInput.value = "";
+          lessonIsFreeInput.value = "true";
+          saveLessonBtn.textContent = S.saveLesson;
+        }
+
+        window.editLessonById = function editLessonById(lessonId) {
+          const lesson = currentTeacherLessons.find((item) => item.id === lessonId);
+          if (!lesson) return;
+          editingLessonId = lesson.id;
+          lessonNumberInput.value = lesson.lesson_number;
+          lessonDurationInput.value = lesson.duration_sec || "";
+          lessonTitleInput.value = lesson.title || "";
+          lessonPreviewInput.value = lesson.preview_url || "";
+          lessonDescriptionInput.value = lesson.description || "";
+          lessonIsFreeInput.value = lesson.is_free ? "true" : "false";
+          saveLessonBtn.textContent = S.updateLesson;
+        };
+
+        saveLessonBtn.addEventListener("click", async () => {
+          const courseId = Number(teacherCourseSelect.value);
+          if (!courseId) return tg.showAlert(S.chooseCourseError);
+
+          const payload = {
+            lessonNumber: Number(lessonNumberInput.value),
+            title: lessonTitleInput.value.trim(),
+            description: lessonDescriptionInput.value.trim(),
+            isFree: lessonIsFreeInput.value === "true",
+            durationSec: lessonDurationInput.value ? Number(lessonDurationInput.value) : null,
+            previewUrl: lessonPreviewInput.value.trim() || null,
+          };
+
+          if (!payload.lessonNumber || !payload.title) return tg.showAlert(S.fillLessonError);
+
+          if (editingLessonId) {
+            await apiFetch(`/api/teacher/lessons/${editingLessonId}`, {
+              method: "PUT",
+              body: JSON.stringify(payload),
+            });
+          } else {
+            await apiFetch(`/api/teacher/courses/${courseId}/lessons`, {
+              method: "POST",
+              body: JSON.stringify(payload),
+            });
+          }
+
+          resetLessonForm();
+          await loadTeacherLessonsData();
+          tg.showAlert(S.lessonSaved);
+        });
+
+        await loadTeacherCoursesData();
+        await loadTeacherLessonsData();
+      }
+
+      async function renderAdminScreen() {
+        adminScreen.innerHTML = `
+          <b>${S.adminPanelTitle}</b>
+          <p class="muted">${S.adminPanelText}</p>
+          <button class="secondary" id="refreshAdminUsersBtn">${S.refreshUsers}</button>
+          <div id="adminUsersList" class="muted">${S.loadingUsers}</div>
+        `;
+
+        const refreshAdminUsersBtn = document.getElementById("refreshAdminUsersBtn");
+        const adminUsersList = document.getElementById("adminUsersList");
+
+        async function loadAdminUsers() {
+          currentAdminUsers = await apiFetch("/api/admin/users");
+          adminUsersList.innerHTML = currentAdminUsers.length
+            ? currentAdminUsers
                 .map(
-                  (lesson) => `
-                    <div class="lesson-row">
-                      <b>${lesson.lesson_number}. ${escapeHtml(lesson.title)}</b><br/>
-                      <small class="muted">${escapeHtml(lesson.description || "")}</small><br/>
-                      <small class="muted">${lesson.is_free ? "Р‘РµСЃРїР»Р°С‚РЅС‹Р№" : "РџР»Р°С‚РЅС‹Р№"} В· ${
-                        lesson.duration_sec ? `${lesson.duration_sec} СЃРµРє` : "Р±РµР· РґР»РёС‚РµР»СЊРЅРѕСЃС‚Рё"
-                      }</small><br/>
-                      ${
-                        lesson.preview_url
-                          ? `<small><a href="${escapeHtml(
-                              lesson.preview_url
-                            )}" target="_blank" rel="noopener noreferrer">РџСЂРµРІСЊСЋ</a></small><br/>`
-                          : ""
-                      }
-                      <button class="secondary" onclick="editLessonById(${lesson.id})">Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ</button>
+                  (user) => `
+                    <div class="user-row">
+                      <b>${S.userIdLabel}:</b> ${user.telegram_id}<br/>
+                      <small class="muted">${S.userRoleLabel}: ${escapeHtml(user.role)} | XP: ${user.xp} | ${S.userLessonsLabel}: ${user.lessons_completed}</small>
+                      <div class="role-switch-row">
+                        <small>${S.teacherRoleSwitch}</small>
+                        <span class="switch">
+                          <input
+                            type="checkbox"
+                            ${user.role === "teacher" ? "checked" : ""}
+                            onchange="setTeacherRoleSwitch(${user.telegram_id}, this.checked)"
+                          />
+                          <span class="slider"></span>
+                        </span>
+                      </div>
                     </div>
                   `
                 )
                 .join("")
-            : "РџРѕРєР° РЅРµС‚ СѓСЂРѕРєРѕРІ");
-      }
-
-      async function createCourse() {
-        const title = courseTitleInput.value.trim();
-        const price = Number(coursePriceInput.value || 0);
-        if (!title) {
-          tg.showAlert("РЈРєР°Р¶Рё РЅР°Р·РІР°РЅРёРµ РєСѓСЂСЃР°");
-          return;
-        }
-        if (!Number.isFinite(price) || price < 199) {
-          tg.showAlert("Р¦РµРЅР° РєСѓСЂСЃР° РґРѕР»Р¶РЅР° Р±С‹С‚СЊ РЅРµ РјРµРЅСЊС€Рµ 199 в‚Ѕ");
-          return;
+            : S.usersEmpty;
         }
 
-        await apiFetch("/api/teacher/courses", {
-          method: "POST",
-          body: JSON.stringify({
-            title,
-            description: courseDescriptionInput.value.trim(),
-            price,
-            isPublished: coursePublishedInput.value === "true",
-            styleIds: [],
-          }),
-        });
-
-        courseTitleInput.value = "";
-        courseDescriptionInput.value = "";
-        coursePriceInput.value = "";
-        await loadTeacherCourses();
-        tg.showAlert("РљСѓСЂСЃ СЃРѕР·РґР°РЅ");
-      }
-
-      window.editLessonById = function editLessonById(lessonId) {
-        const lesson = currentTeacherLessons.find((item) => item.id === lessonId);
-        if (!lesson) return;
-        editingLessonId = lesson.id;
-        lessonNumberInput.value = lesson.lesson_number;
-        lessonDurationInput.value = lesson.duration_sec || "";
-        lessonTitleInput.value = lesson.title || "";
-        lessonPreviewInput.value = lesson.preview_url || "";
-        lessonDescriptionInput.value = lesson.description || "";
-        lessonIsFreeInput.value = lesson.is_free ? "true" : "false";
-        saveLessonBtn.textContent = "РћР±РЅРѕРІРёС‚СЊ СѓСЂРѕРє";
-      };
-
-      async function saveLesson() {
-        const courseId = Number(teacherCourseSelect.value);
-        if (!courseId) {
-          tg.showAlert("Р’С‹Р±РµСЂРё РєСѓСЂСЃ");
-          return;
-        }
-
-        const payload = {
-          lessonNumber: Number(lessonNumberInput.value),
-          title: lessonTitleInput.value.trim(),
-          description: lessonDescriptionInput.value.trim(),
-          isFree: lessonIsFreeInput.value === "true",
-          durationSec: lessonDurationInput.value ? Number(lessonDurationInput.value) : null,
-          previewUrl: lessonPreviewInput.value.trim() || null,
+        window.setTeacherRoleSwitch = async function setTeacherRoleSwitch(telegramId, checked) {
+          const role = checked ? "teacher" : "student";
+          await apiFetch(`/api/admin/users/${telegramId}/role`, {
+            method: "PUT",
+            body: JSON.stringify({ role }),
+          });
+          tg.showAlert(S.roleUpdated);
+          await loadAdminUsers();
         };
 
-        if (!payload.lessonNumber || !payload.title) {
-          tg.showAlert("Р—Р°РїРѕР»РЅРё РЅРѕРјРµСЂ Рё РЅР°Р·РІР°РЅРёРµ СѓСЂРѕРєР°");
-          return;
-        }
-
-        if (editingLessonId) {
-          await apiFetch(`/api/teacher/lessons/${editingLessonId}`, {
-            method: "PUT",
-            body: JSON.stringify(payload),
-          });
-        } else {
-          await apiFetch(`/api/teacher/courses/${courseId}/lessons`, {
-            method: "POST",
-            body: JSON.stringify(payload),
-          });
-        }
-
-        resetLessonForm();
-        await loadSelectedTeacherCourseLessons();
-        tg.showAlert("РЈСЂРѕРє СЃРѕС…СЂР°РЅРµРЅ");
-      }
-
-      async function loadAdminUsers() {
-        currentAdminUsers = await apiFetch("/api/admin/users");
-        adminUsersList.innerHTML = currentAdminUsers.length
-          ? currentAdminUsers
-              .map(
-                (user) => `
-                  <div class="user-row">
-                    <b>ID:</b> ${user.telegram_id}<br/>
-                    <small class="muted">Р РѕР»СЊ: ${escapeHtml(user.role)} | XP: ${user.xp} | РЈСЂРѕРєРѕРІ: ${user.lessons_completed}</small><br/>
-                    <div class="role-switch-row">
-                      <small>РџСЂРµРїРѕРґР°РІР°С‚РµР»СЊ</small>
-                      <span class="switch">
-                        <input
-                          type="checkbox"
-                          ${user.role === "teacher" ? "checked" : ""}
-                          onchange="setTeacherRoleSwitch(${user.telegram_id}, this.checked)"
-                        />
-                        <span class="slider"></span>
-                      </span>
-                    </div>
-                  </div>
-                `
-              )
-              .join("")
-          : "РџРѕР»СЊР·РѕРІР°С‚РµР»РµР№ РїРѕРєР° РЅРµС‚";
-      }
-
-      window.setTeacherRoleSwitch = async function setTeacherRoleSwitch(telegramId, checked) {
-        const role = checked ? "teacher" : "student";
-        await apiFetch(`/api/admin/users/${telegramId}/role`, {
-          method: "PUT",
-          body: JSON.stringify({ role }),
-        });
-        tg.showAlert("Р РѕР»СЊ РѕР±РЅРѕРІР»РµРЅР°");
+        refreshAdminUsersBtn.addEventListener("click", loadAdminUsers);
         await loadAdminUsers();
-      };
+      }
 
-      window.loadTeachers = loadTeachers;
+      window.renderStudentScreen = renderStudentScreen;
       window.loadCourses = loadCourses;
       window.openCourse = openCourse;
-      window.doLesson = doLesson;
       window.purchaseCourse = purchaseCourse;
+      window.doLesson = doLesson;
     </script>
   </body>
 </html>
-
