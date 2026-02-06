@@ -1134,6 +1134,7 @@
                       const levelClass = getCourseLevelClass(course.level);
                       const levelLabel = getCourseLevelLabel(course.level);
                       const author = formatTeacherNameForCard(course.teacher_name);
+                      const progressPercent = Number(course.progress_percent || 0);
                       return `
                 <div class="course-card catalog-course-card level-${levelClass}" onclick="openCourse(${course.id})">
                   <div class="course-head">
@@ -1148,12 +1149,16 @@
                         ${author.line2 ? `<span class="course-author-line">${escapeHtml(author.line2)}</span>` : ""}
                       </div>
                     </div>
-                    <div class="course-progress-inline">
-                      <div class="course-progress-track">
-                        <div class="course-progress-fill" style="width:${Math.max(0, Math.min(100, Number(course.progress_percent || 0)))}%"></div>
-                      </div>
-                      <div class="course-progress-label">${Number(course.progress_percent || 0)}%</div>
-                    </div>
+                    ${
+                      progressPercent > 0
+                        ? `<div class="course-progress-inline">
+                            <div class="course-progress-track">
+                              <div class="course-progress-fill" style="width:${Math.max(0, Math.min(100, progressPercent))}%"></div>
+                            </div>
+                            <div class="course-progress-label">${progressPercent}%</div>
+                          </div>`
+                        : ""
+                    }
                   </div>
                 </div>
               `;
