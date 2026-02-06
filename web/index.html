@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
@@ -237,16 +237,14 @@
         if (currentUser.role === "admin") {
           modeCard.classList.remove("hidden");
           adminModeWrap.classList.remove("hidden");
-          teacherModeWrap.classList.remove("hidden");
           adminModeToggle.checked = adminModeEnabled;
-          teacherModeToggle.checked = teacherModeEnabled;
         }
       }
 
       async function loadCurrentUser() {
         currentUser = await apiFetch("/api/me");
 
-        if (currentUser.role !== "teacher" && currentUser.role !== "admin") {
+        if (currentUser.role !== "teacher") {
           teacherModeEnabled = false;
           localStorage.removeItem(getModeStorageKey("teacher_mode"));
         }
@@ -278,9 +276,7 @@
         teacherScreen.classList.add("hidden");
         adminScreen.classList.add("hidden");
 
-        const teacherSpecialMode =
-          (currentUser.role === "teacher" && teacherModeEnabled) ||
-          (currentUser.role === "admin" && teacherModeEnabled);
+        const teacherSpecialMode = currentUser.role === "teacher" && teacherModeEnabled;
         const adminSpecialMode = currentUser.role === "admin" && adminModeEnabled;
         const specialModeEnabled = teacherSpecialMode || adminSpecialMode;
 
@@ -348,7 +344,7 @@
                 <button onclick="openCourse(${course.id})">
                   ${escapeHtml(course.title)}<br/>
                   <small class="muted">${escapeHtml(course.description || "")}</small><br/>
-                  <small class="muted">${S.priceLabel}: ${Number(course.price || 0)} ₽</small><br/>
+                  <small class="muted">${S.priceLabel}: ${Number(course.price || 0)} в‚Ѕ</small><br/>
                   <small class="muted">${course.is_purchased ? S.purchased : S.notPurchased}</small>
                 </button>
               `
@@ -368,7 +364,7 @@
         studentScreen.innerHTML =
           `<b>${S.lessonsTitle}</b><br/><br/>` +
           (showBuyButton
-            ? `<button onclick="purchaseCourse(${courseId})">${S.buyCourse} ${Number(course.price || 0)} ₽</button>`
+            ? `<button onclick="purchaseCourse(${courseId})">${S.buyCourse} ${Number(course.price || 0)} в‚Ѕ</button>`
             : "") +
           lessons
             .map((lesson) => {
@@ -385,8 +381,8 @@
                 <button onclick="doLesson(${courseId}, ${lesson.lesson_number})">
                   ${S.lessonsTitle.slice(0, -1)} ${lesson.lesson_number}: ${escapeHtml(lesson.title)}<br/>
                   <small class="pill ${typeClass}">${typeText}</small>
-                  <small class="muted"> · ${durationText}</small>
-                  <small class="muted"> · ${unlockText}</small>
+                  <small class="muted"> В· ${durationText}</small>
+                  <small class="muted"> В· ${unlockText}</small>
                   ${previewHtml}
                 </button>
               `;
@@ -504,7 +500,7 @@
               ? currentTeacherCourses
                   .map(
                     (course) =>
-                      `• ${escapeHtml(course.title)} — ${Number(course.price || 0)} ₽ (${
+                      `вЂў ${escapeHtml(course.title)} вЂ” ${Number(course.price || 0)} в‚Ѕ (${
                         course.is_published ? S.published.toLowerCase() : S.hidden.toLowerCase()
                       })`
                   )
@@ -534,7 +530,7 @@
                       <div class="lesson-row">
                         <b>${lesson.lesson_number}. ${escapeHtml(lesson.title)}</b><br/>
                         <small class="muted">${escapeHtml(lesson.description || "")}</small><br/>
-                        <small class="muted">${lesson.is_free ? S.free : S.paid} · ${
+                        <small class="muted">${lesson.is_free ? S.free : S.paid} В· ${
                           lesson.duration_sec ? `${lesson.duration_sec} ${S.seconds}` : S.noDuration
                         }</small><br/>
                         ${
@@ -657,11 +653,12 @@
                       <b>${S.userIdLabel}:</b> ${user.telegram_id}<br/>
                       <small class="muted">${S.userRoleLabel}: ${escapeHtml(user.role)} | XP: ${user.xp} | ${S.userLessonsLabel}: ${user.lessons_completed}</small>
                       <div class="role-switch-row">
-                        <small>${S.teacherRoleSwitch}</small>
+                        <small>${S.teacherRoleSwitch}${user.telegram_id === currentUser.telegram_id ? " (недоступно для себя)" : ""}</small>
                         <span class="switch">
                           <input
                             type="checkbox"
                             ${user.role === "teacher" ? "checked" : ""}
+                            ${user.telegram_id === currentUser.telegram_id ? "disabled" : ""}
                             onchange="setTeacherRoleSwitch(${user.telegram_id}, this.checked)"
                           />
                           <span class="slider"></span>
@@ -675,6 +672,10 @@
         }
 
         window.setTeacherRoleSwitch = async function setTeacherRoleSwitch(telegramId, checked) {
+          if (Number(telegramId) === Number(currentUser.telegram_id)) {
+            tg.showAlert("Нельзя изменить свою роль из админ-панели");
+            return;
+          }
           const role = checked ? "teacher" : "student";
           await apiFetch(`/api/admin/users/${telegramId}/role`, {
             method: "PUT",
@@ -696,3 +697,4 @@
     </script>
   </body>
 </html>
+
