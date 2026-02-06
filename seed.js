@@ -1,27 +1,73 @@
 const db = require("./db");
 
-async function upsertTeacher(name, description, avatarUrl) {
-  const result = await db.query(
-    `
-      INSERT INTO teachers (name, description, avatar_url)
-      VALUES ($1, $2, $3)
-      ON CONFLICT (name) DO UPDATE
-      SET
-        description = EXCLUDED.description,
-        avatar_url = EXCLUDED.avatar_url
-      RETURNING id
-    `,
-    [name, description, avatarUrl]
-  );
-  return result.rows[0].id;
+const STYLE_DEFS = [
+  { slug: "salsa", name: "Сальса" },
+  { slug: "bachata", name: "Бачата" },
+  { slug: "kizomba", name: "Кизомба" },
+];
+
+const TEACHER_DEFS = [
+  {
+    name: "Иванов Иван",
+    description: "Сальса, бачата",
+    avatarUrl: "https://ui-avatars.com/api/?name=%D0%98%D0%B2%D0%B0%D0%BD%D0%BE%D0%B2+%D0%98%D0%B2%D0%B0%D0%BD&background=1f6feb&color=fff",
+    courses: [
+      { title: "Сальса: базовая техника", styleSlug: "salsa", price: 2490, level: "beginner", lessons: 6 },
+      { title: "Сальса: партнёрские связки", styleSlug: "salsa", price: 2990, level: "advanced", lessons: 8 },
+      { title: "Бачата: музыкальность", styleSlug: "bachata", price: 3190, level: "professional", lessons: 7 },
+    ],
+  },
+  {
+    name: "Петрова Анна",
+    description: "Бачата, lady style",
+    avatarUrl: "https://ui-avatars.com/api/?name=%D0%9F%D0%B5%D1%82%D1%80%D0%BE%D0%B2%D0%B0+%D0%90%D0%BD%D0%BD%D0%B0&background=d63384&color=fff",
+    courses: [
+      { title: "Бачата: с нуля", styleSlug: "bachata", price: 2390, level: "beginner", lessons: 5 },
+      { title: "Бачата: работа корпусом", styleSlug: "bachata", price: 2890, level: "advanced", lessons: 9 },
+      { title: "Бачата: шоу-рутина", styleSlug: "bachata", price: 3390, level: "professional", lessons: 10 },
+    ],
+  },
+  {
+    name: "Сидоров Максим",
+    description: "Кизомба, body movement",
+    avatarUrl: "https://ui-avatars.com/api/?name=%D0%A1%D0%B8%D0%B4%D0%BE%D1%80%D0%BE%D0%B2+%D0%9C%D0%B0%D0%BA%D1%81%D0%B8%D0%BC&background=198754&color=fff",
+    courses: [
+      { title: "Кизомба: основы", styleSlug: "kizomba", price: 2590, level: "beginner", lessons: 6 },
+      { title: "Кизомба: ведение и follow", styleSlug: "kizomba", price: 3090, level: "advanced", lessons: 8 },
+    ],
+  },
+  {
+    name: "Кузнецова Мария",
+    description: "Сальса, кизомба",
+    avatarUrl: "https://ui-avatars.com/api/?name=%D0%9A%D1%83%D0%B7%D0%BD%D0%B5%D1%86%D0%BE%D0%B2%D0%B0+%D0%9C%D0%B0%D1%80%D0%B8%D1%8F&background=f59f00&color=fff",
+    courses: [
+      { title: "Сальса: женская техника", styleSlug: "salsa", price: 2790, level: "beginner", lessons: 7 },
+      { title: "Кизомба: пластика и flow", styleSlug: "kizomba", price: 3190, level: "advanced", lessons: 8 },
+      { title: "Сальса: профессиональный уровень", styleSlug: "salsa", price: 3590, level: "professional", lessons: 10 },
+    ],
+  },
+];
+
+async function clearDb() {
+  await db.query(`
+    TRUNCATE TABLE
+      user_lesson_progress,
+      course_purchases,
+      lessons,
+      course_styles,
+      courses,
+      dance_styles,
+      teachers,
+      users
+    RESTART IDENTITY CASCADE
+  `);
 }
 
-async function upsertStyle(slug, name) {
+async function insertStyle(slug, name) {
   const result = await db.query(
     `
       INSERT INTO dance_styles (slug, name)
       VALUES ($1, $2)
-      ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name
       RETURNING id
     `,
     [slug, name]
@@ -29,43 +75,41 @@ async function upsertStyle(slug, name) {
   return result.rows[0].id;
 }
 
-async function upsertCourse(teacherId, title, description, price, isPublished) {
+async function insertTeacher(name, description, avatarUrl) {
   const result = await db.query(
     `
-      INSERT INTO courses (teacher_id, title, description, price, is_published)
-      VALUES ($1, $2, $3, $4, $5)
-      ON CONFLICT (teacher_id, title) DO UPDATE
-      SET
-        description = EXCLUDED.description,
-        price = EXCLUDED.price,
-        is_published = EXCLUDED.is_published
+      INSERT INTO teachers (name, description, avatar_url)
+      VALUES ($1, $2, $3)
       RETURNING id
     `,
-    [teacherId, title, description, price, isPublished]
+    [name, description, avatarUrl]
   );
   return result.rows[0].id;
 }
 
-async function upsertCourseStyle(courseId, styleId) {
+async function insertCourse(teacherId, title, description, price, level) {
+  const result = await db.query(
+    `
+      INSERT INTO courses (teacher_id, title, description, price, level, is_published)
+      VALUES ($1, $2, $3, $4, $5, true)
+      RETURNING id
+    `,
+    [teacherId, title, description, price, level]
+  );
+  return result.rows[0].id;
+}
+
+async function attachCourseStyle(courseId, styleId) {
   await db.query(
     `
       INSERT INTO course_styles (course_id, style_id)
       VALUES ($1, $2)
-      ON CONFLICT DO NOTHING
     `,
     [courseId, styleId]
   );
 }
 
-async function upsertLesson(
-  courseId,
-  lessonNumber,
-  title,
-  description,
-  isFree,
-  durationSec,
-  previewUrl
-) {
+async function insertLesson(courseId, lessonNumber, title, description, isFree, durationSec) {
   await db.query(
     `
       INSERT INTO lessons (
@@ -78,111 +122,66 @@ async function upsertLesson(
         preview_url
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7)
-      ON CONFLICT (course_id, lesson_number) DO UPDATE
-      SET
-        title = EXCLUDED.title,
-        description = EXCLUDED.description,
-        is_free = EXCLUDED.is_free,
-        duration_sec = EXCLUDED.duration_sec,
-        preview_url = EXCLUDED.preview_url
     `,
-    [courseId, lessonNumber, title, description, isFree, durationSec, previewUrl]
+    [courseId, lessonNumber, title, description, isFree, durationSec, null]
   );
 }
 
 async function seed() {
   await db.initDb();
+  await clearDb();
 
-  const salsaStyleId = await upsertStyle("salsa", "Salsa");
-  const bachataStyleId = await upsertStyle("bachata", "Bachata");
+  const styleIdBySlug = new Map();
+  for (const style of STYLE_DEFS) {
+    const styleId = await insertStyle(style.slug, style.name);
+    styleIdBySlug.set(style.slug, styleId);
+  }
 
-  const alexTeacherId = await upsertTeacher(
-    "Алекс",
-    "Salsa NY, On2",
-    "https://ui-avatars.com/api/?name=%D0%90%D0%BB%D0%B5%D0%BA%D1%81&background=ff4d6d&color=fff"
-  );
-  const mariaTeacherId = await upsertTeacher(
-    "Мария",
-    "Bachata, Lady Style",
-    "https://ui-avatars.com/api/?name=%D0%9C%D0%B0%D1%80%D0%B8%D1%8F&background=333333&color=fff"
-  );
+  let totalCourses = 0;
+  let totalLessons = 0;
 
-  const salsaCourseId = await upsertCourse(
-    alexTeacherId,
-    "Salsa NY для начинающих",
-    "База, шаги, ритм",
-    2990,
-    true
-  );
+  for (const teacherDef of TEACHER_DEFS) {
+    const teacherId = await insertTeacher(
+      teacherDef.name,
+      teacherDef.description,
+      teacherDef.avatarUrl
+    );
 
-  const bachataCourseId = await upsertCourse(
-    mariaTeacherId,
-    "Bachata с нуля",
-    "Основы бачаты",
-    2490,
-    true
-  );
+    for (const courseDef of teacherDef.courses) {
+      const styleId = styleIdBySlug.get(courseDef.styleSlug);
+      if (!styleId) {
+        throw new Error(`Unknown style slug: ${courseDef.styleSlug}`);
+      }
 
-  await upsertCourseStyle(salsaCourseId, salsaStyleId);
-  await upsertCourseStyle(bachataCourseId, bachataStyleId);
+      const courseId = await insertCourse(
+        teacherId,
+        courseDef.title,
+        `${courseDef.title}. Полный пошаговый курс.`,
+        courseDef.price,
+        courseDef.level
+      );
+      await attachCourseStyle(courseId, styleId);
+      totalCourses += 1;
 
-  await upsertLesson(
-    salsaCourseId,
-    1,
-    "Базовый шаг",
-    "Основной шаг salsa NY",
-    true,
-    480,
-    "https://example.com/preview/salsa-1"
-  );
-  await upsertLesson(
-    salsaCourseId,
-    2,
-    "Правый поворот",
-    "Техника поворота",
-    true,
-    600,
-    "https://example.com/preview/salsa-2"
-  );
-  await upsertLesson(
-    salsaCourseId,
-    3,
-    "Связка",
-    "Соединяем движения",
-    false,
-    720,
-    "https://example.com/preview/salsa-3"
-  );
-  await upsertLesson(
-    salsaCourseId,
-    4,
-    "Комбинация",
-    "Продвинутая связка",
-    false,
-    900,
-    "https://example.com/preview/salsa-4"
-  );
+      for (let lessonNumber = 1; lessonNumber <= courseDef.lessons; lessonNumber += 1) {
+        const isFree = lessonNumber <= 3;
+        const durationSec = 420 + lessonNumber * 45;
+        await insertLesson(
+          courseId,
+          lessonNumber,
+          `Урок ${lessonNumber}: ${courseDef.title}`,
+          `Практика по теме "${courseDef.title}", часть ${lessonNumber}.`,
+          isFree,
+          durationSec
+        );
+        totalLessons += 1;
+      }
+    }
+  }
 
-  await upsertLesson(
-    bachataCourseId,
-    1,
-    "Базовый шаг",
-    "Основной шаг бачаты",
-    true,
-    420,
-    "https://example.com/preview/bachata-1"
+  console.log(
+    `Seed completed. Teachers: ${TEACHER_DEFS.length}, Courses: ${totalCourses}, Lessons: ${totalLessons}, Styles: ${STYLE_DEFS.length}`
   );
-  await upsertLesson(
-    bachataCourseId,
-    2,
-    "Волна",
-    "Работа корпусом",
-    false,
-    540,
-    "https://example.com/preview/bachata-2"
-  );
-
-  console.log("Seed completed");
   await db.pool.end();
 }
 
