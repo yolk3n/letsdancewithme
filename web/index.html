@@ -303,6 +303,9 @@
         align-items: center;
         justify-content: space-between;
         gap: 12px;
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(38, 30, 20, 0.12);
       }
       .course-progress-inline {
         width: 24%;
@@ -338,10 +341,11 @@
         flex-direction: column;
         justify-content: center;
         min-height: 46px;
-        font-size: 15px;
-        line-height: 1.05;
-        font-weight: 700;
-        color: #2d251e;
+        max-width: 150px;
+        font-size: 13px;
+        line-height: 1.15;
+        font-weight: 600;
+        color: var(--text-muted);
       }
       .course-author-name.single {
         justify-content: center;
@@ -486,7 +490,12 @@
         align-items: center;
         justify-content: space-between;
         gap: 8px;
-        margin-top: 12px;
+        margin-top: 0;
+      }
+      .course-card-title {
+        font-size: 20px;
+        line-height: 1.22;
+        font-weight: 700;
       }
       .course-level-badge {
         border-radius: 999px;
@@ -1093,6 +1102,10 @@
                       const author = formatTeacherNameForCard(course.teacher_name);
                       return `
                 <div class="course-card catalog-course-card level-${levelClass}" onclick="openCourse(${course.id})">
+                  <div class="course-head">
+                    <div class="course-card-title">${escapeHtml(course.title)}</div>
+                    <span class="course-level-badge ${levelClass}">${levelLabel}</span>
+                  </div>
                   <div class="course-top-row">
                     <div class="course-author">
                       ${renderCourseAuthorAvatar(course)}
@@ -1107,10 +1120,6 @@
                       </div>
                       <div class="course-progress-label">${Number(course.progress_percent || 0)}%</div>
                     </div>
-                  </div>
-                  <div class="course-head">
-                    <div class="course-card-title">${escapeHtml(course.title)}</div>
-                    <span class="course-level-badge ${levelClass}">${levelLabel}</span>
                   </div>
                 </div>
               `;
