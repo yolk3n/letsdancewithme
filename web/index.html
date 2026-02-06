@@ -44,14 +44,6 @@
         max-width: 860px;
         margin: 0 auto;
       }
-      h1 {
-        margin: 4px 0 14px;
-        letter-spacing: 0.02em;
-        font-family: var(--font-display);
-        font-size: clamp(40px, 10vw, 64px);
-        font-weight: 400;
-        line-height: 0.95;
-      }
       .card {
         margin-bottom: 14px;
         padding: 16px;
@@ -202,7 +194,7 @@
       .catalog-bar {
         display: grid;
         gap: 8px;
-        margin-bottom: 10px;
+        margin-bottom: 14px;
       }
       .catalog-row {
         display: flex;
@@ -210,10 +202,10 @@
       }
       .catalog-row > * { flex: 1; }
       .course-progress {
-        margin-top: 8px;
+        margin-top: 10px;
       }
       .course-progress-track {
-        height: 7px;
+        height: 4px;
         border-radius: 999px;
         background: rgba(38, 30, 20, 0.12);
         overflow: hidden;
@@ -224,7 +216,7 @@
         background: linear-gradient(90deg, #3e9db4, #5bb58a);
       }
       .course-progress-label {
-        margin-top: 4px;
+        margin-top: 6px;
         font-size: 12px;
         color: var(--text-muted);
       }
@@ -360,34 +352,22 @@
       .course-card {
         border: 1px solid rgba(38, 30, 20, 0.12);
         border-radius: 12px;
-        padding: 10px;
+        padding: 14px;
         background: rgba(255, 255, 255, 0.72);
       }
       .catalog-courses-grid {
         display: grid;
-        gap: 8px;
+        gap: 12px;
       }
       .catalog-course-card {
-        display: grid;
-        grid-template-columns: 64px 1fr;
-        gap: 10px;
+        cursor: pointer;
+        border-color: rgba(38, 30, 20, 0.2);
+        background: linear-gradient(150deg, #fffefb 0%, #f2f6ff 100%);
+        box-shadow: 0 8px 20px rgba(55, 38, 23, 0.08);
+        transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
       }
-      .catalog-course-side {
-        display: grid;
-        justify-items: center;
-        align-content: start;
-        gap: 6px;
-      }
-      .catalog-course-teacher {
-        text-align: center;
-        font-size: 11px;
-        line-height: 1.2;
-        color: var(--text-muted);
-        word-break: break-word;
-      }
-      .catalog-course-main {
-        min-width: 0;
-      }
+      .catalog-course-card:hover { transform: translateY(-1px); }
+      .catalog-course-card:active { transform: translateY(0); }
       .course-card-title { font-weight: 700; margin-bottom: 3px; }
       .course-card-meta {
         margin-top: 8px;
@@ -455,7 +435,6 @@
       }
       @media (max-width: 700px) {
         body { padding: 12px; }
-        h1 { margin-bottom: 10px; }
         .card { padding: 14px; border-radius: 14px; }
         button, input, select, textarea { font-size: 16px; }
       }
@@ -463,8 +442,6 @@
   </head>
   <body>
     <main class="app-shell">
-    <h1 id="appTitle"></h1>
-
     <div class="card" id="user"></div>
 
     <div class="card hidden" id="onboardingCard">
@@ -487,7 +464,6 @@
 
       const tgUser = tg.initDataUnsafe?.user;
 
-      const appTitle = document.getElementById("appTitle");
       const userBlock = document.getElementById("user");
       const onboardingCard = document.getElementById("onboardingCard");
       const onboardingTitle = document.getElementById("onboardingTitle");
@@ -525,7 +501,6 @@
       }
 
       function renderStaticTexts() {
-        appTitle.textContent = S.appTitle;
         onboardingTitle.textContent = S.onboardingTitle;
         onboardingText.textContent = S.onboardingText;
         onboardingBtn.textContent = S.onboardingStart;
@@ -882,24 +857,17 @@
               ? courses
                   .map(
                     (course) => `
-                <div class="course-card catalog-course-card">
-                  <div class="catalog-course-side">
+                <div class="course-card catalog-course-card" onclick="openCourse(${course.id})">
+                  <div class="course-author">
                     ${renderCourseAuthorAvatar(course)}
-                    <div class="catalog-course-teacher">${escapeHtml(course.teacher_name || "Преподаватель")}</div>
+                    <small class="muted">${escapeHtml(course.teacher_name || "Преподаватель")}</small>
                   </div>
-                  <div class="catalog-course-main">
-                    <div class="course-card-title">${escapeHtml(course.title)}</div>
-                    <div class="course-progress">
-                      <div class="course-progress-track">
-                        <div class="course-progress-fill" style="width:${Math.max(0, Math.min(100, Number(course.progress_percent || 0)))}%"></div>
-                      </div>
-                      <div class="course-progress-label">${Number(course.completed_lessons || 0)}/${Number(course.total_lessons || 0)} уроков • ${Number(course.progress_percent || 0)}%</div>
+                  <div class="course-card-title">${escapeHtml(course.title)}</div>
+                  <div class="course-progress">
+                    <div class="course-progress-track">
+                      <div class="course-progress-fill" style="width:${Math.max(0, Math.min(100, Number(course.progress_percent || 0)))}%"></div>
                     </div>
-                    <div class="course-card-meta">
-                      <small class="muted">${S.priceLabel}: ${formatRub(course.price)}</small>
-                      <small class="pill ${course.is_purchased ? "free" : "paid"}">${course.is_purchased ? S.purchased : S.notPurchased}</small>
-                    </div>
-                    <button onclick="openCourse(${course.id})">${course.is_purchased ? "Продолжить" : "Открыть курс"}</button>
+                    <div class="course-progress-label">${Number(course.progress_percent || 0)}%</div>
                   </div>
                 </div>
               `
