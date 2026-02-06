@@ -4,53 +4,183 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Let's Dance With Me</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="/strings.ru.js"></script>
     <style>
-      body { margin: 0; padding: 16px; font-family: Arial, sans-serif; background: #111; color: #fff; }
-      h1 { margin-top: 0; }
-      .card { background: #1e1e1e; padding: 16px; border-radius: 12px; margin-bottom: 16px; }
-      .hidden { display: none; }
-      .muted { color: #bbb; }
-      .error { color: #ff8080; }
-      button, input, select, textarea {
-        width: 100%; padding: 12px; margin-bottom: 8px; font-size: 15px; border-radius: 8px;
-        border: none; box-sizing: border-box;
+      :root {
+        --bg-main: #09090f;
+        --bg-soft: #141422;
+        --card-bg: rgba(22, 21, 37, 0.84);
+        --card-border: rgba(255, 255, 255, 0.12);
+        --text-main: #f8f8fc;
+        --text-muted: #b7b8c9;
+        --accent-pink: #ff3f8e;
+        --accent-cyan: #34d3ff;
+        --accent-yellow: #f6be47;
+        --danger: #ff7e91;
+        --radius-lg: 18px;
+        --radius-md: 12px;
+        --font-body: "Manrope", sans-serif;
+        --font-display: "Bebas Neue", sans-serif;
       }
-      button { background: #ff4d6d; color: #fff; cursor: pointer; }
-      button.secondary { background: #333; }
-      input, select, textarea { background: #2a2a2a; color: #fff; border: 1px solid #3a3a3a; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        padding: 16px;
+        color: var(--text-main);
+        font-family: var(--font-body);
+        background:
+          radial-gradient(130% 90% at 0% 0%, rgba(255, 63, 142, 0.26) 0%, rgba(255, 63, 142, 0) 50%),
+          radial-gradient(120% 80% at 100% 0%, rgba(52, 211, 255, 0.2) 0%, rgba(52, 211, 255, 0) 48%),
+          linear-gradient(180deg, #0c0b13 0%, var(--bg-main) 100%);
+      }
+      .app-shell {
+        max-width: 860px;
+        margin: 0 auto;
+      }
+      h1 {
+        margin: 4px 0 14px;
+        letter-spacing: 0.02em;
+        font-family: var(--font-display);
+        font-size: clamp(40px, 10vw, 64px);
+        font-weight: 400;
+        line-height: 0.95;
+      }
+      .card {
+        margin-bottom: 14px;
+        padding: 16px;
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius-lg);
+        background:
+          linear-gradient(165deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 40%),
+          var(--card-bg);
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.32);
+        backdrop-filter: blur(4px);
+        animation: cardIn 260ms ease;
+      }
+      .card > b:first-child {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 26px;
+        line-height: 1;
+        letter-spacing: 0.01em;
+        font-family: var(--font-display);
+        font-weight: 400;
+      }
+      .hidden { display: none; }
+      .muted { color: var(--text-muted); }
+      .error { color: var(--danger); }
+      button, input, select, textarea {
+        width: 100%;
+        margin-bottom: 8px;
+        padding: 12px 13px;
+        border-radius: var(--radius-md);
+        font-family: var(--font-body);
+        font-size: 15px;
+      }
+      button {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: #fff;
+        background:
+          linear-gradient(118deg, rgba(255, 63, 142, 1) 0%, rgba(255, 121, 90, 0.95) 49%, rgba(246, 190, 71, 0.95) 100%);
+        cursor: pointer;
+        font-weight: 700;
+        text-align: left;
+        box-shadow: 0 8px 20px rgba(255, 63, 142, 0.26);
+        transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+      }
+      button:hover { transform: translateY(-1px); filter: brightness(1.03); }
+      button:active { transform: translateY(0); }
+      button.secondary {
+        border-color: rgba(255, 255, 255, 0.14);
+        background: linear-gradient(150deg, rgba(59, 59, 79, 0.95), rgba(33, 33, 49, 0.95));
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.26);
+      }
+      input, select, textarea {
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        color: var(--text-main);
+        background: rgba(255, 255, 255, 0.06);
+        outline: none;
+      }
+      input:focus, select:focus, textarea:focus {
+        border-color: rgba(52, 211, 255, 0.72);
+        box-shadow: 0 0 0 3px rgba(52, 211, 255, 0.16);
+      }
       .teacher-btn { display: flex; align-items: center; gap: 12px; text-align: left; }
-      .teacher-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: 0 0 44px; }
+      .teacher-avatar { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; flex: 0 0 46px; border: 1px solid rgba(255, 255, 255, 0.32); }
       .teacher-avatar-fallback {
-        width: 44px; height: 44px; border-radius: 50%; flex: 0 0 44px; display: flex;
-        align-items: center; justify-content: center; font-size: 13px; font-weight: 700; background: #2b2b2b;
+        width: 46px; height: 46px; border-radius: 50%; flex: 0 0 46px; display: flex;
+        align-items: center; justify-content: center; font-size: 14px; font-weight: 800;
+        background: linear-gradient(145deg, #44486f, #2d314b);
+        border: 1px solid rgba(255, 255, 255, 0.24);
       }
       .teacher-content { min-width: 0; }
-      .row { display: flex; gap: 8px; }
+      .teacher-content small { display: inline-block; margin-top: 2px; }
+      .row { display: flex; gap: 8px; align-items: center; }
       .row > * { flex: 1; }
-      .lesson-row, .user-row { border: 1px solid #333; border-radius: 8px; padding: 8px; margin-bottom: 8px; }
-      .pill { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #333; }
-      .pill.free { background: #245b2e; }
-      .pill.paid { background: #5b2d24; }
+      .lesson-row, .user-row {
+        margin-bottom: 8px;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .pill {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 2px 8px;
+        font-size: 12px;
+        line-height: 1.4;
+        font-weight: 700;
+        color: #fff;
+        background: #43435f;
+      }
+      .pill.free { background: linear-gradient(135deg, #2d9050, #2f7f95); }
+      .pill.paid { background: linear-gradient(135deg, #8e3a55, #a35333); }
       .mode-label { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
       .switch { position: relative; display: inline-block; width: 46px; height: 26px; flex: 0 0 46px; }
       .switch input { opacity: 0; width: 0; height: 0; }
       .slider {
-        position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #3a3a3a;
+        position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #35354a;
         transition: 0.2s; border-radius: 999px;
       }
       .slider:before {
         position: absolute; content: ""; height: 20px; width: 20px; left: 3px; top: 3px; background: #fff;
         transition: 0.2s; border-radius: 50%;
       }
-      .switch input:checked + .slider { background-color: #ff4d6d; }
+      .switch input:checked + .slider { background-color: #ff3f8e; }
       .switch input:checked + .slider:before { transform: translateX(20px); }
       .role-switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
-      a { color: #ff9ab0; }
+      hr {
+        border: 0;
+        height: 1px;
+        margin: 14px 0;
+        background: linear-gradient(90deg, rgba(255, 63, 142, 0.45), rgba(52, 211, 255, 0.2), rgba(255, 255, 255, 0));
+      }
+      a { color: #7edfff; }
+      @keyframes cardIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @media (max-width: 700px) {
+        body { padding: 12px; }
+        h1 { margin-bottom: 10px; }
+        .card { padding: 14px; border-radius: 14px; }
+        button, input, select, textarea { font-size: 16px; }
+      }
     </style>
   </head>
   <body>
+    <main class="app-shell">
     <h1 id="appTitle"></h1>
 
     <div class="card hidden" id="modeCard">
@@ -75,6 +205,7 @@
     <div class="card hidden" id="studentScreen"></div>
     <div class="card hidden" id="teacherScreen"></div>
     <div class="card hidden" id="adminScreen"></div>
+    </main>
 
     <script>
       const S = window.STRINGS_RU;
@@ -325,7 +456,7 @@
                 <button onclick="openCourse(${course.id})">
                   ${escapeHtml(course.title)}<br/>
                   <small class="muted">${escapeHtml(course.description || "")}</small><br/>
-                  <small class="muted">${S.priceLabel}: ${Number(course.price || 0)} в‚Ѕ</small><br/>
+                  <small class="muted">${S.priceLabel}: ${Number(course.price || 0)} ₽</small><br/>
                   <small class="muted">${course.is_purchased ? S.purchased : S.notPurchased}</small>
                 </button>
               `
@@ -345,7 +476,7 @@
         studentScreen.innerHTML =
           `<b>${S.lessonsTitle}</b><br/><br/>` +
           (showBuyButton
-            ? `<button onclick="purchaseCourse(${courseId})">${S.buyCourse} ${Number(course.price || 0)} в‚Ѕ</button>`
+            ? `<button onclick="purchaseCourse(${courseId})">${S.buyCourse} ${Number(course.price || 0)} ₽</button>`
             : "") +
           lessons
             .map((lesson) => {
@@ -362,8 +493,8 @@
                 <button onclick="doLesson(${courseId}, ${lesson.lesson_number})">
                   ${S.lessonsTitle.slice(0, -1)} ${lesson.lesson_number}: ${escapeHtml(lesson.title)}<br/>
                   <small class="pill ${typeClass}">${typeText}</small>
-                  <small class="muted"> В· ${durationText}</small>
-                  <small class="muted"> В· ${unlockText}</small>
+                  <small class="muted"> • ${durationText}</small>
+                  <small class="muted"> • ${unlockText}</small>
                   ${previewHtml}
                 </button>
               `;
@@ -481,7 +612,7 @@
               ? currentTeacherCourses
                   .map(
                     (course) =>
-                      `вЂў ${escapeHtml(course.title)} вЂ” ${Number(course.price || 0)} в‚Ѕ (${
+                      `• ${escapeHtml(course.title)} — ${Number(course.price || 0)} ₽ (${
                         course.is_published ? S.published.toLowerCase() : S.hidden.toLowerCase()
                       })`
                   )
@@ -511,7 +642,7 @@
                       <div class="lesson-row">
                         <b>${lesson.lesson_number}. ${escapeHtml(lesson.title)}</b><br/>
                         <small class="muted">${escapeHtml(lesson.description || "")}</small><br/>
-                        <small class="muted">${lesson.is_free ? S.free : S.paid} В· ${
+                        <small class="muted">${lesson.is_free ? S.free : S.paid} • ${
                           lesson.duration_sec ? `${lesson.duration_sec} ${S.seconds}` : S.noDuration
                         }</small><br/>
                         ${
