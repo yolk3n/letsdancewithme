@@ -125,6 +125,50 @@
       }
       .teacher-content { min-width: 0; }
       .teacher-content small { display: inline-block; margin-top: 2px; }
+      .stack { display: grid; gap: 8px; }
+      .student-breadcrumb {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 12px;
+      }
+      .crumb {
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        padding: 4px 10px;
+        font-size: 12px;
+        color: var(--text-muted);
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .crumb.active {
+        color: #fff;
+        border-color: rgba(52, 211, 255, 0.44);
+        background: linear-gradient(130deg, rgba(52, 211, 255, 0.26), rgba(255, 63, 142, 0.2));
+      }
+      .section-subtitle {
+        margin: -4px 0 10px;
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+      .course-card {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .course-card-title { font-weight: 700; margin-bottom: 3px; }
+      .course-card-meta {
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .lesson-btn[disabled] {
+        cursor: not-allowed;
+        filter: grayscale(0.3);
+        opacity: 0.66;
+      }
       .row { display: flex; gap: 8px; align-items: center; }
       .row > * { flex: 1; }
       .lesson-row, .user-row {
@@ -233,6 +277,8 @@
 
       let currentUser = null;
       let selectedStyleId = "";
+      let currentStudentTeachers = [];
+      let selectedTeacherId = null;
       let currentStudentCourses = [];
       let openedStudentCourseId = null;
       let currentTeacherCourses = [];
@@ -314,6 +360,17 @@
           )}" />`;
         }
         return `<span class="teacher-avatar-fallback">${escapeHtml(getInitials(teacher.name))}</span>`;
+      }
+
+      function formatRub(value) {
+        return `${Number(value || 0)} ₽`;
+      }
+
+      function renderStudentBreadcrumb(step) {
+        const labels = ["1. Преподаватели", "2. Курсы", "3. Уроки"];
+        return `<div class="student-breadcrumb">${labels
+          .map((label, index) => `<span class="crumb ${index + 1 === step ? "active" : ""}">${label}</span>`)
+          .join("")}</div>`;
       }
 
       async function bootstrap() {
@@ -413,14 +470,21 @@
       }
 
       async function renderStudentScreen() {
+        selectedTeacherId = null;
+        openedStudentCourseId = null;
         const [teachers, styles] = await Promise.all([apiFetch("/api/teachers"), apiFetch("/api/styles")]);
+        currentStudentTeachers = teachers;
         studentScreen.innerHTML = `
-          <b>${S.studentTitle}</b><br/><br/>
+          ${renderStudentBreadcrumb(1)}
+          <b>${S.studentTitle}</b>
+          <p class="section-subtitle">Выбери наставника, чтобы посмотреть доступные курсы.</p>
           <select id="styleFilter">
             <option value="">${S.allStyles}</option>
             ${styles.map((style) => `<option value="${style.id}">${escapeHtml(style.name)}</option>`).join("")}
           </select>
-          ${teachers
+          <div class="stack">
+          ${teachers.length
+            ? teachers
             .map(
               (teacher) => `
                 <button class="teacher-btn" onclick="loadCourses(${teacher.id})">
@@ -432,7 +496,9 @@
                 </button>
               `
             )
-            .join("")}
+            .join("")
+            : `<small class="muted">Сейчас нет доступных преподавателей.</small>`}
+          </div>
         `;
 
         const styleFilter = document.getElementById("styleFilter");
@@ -443,54 +509,86 @@
       }
 
       async function loadCourses(teacherId) {
-        studentScreen.innerHTML = S.loadingCourses;
+        selectedTeacherId = teacherId;
+        openedStudentCourseId = null;
+        const selectedTeacher = currentStudentTeachers.find((teacher) => Number(teacher.id) === Number(teacherId));
+        studentScreen.innerHTML = `
+          ${renderStudentBreadcrumb(2)}
+          <b>${S.coursesTitle}</b>
+          <p class="section-subtitle">${S.loadingCourses}</p>
+        `;
         const styleQuery = selectedStyleId ? `?styleId=${selectedStyleId}` : "";
         const courses = await apiFetch(`/api/courses/${teacherId}${styleQuery}`);
         currentStudentCourses = courses;
 
-        studentScreen.innerHTML =
-          `<b>${S.coursesTitle}</b><br/><br/>` +
-          courses
-            .map(
-              (course) => `
-                <button onclick="openCourse(${course.id})">
-                  ${escapeHtml(course.title)}<br/>
-                  <small class="muted">${escapeHtml(course.description || "")}</small><br/>
-                  <small class="muted">${S.priceLabel}: ${Number(course.price || 0)} ₽</small><br/>
-                  <small class="muted">${course.is_purchased ? S.purchased : S.notPurchased}</small>
-                </button>
-              `
-            )
-            .join("") +
-          `<button class="secondary" onclick="renderStudentScreen()">${S.toTeachers}</button>`;
+        studentScreen.innerHTML = `
+          ${renderStudentBreadcrumb(2)}
+          <b>${S.coursesTitle}</b>
+          <p class="section-subtitle">
+            ${selectedTeacher ? `Преподаватель: ${escapeHtml(selectedTeacher.name)}` : "Выбери курс для старта."}
+          </p>
+          <div class="stack">
+            ${
+              courses.length
+                ? courses
+                    .map(
+                      (course) => `
+                  <div class="course-card">
+                    <div class="course-card-title">${escapeHtml(course.title)}</div>
+                    <small class="muted">${escapeHtml(course.description || "")}</small>
+                    <div class="course-card-meta">
+                      <small class="muted">${S.priceLabel}: ${formatRub(course.price)}</small>
+                      <small class="pill ${course.is_purchased ? "free" : "paid"}">${course.is_purchased ? S.purchased : S.notPurchased}</small>
+                    </div>
+                    <button onclick="openCourse(${course.id})">Открыть уроки</button>
+                  </div>
+                `
+                    )
+                    .join("")
+                : `<small class="muted">По выбранным фильтрам курсы не найдены.</small>`
+            }
+            <button class="secondary" onclick="renderStudentScreen()">${S.toTeachers}</button>
+          </div>
+        `;
       }
 
       async function openCourse(courseId) {
         openedStudentCourseId = courseId;
-        studentScreen.innerHTML = S.loadingLessons;
+        studentScreen.innerHTML = `
+          ${renderStudentBreadcrumb(3)}
+          <b>${S.lessonsTitle}</b>
+          <p class="section-subtitle">${S.loadingLessons}</p>
+        `;
         const lessons = await apiFetch(`/api/lessons/${courseId}`);
         const course = currentStudentCourses.find((item) => item.id === courseId);
         const hasPaidLessons = lessons.some((lesson) => !lesson.is_free);
         const showBuyButton = hasPaidLessons && course && !course.is_purchased;
 
-        studentScreen.innerHTML =
-          `<b>${S.lessonsTitle}</b><br/><br/>` +
-          (showBuyButton
-            ? `<button onclick="purchaseCourse(${courseId})">${S.buyCourse} ${Number(course.price || 0)} ₽</button>`
-            : "") +
-          lessons
-            .map((lesson) => {
-              const typeClass = lesson.is_free ? "free" : "paid";
-              const typeText = lesson.is_free ? S.free : S.paid;
-              const durationText = lesson.duration_sec
-                ? `${Math.round(lesson.duration_sec / 60)} ${S.minutes}`
-                : S.noDuration;
-              const unlockText = lesson.is_unlocked ? S.unlocked : S.locked;
-              const previewHtml = lesson.preview_url
-                ? `<br/><small><a href="${escapeHtml(lesson.preview_url)}" target="_blank" rel="noopener noreferrer">${S.preview}</a></small>`
-                : "";
-              return `
-                <button onclick="doLesson(${courseId}, ${lesson.lesson_number})">
+        studentScreen.innerHTML = `
+          ${renderStudentBreadcrumb(3)}
+          <b>${S.lessonsTitle}</b>
+          <p class="section-subtitle">${course ? escapeHtml(course.title) : "Выбранный курс"}</p>
+          <div class="stack">
+            ${showBuyButton ? `<button onclick="purchaseCourse(${courseId})">${S.buyCourse} ${formatRub(course.price)}</button>` : ""}
+            ${
+              lessons.length
+                ? lessons
+                    .map((lesson) => {
+                      const typeClass = lesson.is_free ? "free" : "paid";
+                      const typeText = lesson.is_free ? S.free : S.paid;
+                      const durationText = lesson.duration_sec
+                        ? `${Math.round(lesson.duration_sec / 60)} ${S.minutes}`
+                        : S.noDuration;
+                      const unlockText = lesson.is_unlocked ? S.unlocked : S.locked;
+                      const previewHtml = lesson.preview_url
+                        ? `<br/><small><a href="${escapeHtml(
+                            lesson.preview_url
+                          )}" target="_blank" rel="noopener noreferrer">${S.preview}</a></small>`
+                        : "";
+                      const disabledAttr = lesson.is_unlocked ? "" : "disabled";
+                      const action = lesson.is_unlocked ? `onclick="doLesson(${courseId}, ${lesson.lesson_number})"` : "";
+                      return `
+                <button class="lesson-btn ${lesson.is_unlocked ? "" : "secondary"}" ${action} ${disabledAttr}>
                   ${S.lessonsTitle.slice(0, -1)} ${lesson.lesson_number}: ${escapeHtml(lesson.title)}<br/>
                   <small class="pill ${typeClass}">${typeText}</small>
                   <small class="muted"> • ${durationText}</small>
@@ -498,9 +596,14 @@
                   ${previewHtml}
                 </button>
               `;
-            })
-            .join("") +
-          `<button class="secondary" onclick="renderStudentScreen()">${S.toTeachers}</button>`;
+                    })
+                    .join("")
+                : `<small class="muted">В этом курсе пока нет уроков.</small>`
+            }
+            <button class="secondary" onclick="loadCourses(${selectedTeacherId})">← К курсам</button>
+            <button class="secondary" onclick="renderStudentScreen()">${S.toTeachers}</button>
+          </div>
+        `;
       }
 
       async function purchaseCourse(courseId) {
