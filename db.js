@@ -94,6 +94,26 @@ async function initDb() {
     )
   `);
 
+  await query(`
+    CREATE TABLE IF NOT EXISTS course_purchases (
+      telegram_id BIGINT NOT NULL REFERENCES users(telegram_id) ON DELETE CASCADE,
+      course_id BIGINT NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+      amount NUMERIC(10,2) NOT NULL,
+      status TEXT NOT NULL DEFAULT 'paid',
+      purchased_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (telegram_id, course_id)
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS user_lesson_progress (
+      telegram_id BIGINT NOT NULL REFERENCES users(telegram_id) ON DELETE CASCADE,
+      lesson_id BIGINT NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+      completed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (telegram_id, lesson_id)
+    )
+  `);
+
   // Backward-compatible migration for existing environments.
   await query("ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'student'");
   await query("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_onboarded BOOLEAN NOT NULL DEFAULT false");
@@ -119,10 +139,24 @@ async function initDb() {
 
   await query("ALTER TABLE courses ADD COLUMN IF NOT EXISTS price NUMERIC(10,2) NOT NULL DEFAULT 0");
   await query("ALTER TABLE courses ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT true");
+  await query("UPDATE courses SET price = 199 WHERE price < 199");
 
   await query("ALTER TABLE lessons ADD COLUMN IF NOT EXISTS is_free BOOLEAN NOT NULL DEFAULT true");
   await query("ALTER TABLE lessons ADD COLUMN IF NOT EXISTS duration_sec INTEGER");
   await query("ALTER TABLE lessons ADD COLUMN IF NOT EXISTS preview_url TEXT");
+  await query(`
+    WITH ranked_free AS (
+      SELECT
+        id,
+        ROW_NUMBER() OVER (PARTITION BY course_id ORDER BY lesson_number, id) AS free_rank
+      FROM lessons
+      WHERE is_free = true
+    )
+    UPDATE lessons l
+    SET is_free = false
+    FROM ranked_free r
+    WHERE l.id = r.id AND r.free_rank > 3
+  `);
 
   await query(`
     DO $$

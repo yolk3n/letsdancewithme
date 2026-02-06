@@ -6,121 +6,39 @@
     <title>Let's Dance With Me</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-      body {
-        margin: 0;
-        padding: 16px;
-        font-family: Arial, sans-serif;
-        background: #111;
-        color: #fff;
+      body { margin: 0; padding: 16px; font-family: Arial, sans-serif; background: #111; color: #fff; }
+      h1 { margin-top: 0; }
+      .card { background: #1e1e1e; padding: 16px; border-radius: 12px; margin-bottom: 16px; }
+      .hidden { display: none; }
+      .muted { color: #bbb; }
+      .error { color: #ff8080; }
+      button, input, select, textarea {
+        width: 100%; padding: 12px; margin-bottom: 8px; font-size: 15px; border-radius: 8px;
+        border: none; box-sizing: border-box;
       }
-      h1 {
-        margin-top: 0;
-      }
-      .card {
-        background: #1e1e1e;
-        padding: 16px;
-        border-radius: 12px;
-        margin-bottom: 16px;
-      }
-      .hidden {
-        display: none;
-      }
-      .muted {
-        color: #bbb;
-      }
-      .error {
-        color: #ff8080;
-      }
-      button,
-      input,
-      select,
-      textarea {
-        width: 100%;
-        padding: 12px;
-        margin-bottom: 8px;
-        font-size: 15px;
-        border-radius: 8px;
-        border: none;
-        box-sizing: border-box;
-      }
-      button {
-        background: #ff4d6d;
-        color: #fff;
-        cursor: pointer;
-      }
-      button.secondary {
-        background: #333;
-      }
-      input,
-      select,
-      textarea {
-        background: #2a2a2a;
-        color: #fff;
-        border: 1px solid #3a3a3a;
-      }
-      .teacher-btn {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        text-align: left;
-      }
+      button { background: #ff4d6d; color: #fff; cursor: pointer; }
+      button.secondary { background: #333; }
+      input, select, textarea { background: #2a2a2a; color: #fff; border: 1px solid #3a3a3a; }
+      .teacher-btn { display: flex; align-items: center; gap: 12px; text-align: left; }
       .teacher-avatar {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        object-fit: cover;
-        flex: 0 0 44px;
+        width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: 0 0 44px;
       }
       .teacher-avatar-fallback {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        flex: 0 0 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 13px;
-        font-weight: 700;
-        background: #2b2b2b;
-        color: #fff;
+        width: 44px; height: 44px; border-radius: 50%; flex: 0 0 44px; display: flex; align-items: center;
+        justify-content: center; font-size: 13px; font-weight: 700; background: #2b2b2b; color: #fff;
       }
-      .teacher-content {
-        min-width: 0;
-      }
-      .row {
-        display: flex;
-        gap: 8px;
-      }
-      .row > * {
-        flex: 1;
-      }
-      .lesson-row {
-        border: 1px solid #333;
-        border-radius: 8px;
-        padding: 8px;
-        margin-bottom: 8px;
-      }
-      .pill {
-        display: inline-block;
-        font-size: 12px;
-        padding: 2px 8px;
-        border-radius: 999px;
-        background: #333;
-      }
-      .pill.free {
-        background: #245b2e;
-      }
-      .pill.paid {
-        background: #5b2d24;
-      }
-      a {
-        color: #ff9ab0;
-      }
+      .teacher-content { min-width: 0; }
+      .row { display: flex; gap: 8px; }
+      .row > * { flex: 1; }
+      .lesson-row { border: 1px solid #333; border-radius: 8px; padding: 8px; margin-bottom: 8px; }
+      .pill { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #333; }
+      .pill.free { background: #245b2e; }
+      .pill.paid { background: #5b2d24; }
+      a { color: #ff9ab0; }
     </style>
   </head>
   <body>
     <h1>💃 Let's Dance With Me</h1>
-
     <div class="card" id="user">Загрузка пользователя...</div>
 
     <div class="card hidden" id="onboardingCard">
@@ -146,7 +64,7 @@
       <input id="courseTitle" placeholder="Название курса" />
       <input id="courseDescription" placeholder="Описание курса" />
       <div class="row">
-        <input id="coursePrice" type="number" placeholder="Цена" min="0" />
+        <input id="coursePrice" type="number" placeholder="Цена" min="199" />
         <select id="coursePublished">
           <option value="true">Опубликован</option>
           <option value="false">Скрыт</option>
@@ -211,6 +129,8 @@
 
       let currentUser = null;
       let selectedStyleId = "";
+      let currentStudentCourses = [];
+      let openedStudentCourseId = null;
       let currentTeacherCourses = [];
       let currentTeacherLessons = [];
       let editingLessonId = null;
@@ -350,6 +270,7 @@
         studentScreen.innerHTML = "Загрузка курсов...";
         const styleQuery = selectedStyleId ? `?styleId=${selectedStyleId}` : "";
         const courses = await apiFetch(`/api/courses/${teacherId}${styleQuery}`);
+        currentStudentCourses = courses;
 
         studentScreen.innerHTML =
           "<b>Курсы</b><br/><br/>" +
@@ -359,7 +280,8 @@
               <button onclick="openCourse(${c.id})">
                 ${escapeHtml(c.title)}<br/>
                 <small class="muted">${escapeHtml(c.description || "")}</small><br/>
-                <small class="muted">Цена: ${Number(c.price || 0)} ₽</small>
+                <small class="muted">Цена: ${Number(c.price || 0)} ₽</small><br/>
+                <small class="muted">${c.is_purchased ? "Куплен" : "Не куплен"}</small>
               </button>
             `
             )
@@ -368,23 +290,37 @@
       }
 
       async function openCourse(courseId) {
+        openedStudentCourseId = courseId;
         studentScreen.innerHTML = "Загрузка уроков...";
         const lessons = await apiFetch(`/api/lessons/${courseId}`);
+        const course = currentStudentCourses.find((item) => item.id === courseId);
+        const hasPaidLessons = lessons.some((lesson) => !lesson.is_free);
+        const showBuyButton = hasPaidLessons && course && !course.is_purchased;
+
         studentScreen.innerHTML =
           "<b>Уроки</b><br/><br/>" +
+          (showBuyButton
+            ? `<button onclick="purchaseCourse(${courseId})">Купить курс за ${Number(course.price || 0)} ₽</button>`
+            : "") +
           lessons
-            .map((l) => {
-              const typeClass = l.is_free ? "free" : "paid";
-              const typeText = l.is_free ? "Бесплатно" : "Платно";
-              const durationText = l.duration_sec ? `${Math.round(l.duration_sec / 60)} мин` : "без длительности";
-              const previewHtml = l.preview_url
-                ? `<br/><small><a href="${escapeHtml(l.preview_url)}" target="_blank" rel="noopener noreferrer">Превью</a></small>`
+            .map((lesson) => {
+              const typeClass = lesson.is_free ? "free" : "paid";
+              const typeText = lesson.is_free ? "Бесплатно" : "Платно";
+              const durationText = lesson.duration_sec
+                ? `${Math.round(lesson.duration_sec / 60)} мин`
+                : "без длительности";
+              const unlockText = lesson.is_unlocked ? "Открыт" : "Закрыт";
+              const previewHtml = lesson.preview_url
+                ? `<br/><small><a href="${escapeHtml(
+                    lesson.preview_url
+                  )}" target="_blank" rel="noopener noreferrer">Превью</a></small>`
                 : "";
               return `
-                <button onclick="doLesson(${l.lesson_number})">
-                  Урок ${l.lesson_number}: ${escapeHtml(l.title)}<br/>
+                <button onclick="doLesson(${courseId}, ${lesson.lesson_number})">
+                  Урок ${lesson.lesson_number}: ${escapeHtml(lesson.title)}<br/>
                   <small class="pill ${typeClass}">${typeText}</small>
                   <small class="muted"> · ${durationText}</small>
+                  <small class="muted"> · ${unlockText}</small>
                   ${previewHtml}
                 </button>
               `;
@@ -393,22 +329,31 @@
           `<button class="secondary" onclick="loadTeachers()">⬅ К преподавателям</button>`;
       }
 
-      async function doLesson(lessonNumber) {
+      async function purchaseCourse(courseId) {
+        await apiFetch(`/api/courses/${courseId}/purchase`, { method: "POST" });
+        const selectedCourse = currentStudentCourses.find((item) => item.id === courseId);
+        if (selectedCourse) selectedCourse.is_purchased = true;
+        tg.showAlert("Курс успешно куплен");
+        await openCourse(courseId);
+      }
+
+      async function doLesson(courseId, lessonNumber) {
         const data = await apiFetch("/api/lesson", {
           method: "POST",
-          body: JSON.stringify({ telegramId: tgUser.id, lessonNumber }),
+          body: JSON.stringify({ telegramId: tgUser.id, courseId, lessonNumber }),
         });
 
         if (data.blocked) {
-          tg.showPopup({
-            title: "🔒 Урок закрыт",
-            message: "Этот урок доступен по подписке",
-            buttons: [{ type: "ok" }],
-          });
+          const message =
+            data.reason === "course_purchase_required"
+              ? "Сначала купи курс, чтобы открыть этот урок"
+              : "Этот урок недоступен";
+          tg.showPopup({ title: "🔒 Урок закрыт", message, buttons: [{ type: "ok" }] });
           return;
         }
 
         await loadCurrentUser();
+        if (openedStudentCourseId) await openCourse(openedStudentCourseId);
       }
 
       async function loadTeacherProfile() {
@@ -448,14 +393,18 @@
           (currentTeacherCourses.length
             ? currentTeacherCourses
                 .map(
-                  (c) =>
-                    `• ${escapeHtml(c.title)} — ${Number(c.price || 0)} ₽ (${c.is_published ? "опубликован" : "скрыт"})`
+                  (course) =>
+                    `• ${escapeHtml(course.title)} — ${Number(course.price || 0)} ₽ (${
+                      course.is_published ? "опубликован" : "скрыт"
+                    })`
                 )
                 .join("<br/>")
             : "Пока нет курсов");
 
         teacherCourseSelect.innerHTML = currentTeacherCourses.length
-          ? currentTeacherCourses.map((c) => `<option value="${c.id}">${escapeHtml(c.title)}</option>`).join("")
+          ? currentTeacherCourses
+              .map((course) => `<option value="${course.id}">${escapeHtml(course.title)}</option>`)
+              .join("")
           : '<option value="">Нет курсов</option>';
 
         if (currentTeacherCourses.length) {
@@ -471,6 +420,7 @@
           teacherLessons.textContent = "Уроки: выбери курс";
           return;
         }
+
         const lessons = await apiFetch(`/api/teacher/courses/${courseId}/lessons`);
         currentTeacherLessons = lessons;
         teacherLessons.innerHTML =
@@ -478,21 +428,21 @@
           (lessons.length
             ? lessons
                 .map(
-                  (l) => `
+                  (lesson) => `
                     <div class="lesson-row">
-                      <b>${l.lesson_number}. ${escapeHtml(l.title)}</b><br/>
-                      <small class="muted">${escapeHtml(l.description || "")}</small><br/>
-                      <small class="muted">${l.is_free ? "Бесплатный" : "Платный"} · ${
-                        l.duration_sec ? `${l.duration_sec} сек` : "без длительности"
+                      <b>${lesson.lesson_number}. ${escapeHtml(lesson.title)}</b><br/>
+                      <small class="muted">${escapeHtml(lesson.description || "")}</small><br/>
+                      <small class="muted">${lesson.is_free ? "Бесплатный" : "Платный"} · ${
+                        lesson.duration_sec ? `${lesson.duration_sec} сек` : "без длительности"
                       }</small><br/>
                       ${
-                        l.preview_url
+                        lesson.preview_url
                           ? `<small><a href="${escapeHtml(
-                              l.preview_url
+                              lesson.preview_url
                             )}" target="_blank" rel="noopener noreferrer">Превью</a></small><br/>`
                           : ""
                       }
-                      <button class="secondary" onclick="editLessonById(${l.id})">Редактировать</button>
+                      <button class="secondary" onclick="editLessonById(${lesson.id})">Редактировать</button>
                     </div>
                   `
                 )
@@ -502,16 +452,22 @@
 
       async function createCourse() {
         const title = courseTitleInput.value.trim();
+        const price = Number(coursePriceInput.value || 0);
         if (!title) {
           tg.showAlert("Укажи название курса");
           return;
         }
+        if (!Number.isFinite(price) || price < 199) {
+          tg.showAlert("Цена курса должна быть не меньше 199 ₽");
+          return;
+        }
+
         await apiFetch("/api/teacher/courses", {
           method: "POST",
           body: JSON.stringify({
             title,
             description: courseDescriptionInput.value.trim(),
-            price: Number(coursePriceInput.value || 0),
+            price,
             isPublished: coursePublishedInput.value === "true",
             styleIds: [],
           }),
@@ -578,6 +534,7 @@
       window.loadCourses = loadCourses;
       window.openCourse = openCourse;
       window.doLesson = doLesson;
+      window.purchaseCourse = purchaseCourse;
     </script>
   </body>
 </html>

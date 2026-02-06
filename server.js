@@ -3,6 +3,8 @@ const path = require("path");
 
 const db = require("./db");
 const { getOrCreateUser, setOnboardingComplete, completeLesson } = require("./userService");
+const COURSE_MIN_PRICE = 199;
+const MAX_FREE_LESSONS_PER_COURSE = 3;
 
 const app = express();
 app.use(express.json());
@@ -78,6 +80,22 @@ async function getOrCreateTeacherProfile(telegramId) {
   return created.rows[0];
 }
 
+async function countFreeLessonsInCourse(courseId, excludeLessonId = null) {
+  if (excludeLessonId) {
+    const result = await db.query(
+      "SELECT COUNT(*)::int AS count FROM lessons WHERE course_id = $1 AND is_free = true AND id <> $2",
+      [courseId, excludeLessonId]
+    );
+    return result.rows[0].count;
+  }
+
+  const result = await db.query(
+    "SELECT COUNT(*)::int AS count FROM lessons WHERE course_id = $1 AND is_free = true",
+    [courseId]
+  );
+  return result.rows[0].count;
+}
+
 app.get(
   "/api/user/:telegramId",
   asyncRoute(async (req, res) => {
@@ -111,12 +129,19 @@ app.post(
 app.post(
   "/api/lesson",
   asyncRoute(async (req, res) => {
-    const { telegramId, lessonNumber } = req.body;
-    if (!telegramId || !lessonNumber) {
+    const { telegramId, courseId, lessonNumber } = req.body;
+    if (!telegramId || !courseId || !lessonNumber) {
       return res.status(400).json({ error: "Missing data" });
     }
 
-    const result = await completeLesson(Number(telegramId), Number(lessonNumber));
+    const result = await completeLesson(
+      Number(telegramId),
+      Number(courseId),
+      Number(lessonNumber)
+    );
+    if (result.reason === "lesson_not_found") {
+      return res.status(404).json({ error: "Lesson not found" });
+    }
     res.json(result);
   })
 );
@@ -146,24 +171,35 @@ app.get(
   asyncRoute(async (req, res) => {
     const teacherId = Number(req.params.teacherId);
     const styleId = req.query.styleId ? Number(req.query.styleId) : null;
+    const telegramId = parseTelegramId(req);
 
     if (!teacherId) {
       return res.status(400).json({ error: "Invalid teacherId" });
     }
 
     let sql = `
-      SELECT c.id, c.teacher_id, c.title, c.description, c.price, c.is_published
+      SELECT
+        c.id,
+        c.teacher_id,
+        c.title,
+        c.description,
+        c.price,
+        c.is_published,
+        ${telegramId ? "CASE WHEN cp.telegram_id IS NULL THEN false ELSE true END" : "false"} AS is_purchased
       FROM courses c
+      ${telegramId ? "LEFT JOIN course_purchases cp ON cp.course_id = c.id AND cp.telegram_id = $2 AND cp.status = 'paid'" : ""}
       WHERE c.teacher_id = $1
     `;
     const params = [teacherId];
+    if (telegramId) params.push(telegramId);
 
     if (styleId) {
+      const styleParamIdx = params.length + 1;
       sql += `
         AND EXISTS (
           SELECT 1
           FROM course_styles cs
-          WHERE cs.course_id = c.id AND cs.style_id = $2
+          WHERE cs.course_id = c.id AND cs.style_id = $${styleParamIdx}
         )
       `;
       params.push(styleId);
@@ -180,6 +216,7 @@ app.get(
   "/api/lessons/:courseId",
   asyncRoute(async (req, res) => {
     const courseId = Number(req.params.courseId);
+    const telegramId = parseTelegramId(req);
     if (!courseId) {
       return res.status(400).json({ error: "Invalid courseId" });
     }
@@ -187,20 +224,61 @@ app.get(
     const result = await db.query(
       `
         SELECT
-          id,
-          lesson_number,
-          title,
-          description,
-          is_free,
-          duration_sec,
-          preview_url
-        FROM lessons
-        WHERE course_id = $1
-        ORDER BY lesson_number
+          l.id,
+          l.lesson_number,
+          l.title,
+          l.description,
+          l.is_free,
+          l.duration_sec,
+          l.preview_url,
+          CASE
+            WHEN l.is_free = true THEN true
+            WHEN cp.telegram_id IS NOT NULL THEN true
+            ELSE false
+          END AS is_unlocked
+        FROM lessons l
+        LEFT JOIN course_purchases cp
+          ON cp.course_id = l.course_id
+          AND cp.telegram_id = $2
+          AND cp.status = 'paid'
+        WHERE l.course_id = $1
+        ORDER BY l.lesson_number
       `,
-      [courseId]
+      [courseId, telegramId || 0]
     );
     res.json(result.rows);
+  })
+);
+
+app.post(
+  "/api/courses/:courseId/purchase",
+  requireUser(),
+  asyncRoute(async (req, res) => {
+    const courseId = Number(req.params.courseId);
+    if (!courseId) {
+      return res.status(400).json({ error: "Invalid courseId" });
+    }
+
+    const courseResult = await db.query(
+      "SELECT id, price FROM courses WHERE id = $1 AND is_published = true",
+      [courseId]
+    );
+    const course = courseResult.rows[0];
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    await db.query(
+      `
+        INSERT INTO course_purchases (telegram_id, course_id, amount, status, purchased_at)
+        VALUES ($1, $2, $3, 'paid', NOW())
+        ON CONFLICT (telegram_id, course_id) DO UPDATE
+        SET amount = EXCLUDED.amount, status = 'paid', purchased_at = NOW()
+      `,
+      [req.currentUser.telegram_id, courseId, course.price]
+    );
+
+    res.json({ ok: true, course_id: courseId, amount: course.price });
   })
 );
 
@@ -274,8 +352,10 @@ app.post(
     if (!title || typeof title !== "string") {
       return res.status(400).json({ error: "title is required" });
     }
-    if (!isFiniteNumber(price) || Number(price) < 0) {
-      return res.status(400).json({ error: "price must be a non-negative number" });
+    if (!isFiniteNumber(price) || Number(price) < COURSE_MIN_PRICE) {
+      return res
+        .status(400)
+        .json({ error: `course price must be at least ${COURSE_MIN_PRICE}` });
     }
     if (typeof isPublished !== "boolean") {
       return res.status(400).json({ error: "isPublished must be boolean" });
@@ -332,8 +412,10 @@ app.put(
 
     const { title, description, price, isPublished, styleIds } = req.body;
 
-    if (price !== undefined && (!isFiniteNumber(price) || Number(price) < 0)) {
-      return res.status(400).json({ error: "price must be a non-negative number" });
+    if (price !== undefined && (!isFiniteNumber(price) || Number(price) < COURSE_MIN_PRICE)) {
+      return res
+        .status(400)
+        .json({ error: `course price must be at least ${COURSE_MIN_PRICE}` });
     }
     if (isPublished !== undefined && typeof isPublished !== "boolean") {
       return res.status(400).json({ error: "isPublished must be boolean" });
@@ -424,6 +506,22 @@ app.post(
       return res.status(400).json({ error: "durationSec must be null or positive integer" });
     }
 
+    if (isFree) {
+      const existingLesson = await db.query(
+        "SELECT id, is_free FROM lessons WHERE course_id = $1 AND lesson_number = $2",
+        [courseId, Number(lessonNumber)]
+      );
+      const existing = existingLesson.rows[0];
+      const freeLessonsCount = await countFreeLessonsInCourse(courseId, existing ? existing.id : null);
+      if (!existing || existing.is_free === false) {
+        if (freeLessonsCount >= MAX_FREE_LESSONS_PER_COURSE) {
+          return res.status(400).json({
+            error: `Only ${MAX_FREE_LESSONS_PER_COURSE} free lessons are allowed per course`,
+          });
+        }
+      }
+    }
+
     const created = await db.query(
       `
         INSERT INTO lessons (
@@ -484,6 +582,12 @@ app.put(
       return res.status(404).json({ error: "Lesson not found" });
     }
 
+    const currentLessonResult = await db.query(
+      "SELECT id, course_id, is_free FROM lessons WHERE id = $1",
+      [lessonId]
+    );
+    const currentLesson = currentLessonResult.rows[0];
+
     const {
       title,
       description,
@@ -508,6 +612,16 @@ app.put(
       (!Number.isInteger(Number(lessonNumber)) || Number(lessonNumber) < 1)
     ) {
       return res.status(400).json({ error: "lessonNumber must be a positive integer" });
+    }
+
+    const nextIsFree = isFree === undefined ? currentLesson.is_free : isFree;
+    if (nextIsFree && !currentLesson.is_free) {
+      const freeLessonsCount = await countFreeLessonsInCourse(currentLesson.course_id, lessonId);
+      if (freeLessonsCount >= MAX_FREE_LESSONS_PER_COURSE) {
+        return res.status(400).json({
+          error: `Only ${MAX_FREE_LESSONS_PER_COURSE} free lessons are allowed per course`,
+        });
+      }
     }
 
     const updated = await db.query(

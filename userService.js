@@ -32,7 +32,7 @@ async function setOnboardingComplete(telegramId) {
   return result.rows[0];
 }
 
-async function completeLesson(telegramId, lessonNumber) {
+async function completeLesson(telegramId, courseId, lessonNumber) {
   return db.withTransaction(async (client) => {
     await client.query(
       `
@@ -43,37 +43,81 @@ async function completeLesson(telegramId, lessonNumber) {
       [telegramId]
     );
 
-    const userResult = await client.query(
-      "SELECT telegram_id, lessons_completed, xp, role, is_onboarded FROM users WHERE telegram_id = $1 FOR UPDATE",
-      [telegramId]
+    const lessonResult = await client.query(
+      `
+        SELECT id, course_id, lesson_number, is_free
+        FROM lessons
+        WHERE course_id = $1 AND lesson_number = $2
+        FOR UPDATE
+      `,
+      [courseId, lessonNumber]
     );
 
-    const user = userResult.rows[0];
-
-    if (lessonNumber > 3 && user.lessons_completed >= 3) {
-      return { blocked: true };
+    const lesson = lessonResult.rows[0];
+    if (!lesson) {
+      return { blocked: true, reason: "lesson_not_found" };
     }
 
-    if (lessonNumber > user.lessons_completed) {
-      const nextLessonsCompleted = lessonNumber;
-      const nextXp = user.xp + 10;
-
-      await client.query(
-        "UPDATE users SET lessons_completed = $1, xp = $2 WHERE telegram_id = $3",
-        [nextLessonsCompleted, nextXp, telegramId]
+    if (!lesson.is_free) {
+      const purchaseResult = await client.query(
+        `
+          SELECT 1
+          FROM course_purchases
+          WHERE telegram_id = $1 AND course_id = $2 AND status = 'paid'
+        `,
+        [telegramId, courseId]
       );
 
+      if (!purchaseResult.rows[0]) {
+        return { blocked: true, reason: "course_purchase_required" };
+      }
+    }
+
+    const alreadyCompletedResult = await client.query(
+      `
+        SELECT 1
+        FROM user_lesson_progress
+        WHERE telegram_id = $1 AND lesson_id = $2
+      `,
+      [telegramId, lesson.id]
+    );
+
+    if (alreadyCompletedResult.rows[0]) {
+      const user = await client.query(
+        "SELECT lessons_completed, xp FROM users WHERE telegram_id = $1",
+        [telegramId]
+      );
       return {
         blocked: false,
-        lessons_completed: nextLessonsCompleted,
-        xp: nextXp,
+        lessons_completed: user.rows[0].lessons_completed,
+        xp: user.rows[0].xp,
       };
     }
 
+    await client.query(
+      `
+        INSERT INTO user_lesson_progress (telegram_id, lesson_id)
+        VALUES ($1, $2)
+      `,
+      [telegramId, lesson.id]
+    );
+
+    const updatedUserResult = await client.query(
+      `
+        UPDATE users
+        SET
+          lessons_completed = lessons_completed + 1,
+          xp = xp + 10
+        WHERE telegram_id = $1
+        RETURNING lessons_completed, xp
+      `,
+      [telegramId]
+    );
+
     return {
       blocked: false,
-      lessons_completed: user.lessons_completed,
-      xp: user.xp,
+      lessons_completed: updatedUserResult.rows[0].lessons_completed,
+      xp: updatedUserResult.rows[0].xp,
     };
   });
 }
