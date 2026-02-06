@@ -55,17 +55,10 @@
 
     <div class="card hidden" id="modeCard">
       <b id="modeTitle"></b>
-      <label id="teacherModeWrap" class="hidden mode-label">
-        <span id="teacherModeText"></span>
+      <label id="modeToggleWrap" class="hidden mode-label">
+        <span id="modeToggleText"></span>
         <span class="switch">
-          <input type="checkbox" id="teacherModeToggle" />
-          <span class="slider"></span>
-        </span>
-      </label>
-      <label id="adminModeWrap" class="hidden mode-label">
-        <span id="adminModeText"></span>
-        <span class="switch">
-          <input type="checkbox" id="adminModeToggle" />
+          <input type="checkbox" id="modeToggle" />
           <span class="slider"></span>
         </span>
       </label>
@@ -94,12 +87,9 @@
       const appTitle = document.getElementById("appTitle");
       const modeCard = document.getElementById("modeCard");
       const modeTitle = document.getElementById("modeTitle");
-      const teacherModeWrap = document.getElementById("teacherModeWrap");
-      const adminModeWrap = document.getElementById("adminModeWrap");
-      const teacherModeText = document.getElementById("teacherModeText");
-      const adminModeText = document.getElementById("adminModeText");
-      const teacherModeToggle = document.getElementById("teacherModeToggle");
-      const adminModeToggle = document.getElementById("adminModeToggle");
+      const modeToggleWrap = document.getElementById("modeToggleWrap");
+      const modeToggleText = document.getElementById("modeToggleText");
+      const modeToggle = document.getElementById("modeToggle");
 
       const userBlock = document.getElementById("user");
       const onboardingCard = document.getElementById("onboardingCard");
@@ -118,8 +108,7 @@
       let currentTeacherLessons = [];
       let currentAdminUsers = [];
       let editingLessonId = null;
-      let teacherModeEnabled = false;
-      let adminModeEnabled = false;
+      let specialModeEnabled = false;
 
       renderStaticTexts();
 
@@ -134,8 +123,6 @@
       function renderStaticTexts() {
         appTitle.textContent = S.appTitle;
         modeTitle.textContent = S.modeTitle;
-        teacherModeText.textContent = S.teacherMode;
-        adminModeText.textContent = S.adminMode;
         onboardingTitle.textContent = S.onboardingTitle;
         onboardingText.textContent = S.onboardingText;
         onboardingBtn.textContent = S.onboardingStart;
@@ -162,18 +149,16 @@
         return data;
       }
 
-      function getModeStorageKey(modeName) {
-        return `ldwm_${modeName}_${tgUser.id}`;
+      function getModeStorageKey() {
+        return `ldwm_special_mode_${tgUser.id}`;
       }
 
       function loadModeState() {
-        teacherModeEnabled = localStorage.getItem(getModeStorageKey("teacher_mode")) === "1";
-        adminModeEnabled = localStorage.getItem(getModeStorageKey("admin_mode")) === "1";
+        specialModeEnabled = localStorage.getItem(getModeStorageKey()) === "1";
       }
 
       function persistModeState() {
-        localStorage.setItem(getModeStorageKey("teacher_mode"), teacherModeEnabled ? "1" : "0");
-        localStorage.setItem(getModeStorageKey("admin_mode"), adminModeEnabled ? "1" : "0");
+        localStorage.setItem(getModeStorageKey(), specialModeEnabled ? "1" : "0");
       }
 
       function getLevel(xp) {
@@ -210,13 +195,8 @@
 
       function bindEvents() {
         onboardingBtn.addEventListener("click", completeOnboarding);
-        teacherModeToggle.addEventListener("change", async () => {
-          teacherModeEnabled = teacherModeToggle.checked;
-          persistModeState();
-          await routeByRole();
-        });
-        adminModeToggle.addEventListener("change", async () => {
-          adminModeEnabled = adminModeToggle.checked;
+        modeToggle.addEventListener("change", async () => {
+          specialModeEnabled = modeToggle.checked;
           persistModeState();
           await routeByRole();
         });
@@ -224,33 +204,22 @@
 
       function renderModeControls() {
         modeCard.classList.add("hidden");
-        teacherModeWrap.classList.add("hidden");
-        adminModeWrap.classList.add("hidden");
+        modeToggleWrap.classList.add("hidden");
 
-        if (currentUser.role === "teacher") {
+        if (currentUser.role === "teacher" || currentUser.role === "admin") {
           modeCard.classList.remove("hidden");
-          teacherModeWrap.classList.remove("hidden");
-          teacherModeToggle.checked = teacherModeEnabled;
-          return;
-        }
-
-        if (currentUser.role === "admin") {
-          modeCard.classList.remove("hidden");
-          adminModeWrap.classList.remove("hidden");
-          adminModeToggle.checked = adminModeEnabled;
+          modeToggleWrap.classList.remove("hidden");
+          modeToggle.checked = specialModeEnabled;
+          modeToggleText.textContent = currentUser.role === "admin" ? S.adminMode : S.teacherMode;
         }
       }
 
       async function loadCurrentUser() {
         currentUser = await apiFetch("/api/me");
 
-        if (currentUser.role !== "teacher") {
-          teacherModeEnabled = false;
-          localStorage.removeItem(getModeStorageKey("teacher_mode"));
-        }
-        if (currentUser.role !== "admin") {
-          adminModeEnabled = false;
-          localStorage.removeItem(getModeStorageKey("admin_mode"));
+        if (currentUser.role !== "teacher" && currentUser.role !== "admin") {
+          specialModeEnabled = false;
+          localStorage.removeItem(getModeStorageKey());
         }
 
         renderModeControls();
@@ -276,11 +245,10 @@
         teacherScreen.classList.add("hidden");
         adminScreen.classList.add("hidden");
 
-        const teacherSpecialMode = currentUser.role === "teacher" && teacherModeEnabled;
-        const adminSpecialMode = currentUser.role === "admin" && adminModeEnabled;
-        const specialModeEnabled = teacherSpecialMode || adminSpecialMode;
+        const teacherSpecialMode = currentUser.role === "teacher" && specialModeEnabled;
+        const adminSpecialMode = currentUser.role === "admin" && specialModeEnabled;
 
-        if (!currentUser.is_onboarded && !specialModeEnabled) {
+        if (!currentUser.is_onboarded && !(teacherSpecialMode || adminSpecialMode)) {
           onboardingCard.classList.remove("hidden");
         }
 
