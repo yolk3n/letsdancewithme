@@ -1,9 +1,8 @@
 require("dotenv").config();
 
 const { Bot, InlineKeyboard, Keyboard } = require("grammy");
-
 const db = require("./db");
-const { completeLesson } = require("./userService");
+const { getOrCreateUser, completeLesson } = require("./userService");
 
 const bot = new Bot(process.env.BOT_TOKEN);
 
@@ -37,21 +36,28 @@ const lessonsMenu = new Keyboard()
   .resized();
 
 bot.command("start", async (ctx) => {
-  await ctx.reply("💃 *Let's Dance With Me* 🕺\nДобро пожаловать!\nОткрой обучение:", {
-    parse_mode: "Markdown",
-    reply_markup: miniAppKeyboard,
-  });
+  await getOrCreateUser(ctx.from.id);
+  await ctx.reply(
+    "💃 *Let's Dance With Me* 🕺\nДобро пожаловать!\nОткрой обучение:",
+    {
+      parse_mode: "Markdown",
+      reply_markup: miniAppKeyboard,
+    }
+  );
 });
 
 bot.hears("ℹ️ О проекте", async (ctx) => {
+  await getOrCreateUser(ctx.from.id);
   await ctx.reply("Это онлайн-школа танцев. Покупка идет на уровне курса, а не отдельных уроков.");
 });
 
 bot.hears("👩‍🏫 Выбрать преподавателя", async (ctx) => {
+  await getOrCreateUser(ctx.from.id);
   await ctx.reply("Выбери преподавателя:", { reply_markup: teachersMenu });
 });
 
 bot.hears("🕺 Алекс — Salsa NY", async (ctx) => {
+  await getOrCreateUser(ctx.from.id);
   await ctx.reply("*Курс:* Salsa NY для начинающих\nВыбери урок:", {
     parse_mode: "Markdown",
     reply_markup: lessonsMenu,
@@ -65,9 +71,9 @@ function getLevel(xp) {
 }
 
 async function handleLesson(ctx, lessonNumber) {
-  const userId = ctx.from.id;
+  await getOrCreateUser(ctx.from.id);
   const defaultCourseId = 1;
-  const result = await completeLesson(userId, defaultCourseId, lessonNumber);
+  const result = await completeLesson(ctx.from.id, defaultCourseId, lessonNumber);
 
   if (result.blocked) {
     const lockedMessage =
@@ -88,6 +94,7 @@ bot.hears("Урок 3 — Левая связка", async (ctx) => handleLesson(
 bot.hears("Урок 4 — Комбинация 🔒", async (ctx) => handleLesson(ctx, 4));
 
 bot.hears("🔙 Назад", async (ctx) => {
+  await getOrCreateUser(ctx.from.id);
   await ctx.reply("Главное меню:", { reply_markup: mainMenu });
 });
 

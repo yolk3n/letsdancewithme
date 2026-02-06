@@ -18,11 +18,10 @@
       }
       button { background: #ff4d6d; color: #fff; cursor: pointer; }
       button.secondary { background: #333; }
+      button.compact { width: auto; margin-right: 8px; padding: 8px 10px; font-size: 13px; }
       input, select, textarea { background: #2a2a2a; color: #fff; border: 1px solid #3a3a3a; }
       .teacher-btn { display: flex; align-items: center; gap: 12px; text-align: left; }
-      .teacher-avatar {
-        width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: 0 0 44px;
-      }
+      .teacher-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: 0 0 44px; }
       .teacher-avatar-fallback {
         width: 44px; height: 44px; border-radius: 50%; flex: 0 0 44px; display: flex; align-items: center;
         justify-content: center; font-size: 13px; font-weight: 700; background: #2b2b2b; color: #fff;
@@ -30,16 +29,29 @@
       .teacher-content { min-width: 0; }
       .row { display: flex; gap: 8px; }
       .row > * { flex: 1; }
-      .lesson-row { border: 1px solid #333; border-radius: 8px; padding: 8px; margin-bottom: 8px; }
+      .lesson-row, .user-row { border: 1px solid #333; border-radius: 8px; padding: 8px; margin-bottom: 8px; }
       .pill { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #333; }
       .pill.free { background: #245b2e; }
       .pill.paid { background: #5b2d24; }
+      .mode-label { display: block; margin-top: 8px; }
+      .mode-label input[type="checkbox"] { width: auto; margin-right: 8px; }
       a { color: #ff9ab0; }
     </style>
   </head>
   <body>
     <h1>💃 Let's Dance With Me</h1>
     <div class="card" id="user">Загрузка пользователя...</div>
+    <div class="card hidden" id="modeCard">
+      <b>Режим</b>
+      <label id="teacherModeWrap" class="hidden mode-label">
+        <input type="checkbox" id="teacherModeToggle" />
+        Режим преподавателя
+      </label>
+      <label id="adminModeWrap" class="hidden mode-label">
+        <input type="checkbox" id="adminModeToggle" />
+        Режим администратора
+      </label>
+    </div>
 
     <div class="card hidden" id="onboardingCard">
       <b>Добро пожаловать!</b>
@@ -51,15 +63,12 @@
 
     <div class="card hidden" id="teacherScreen">
       <b>Кабинет преподавателя</b>
-
       <p class="muted">Профиль</p>
       <input id="teacherName" placeholder="Имя преподавателя" />
       <input id="teacherDescription" placeholder="Описание" />
       <input id="teacherAvatarUrl" placeholder="URL аватарки" />
       <button id="saveTeacherProfileBtn">Сохранить профиль</button>
-
       <hr />
-
       <p class="muted">Новый курс</p>
       <input id="courseTitle" placeholder="Название курса" />
       <input id="courseDescription" placeholder="Описание курса" />
@@ -71,9 +80,7 @@
         </select>
       </div>
       <button id="createCourseBtn">Создать курс</button>
-
       <hr />
-
       <p class="muted">Уроки курса</p>
       <select id="teacherCourseSelect"></select>
       <div class="row">
@@ -88,9 +95,15 @@
         <option value="false">Платный урок</option>
       </select>
       <button id="saveLessonBtn">Сохранить урок</button>
-
       <div id="teacherCourses" class="muted">Курсы: загрузка...</div>
       <div id="teacherLessons" class="muted">Уроки: выбери курс</div>
+    </div>
+
+    <div class="card hidden" id="adminScreen">
+      <b>Админ-панель</b>
+      <p class="muted">Список пользователей и назначение преподавателей</p>
+      <button class="secondary" id="refreshAdminUsersBtn">Обновить список</button>
+      <div id="adminUsersList" class="muted">Загрузка...</div>
     </div>
 
     <script>
@@ -100,12 +113,20 @@
 
       const tgUser = tg.initDataUnsafe?.user;
       const userBlock = document.getElementById("user");
+      const modeCard = document.getElementById("modeCard");
+      const teacherModeWrap = document.getElementById("teacherModeWrap");
+      const adminModeWrap = document.getElementById("adminModeWrap");
+      const teacherModeToggle = document.getElementById("teacherModeToggle");
+      const adminModeToggle = document.getElementById("adminModeToggle");
       const onboardingCard = document.getElementById("onboardingCard");
       const onboardingBtn = document.getElementById("onboardingBtn");
       const studentScreen = document.getElementById("studentScreen");
       const teacherScreen = document.getElementById("teacherScreen");
+      const adminScreen = document.getElementById("adminScreen");
       const teacherCourses = document.getElementById("teacherCourses");
       const teacherLessons = document.getElementById("teacherLessons");
+      const adminUsersList = document.getElementById("adminUsersList");
+      const refreshAdminUsersBtn = document.getElementById("refreshAdminUsersBtn");
 
       const teacherNameInput = document.getElementById("teacherName");
       const teacherDescriptionInput = document.getElementById("teacherDescription");
@@ -134,6 +155,9 @@
       let currentTeacherCourses = [];
       let currentTeacherLessons = [];
       let editingLessonId = null;
+      let currentAdminUsers = [];
+      let teacherModeEnabled = false;
+      let adminModeEnabled = false;
 
       if (!tgUser) {
         userBlock.innerHTML = '<span class="error">Не удалось получить данные Telegram</span>';
@@ -169,9 +193,44 @@
         return "🌱 Новичок";
       }
 
+      function getModeStorageKey(modeName) {
+        return `ldwm_${modeName}_${tgUser.id}`;
+      }
+
+      function loadModeState() {
+        teacherModeEnabled = localStorage.getItem(getModeStorageKey("teacher_mode")) === "1";
+        adminModeEnabled = localStorage.getItem(getModeStorageKey("admin_mode")) === "1";
+      }
+
+      function persistModeState() {
+        localStorage.setItem(getModeStorageKey("teacher_mode"), teacherModeEnabled ? "1" : "0");
+        localStorage.setItem(getModeStorageKey("admin_mode"), adminModeEnabled ? "1" : "0");
+      }
+
+      function renderModeControls() {
+        modeCard.classList.add("hidden");
+        teacherModeWrap.classList.add("hidden");
+        adminModeWrap.classList.add("hidden");
+
+        if (currentUser.role === "teacher") {
+          modeCard.classList.remove("hidden");
+          teacherModeWrap.classList.remove("hidden");
+          teacherModeToggle.checked = teacherModeEnabled;
+          return;
+        }
+
+        if (currentUser.role === "admin") {
+          modeCard.classList.remove("hidden");
+          adminModeWrap.classList.remove("hidden");
+          adminModeToggle.checked = adminModeEnabled;
+        }
+      }
+
       async function bootstrap() {
         bindEvents();
         await loadCurrentUser();
+        loadModeState();
+        renderModeControls();
         await routeByRole();
       }
 
@@ -181,10 +240,30 @@
         createCourseBtn.addEventListener("click", createCourse);
         teacherCourseSelect.addEventListener("change", loadSelectedTeacherCourseLessons);
         saveLessonBtn.addEventListener("click", saveLesson);
+        refreshAdminUsersBtn.addEventListener("click", loadAdminUsers);
+        teacherModeToggle.addEventListener("change", async () => {
+          teacherModeEnabled = teacherModeToggle.checked;
+          persistModeState();
+          await routeByRole();
+        });
+        adminModeToggle.addEventListener("change", async () => {
+          adminModeEnabled = adminModeToggle.checked;
+          persistModeState();
+          await routeByRole();
+        });
       }
 
       async function loadCurrentUser() {
         currentUser = await apiFetch("/api/me");
+        if (currentUser.role !== "teacher") {
+          teacherModeEnabled = false;
+          localStorage.removeItem(getModeStorageKey("teacher_mode"));
+        }
+        if (currentUser.role !== "admin") {
+          adminModeEnabled = false;
+          localStorage.removeItem(getModeStorageKey("admin_mode"));
+        }
+        renderModeControls();
         userBlock.innerHTML = `
           <b>${escapeHtml(tgUser.first_name || "Пользователь")}</b><br/>
           Роль: ${escapeHtml(currentUser.role)}<br/>
@@ -204,10 +283,17 @@
         onboardingCard.classList.add("hidden");
         studentScreen.classList.add("hidden");
         teacherScreen.classList.add("hidden");
+        adminScreen.classList.add("hidden");
 
         if (!currentUser.is_onboarded) onboardingCard.classList.remove("hidden");
 
-        if (currentUser.role === "teacher" || currentUser.role === "admin") {
+        if (currentUser.role === "admin" && adminModeEnabled) {
+          adminScreen.classList.remove("hidden");
+          await loadAdminUsers();
+          return;
+        }
+
+        if (currentUser.role === "teacher" && teacherModeEnabled) {
           teacherScreen.classList.remove("hidden");
           await loadTeacherProfile();
           await loadTeacherCourses();
@@ -277,13 +363,13 @@
           courses
             .map(
               (c) => `
-              <button onclick="openCourse(${c.id})">
-                ${escapeHtml(c.title)}<br/>
-                <small class="muted">${escapeHtml(c.description || "")}</small><br/>
-                <small class="muted">Цена: ${Number(c.price || 0)} ₽</small><br/>
-                <small class="muted">${c.is_purchased ? "Куплен" : "Не куплен"}</small>
-              </button>
-            `
+                <button onclick="openCourse(${c.id})">
+                  ${escapeHtml(c.title)}<br/>
+                  <small class="muted">${escapeHtml(c.description || "")}</small><br/>
+                  <small class="muted">Цена: ${Number(c.price || 0)} ₽</small><br/>
+                  <small class="muted">${c.is_purchased ? "Куплен" : "Не куплен"}</small>
+                </button>
+              `
             )
             .join("") +
           `<button class="secondary" onclick="loadTeachers()">⬅ К преподавателям</button>`;
@@ -472,6 +558,7 @@
             styleIds: [],
           }),
         });
+
         courseTitleInput.value = "";
         courseDescriptionInput.value = "";
         coursePriceInput.value = "";
@@ -529,6 +616,36 @@
         await loadSelectedTeacherCourseLessons();
         tg.showAlert("Урок сохранен");
       }
+
+      async function loadAdminUsers() {
+        currentAdminUsers = await apiFetch("/api/admin/users");
+        adminUsersList.innerHTML = currentAdminUsers.length
+          ? currentAdminUsers
+              .map(
+                (user) => `
+                  <div class="user-row">
+                    <b>ID:</b> ${user.telegram_id}<br/>
+                    <small class="muted">Роль: ${escapeHtml(user.role)} | XP: ${user.xp} | Уроков: ${user.lessons_completed}</small><br/>
+                    ${
+                      user.role !== "teacher"
+                        ? `<button class="compact" onclick="setUserRole(${user.telegram_id}, 'teacher')">Сделать преподавателем</button>`
+                        : `<button class="compact secondary" onclick="setUserRole(${user.telegram_id}, 'student')">Сделать пользователем</button>`
+                    }
+                  </div>
+                `
+              )
+              .join("")
+          : "Пользователей пока нет";
+      }
+
+      window.setUserRole = async function setUserRole(telegramId, role) {
+        await apiFetch(`/api/admin/users/${telegramId}/role`, {
+          method: "PUT",
+          body: JSON.stringify({ role }),
+        });
+        tg.showAlert("Роль обновлена");
+        await loadAdminUsers();
+      };
 
       window.loadTeachers = loadTeachers;
       window.loadCourses = loadCourses;
