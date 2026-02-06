@@ -557,6 +557,93 @@
         filter: grayscale(0.3);
         opacity: 0.66;
       }
+      .lesson-hero {
+        border: 1px solid rgba(38, 30, 20, 0.18);
+        border-radius: 16px;
+        padding: 14px;
+        color: #1f1914;
+        background: linear-gradient(150deg, #fffefb 0%, #eef8ff 100%);
+      }
+      .lesson-hero.level-beginner {
+        background: linear-gradient(150deg, #fffefb 0%, #e9f7ff 100%);
+      }
+      .lesson-hero.level-advanced {
+        background: linear-gradient(150deg, #fffdf8 0%, #fff0e1 100%);
+      }
+      .lesson-hero.level-professional {
+        background: linear-gradient(150deg, #fffafd 0%, #efeaff 100%);
+      }
+      .lesson-hero-author {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+      .lesson-hero-name {
+        font-size: 12px;
+        color: #66584a;
+      }
+      .lesson-hero-title {
+        margin: 0;
+        font-size: 24px;
+        line-height: 1.15;
+        font-weight: 700;
+      }
+      .lesson-list-wrap {
+        margin-top: -10px;
+        padding: 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(38, 30, 20, 0.12);
+        background: rgba(255, 255, 255, 0.97);
+        box-shadow: 0 10px 18px rgba(28, 20, 15, 0.08);
+      }
+      .lesson-card {
+        border: 1px solid rgba(38, 30, 20, 0.12);
+        border-radius: 12px;
+        padding: 10px;
+        background: #fff;
+      }
+      .lesson-card + .lesson-card {
+        margin-top: 8px;
+      }
+      .lesson-card-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .lesson-card-title {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+      .lesson-card-meta {
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .lesson-open-btn {
+        margin-top: 8px;
+      }
+      .lesson-page-card {
+        border: 1px solid rgba(38, 30, 20, 0.12);
+        border-radius: 14px;
+        background: #fff;
+        padding: 14px;
+      }
+      .lesson-page-card h3 {
+        margin: 0 0 8px;
+        font-size: 22px;
+        line-height: 1.15;
+      }
+      .lesson-page-description {
+        margin: 0 0 10px;
+        color: #5e5347;
+        line-height: 1.35;
+      }
       .row { display: flex; gap: 8px; align-items: center; }
       .row > * { flex: 1; }
       .lesson-row, .user-row {
@@ -659,7 +746,9 @@
       let currentStudentTeachers = [];
       let selectedTeacherId = null;
       let currentStudentCourses = [];
+      let currentCourseLessons = [];
       let openedStudentCourseId = null;
+      let openedLessonNumber = null;
       let currentTeacherCourses = [];
       let currentTeacherLessons = [];
       let currentAdminUsers = [];
@@ -791,6 +880,21 @@
         if (level === "advanced") return "advanced";
         if (level === "professional") return "professional";
         return "beginner";
+      }
+
+      function renderLessonHero(course) {
+        const levelClass = getCourseLevelClass(course?.level);
+        const teacherName = course?.teacher_name || "Преподаватель";
+        const title = course?.title || "Курс";
+        return `
+          <div class="lesson-hero level-${levelClass}">
+            <div class="lesson-hero-author">
+              ${renderCourseAuthorAvatar(course || {})}
+              <div class="lesson-hero-name">${escapeHtml(teacherName)}</div>
+            </div>
+            <h2 class="lesson-hero-title">${escapeHtml(title)}</h2>
+          </div>
+        `;
       }
 
       function getTeacherAccent(teacherId) {
@@ -1105,6 +1209,7 @@
         studentScreen.classList.add("flat-list");
         selectedTeacherId = null;
         openedStudentCourseId = null;
+        openedLessonNumber = null;
         const [teachers, styles] = await Promise.all([apiFetch("/api/teachers"), apiFetch("/api/styles")]);
         currentStudentTeachers = teachers;
         currentStyles = styles;
@@ -1179,6 +1284,7 @@
         studentScreen.classList.remove("flat-list");
         selectedTeacherId = teacherId;
         openedStudentCourseId = null;
+        openedLessonNumber = null;
         const selectedTeacher = currentStudentTeachers.find((teacher) => Number(teacher.id) === Number(teacherId));
         studentScreen.innerHTML = `
           ${renderStudentHeader(S.coursesTitle, S.loadingCourses, "renderStudentScreen()")}
@@ -1228,13 +1334,15 @@
           ${renderStudentHeader(S.lessonsTitle, S.loadingLessons, "renderStudentScreen()")}
         `;
         const lessons = await apiFetch(`/api/lessons/${courseId}`);
+        currentCourseLessons = lessons;
         const course = currentStudentCourses.find((item) => item.id === courseId);
         const hasPaidLessons = lessons.some((lesson) => !lesson.is_free);
         const showBuyButton = hasPaidLessons && course && !course.is_purchased;
 
         studentScreen.innerHTML = `
           ${renderStudentHeader(S.lessonsTitle, course ? course.title : "Выбранный курс", "renderStudentScreen()")}
-          <div class="stack">
+          ${renderLessonHero(course || {})}
+          <div class="lesson-list-wrap">
             ${showBuyButton ? `<button onclick="purchaseCourse(${courseId})">${S.buyCourse} ${formatRub(course.price)}</button>` : ""}
             ${
               lessons.length
@@ -1252,20 +1360,64 @@
                           )}" target="_blank" rel="noopener noreferrer">${S.preview}</a></small>`
                         : "";
                       const disabledAttr = lesson.is_unlocked ? "" : "disabled";
-                      const action = lesson.is_unlocked ? `onclick="doLesson(${courseId}, ${lesson.lesson_number})"` : "";
+                      const action = lesson.is_unlocked ? `onclick="openLessonPage(${courseId}, ${lesson.lesson_number})"` : "";
                       return `
-                <button class="lesson-btn ${lesson.is_unlocked ? "" : "secondary"}" ${action} ${disabledAttr}>
-                  ${S.lessonsTitle.slice(0, -1)} ${lesson.lesson_number}: ${escapeHtml(lesson.title)}<br/>
-                  <small class="pill ${typeClass}">${typeText}</small>
-                  <small class="muted"> • ${durationText}</small>
-                  <small class="muted"> • ${unlockText}</small>
-                  ${previewHtml}
-                </button>
+                <div class="lesson-card">
+                  <div class="lesson-card-head">
+                    <h3 class="lesson-card-title">${S.lessonsTitle.slice(0, -1)} ${lesson.lesson_number}: ${escapeHtml(lesson.title)}</h3>
+                    <small class="muted">${unlockText}</small>
+                  </div>
+                  <div class="lesson-card-meta">
+                    <small class="pill ${typeClass}">${typeText}</small>
+                    <small class="muted">${durationText}</small>
+                    ${previewHtml}
+                  </div>
+                  <button class="lesson-open-btn ${lesson.is_unlocked ? "" : "secondary"}" ${action} ${disabledAttr}>
+                    ${lesson.is_unlocked ? "Открыть урок" : "Урок закрыт"}
+                  </button>
+                </div>
               `;
                     })
                     .join("")
                 : `<small class="muted">В этом курсе пока нет уроков.</small>`
             }
+          </div>
+        `;
+      }
+
+      function openLessonPage(courseId, lessonNumber) {
+        const lesson = currentCourseLessons.find((item) => Number(item.lesson_number) === Number(lessonNumber));
+        const course = currentStudentCourses.find((item) => Number(item.id) === Number(courseId));
+        if (!lesson) return;
+        openedLessonNumber = lessonNumber;
+
+        const typeClass = lesson.is_free ? "free" : "paid";
+        const typeText = lesson.is_free ? S.free : S.paid;
+        const durationText = lesson.duration_sec ? `${Math.round(lesson.duration_sec / 60)} ${S.minutes}` : S.noDuration;
+        const previewHtml = lesson.preview_url
+          ? `<p class="lesson-page-description"><a href="${escapeHtml(
+              lesson.preview_url
+            )}" target="_blank" rel="noopener noreferrer">${S.preview}</a></p>`
+          : "";
+
+        studentScreen.innerHTML = `
+          ${renderStudentHeader(
+            `${S.lessonsTitle.slice(0, -1)} ${lesson.lesson_number}`,
+            lesson.title,
+            `openCourse(${courseId})`
+          )}
+          ${renderLessonHero(course || {})}
+          <div class="lesson-list-wrap">
+            <div class="lesson-page-card">
+              <h3>${escapeHtml(lesson.title)}</h3>
+              <p class="lesson-page-description">${escapeHtml(lesson.description || "Описание будет добавлено позже.")}</p>
+              <div class="lesson-card-meta">
+                <small class="pill ${typeClass}">${typeText}</small>
+                <small class="muted">${durationText}</small>
+              </div>
+              ${previewHtml}
+              <button onclick="doLesson(${courseId}, ${lesson.lesson_number})">Завершить урок</button>
+            </div>
           </div>
         `;
       }
@@ -1292,7 +1444,10 @@
         }
 
         await loadCurrentUser();
-        if (openedStudentCourseId) await openCourse(openedStudentCourseId);
+        if (openedStudentCourseId) {
+          await openCourse(openedStudentCourseId);
+          if (openedLessonNumber) openLessonPage(openedStudentCourseId, openedLessonNumber);
+        }
       }
 
       async function renderTeacherScreen() {
@@ -1596,6 +1751,7 @@
       window.renderStudentScreen = renderStudentScreen;
       window.loadCourses = loadCourses;
       window.openCourse = openCourse;
+      window.openLessonPage = openLessonPage;
       window.purchaseCourse = purchaseCourse;
       window.doLesson = doLesson;
       window.setStyleFilter = setStyleFilter;
