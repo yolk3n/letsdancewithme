@@ -126,10 +126,17 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        justify-content: space-between;
+        justify-content: flex-start;
         cursor: pointer;
       }
       .profile-greeting { font-weight: 700; }
+      #user {
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        padding: 0 0 8px;
+        margin-bottom: 8px;
+      }
       .profile-avatar,
       .profile-avatar-fallback {
         width: 42px;
@@ -246,17 +253,6 @@
         font-weight: 700;
         color: #2d251e;
         background: #ece7df;
-      }
-      .profile-arrow {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 22px;
-        height: 22px;
-        border-radius: 999px;
-        border: 1px solid rgba(38, 30, 20, 0.15);
-        color: #5b4c3e;
-        font-size: 12px;
       }
       .teacher-card:hover { transform: translateY(-1px); filter: brightness(1.01); }
       .teacher-card:active { transform: translateY(0); }
@@ -705,13 +701,12 @@
 
         userBlock.innerHTML = `
           <div class="profile-top" onclick="openProfileMenu()">
-            <div class="profile-greeting">Привет, ${escapeHtml(helloName)}!</div>
             ${
               avatarUrl
                 ? `<img class="profile-avatar" src="${escapeHtml(avatarUrl)}" alt="profile avatar" />`
                 : `<span class="profile-avatar-fallback">${escapeHtml(getInitials(currentUser.first_name || tgUser.first_name || "U"))}</span>`
             }
-            <span class="profile-arrow">☰</span>
+            <div class="profile-greeting">Привет, ${escapeHtml(helloName)}!</div>
           </div>
         `;
       }
@@ -816,7 +811,7 @@
       }
 
       async function renderStudentScreen() {
-        studentScreen.classList.remove("flat-list");
+        studentScreen.classList.add("flat-list");
         selectedTeacherId = null;
         openedStudentCourseId = null;
         const [teachers, styles] = await Promise.all([apiFetch("/api/teachers"), apiFetch("/api/styles")]);
