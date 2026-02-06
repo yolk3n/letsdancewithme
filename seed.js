@@ -10,7 +10,7 @@ const TEACHER_DEFS = [
   {
     name: "Иванов Иван",
     description: "Сальса, бачата",
-    avatarUrl: "https://ui-avatars.com/api/?name=%D0%98%D0%B2%D0%B0%D0%BD%D0%BE%D0%B2+%D0%98%D0%B2%D0%B0%D0%BD&background=1f6feb&color=fff",
+    avatarUrl: "https://i.pravatar.cc/160?img=11",
     courses: [
       { title: "Сальса: базовая техника", styleSlug: "salsa", price: 2490, level: "beginner", lessons: 6 },
       { title: "Сальса: партнёрские связки", styleSlug: "salsa", price: 2990, level: "advanced", lessons: 8 },
@@ -20,7 +20,7 @@ const TEACHER_DEFS = [
   {
     name: "Петрова Анна",
     description: "Бачата, lady style",
-    avatarUrl: "https://ui-avatars.com/api/?name=%D0%9F%D0%B5%D1%82%D1%80%D0%BE%D0%B2%D0%B0+%D0%90%D0%BD%D0%BD%D0%B0&background=d63384&color=fff",
+    avatarUrl: "https://i.pravatar.cc/160?img=32",
     courses: [
       { title: "Бачата: с нуля", styleSlug: "bachata", price: 2390, level: "beginner", lessons: 5 },
       { title: "Бачата: работа корпусом", styleSlug: "bachata", price: 2890, level: "advanced", lessons: 9 },
@@ -30,7 +30,7 @@ const TEACHER_DEFS = [
   {
     name: "Сидоров Максим",
     description: "Кизомба, body movement",
-    avatarUrl: "https://ui-avatars.com/api/?name=%D0%A1%D0%B8%D0%B4%D0%BE%D1%80%D0%BE%D0%B2+%D0%9C%D0%B0%D0%BA%D1%81%D0%B8%D0%BC&background=198754&color=fff",
+    avatarUrl: "https://i.pravatar.cc/160?img=52",
     courses: [
       { title: "Кизомба: основы", styleSlug: "kizomba", price: 2590, level: "beginner", lessons: 6 },
       { title: "Кизомба: ведение и follow", styleSlug: "kizomba", price: 3090, level: "advanced", lessons: 8 },
@@ -39,7 +39,7 @@ const TEACHER_DEFS = [
   {
     name: "Кузнецова Мария",
     description: "Сальса, кизомба",
-    avatarUrl: "https://ui-avatars.com/api/?name=%D0%9A%D1%83%D0%B7%D0%BD%D0%B5%D1%86%D0%BE%D0%B2%D0%B0+%D0%9C%D0%B0%D1%80%D0%B8%D1%8F&background=f59f00&color=fff",
+    avatarUrl: "https://i.pravatar.cc/160?img=47",
     courses: [
       { title: "Сальса: женская техника", styleSlug: "salsa", price: 2790, level: "beginner", lessons: 7 },
       { title: "Кизомба: пластика и flow", styleSlug: "kizomba", price: 3190, level: "advanced", lessons: 8 },

@@ -201,6 +201,15 @@
         gap: 8px;
       }
       .catalog-row > * { flex: 1; }
+      .search-toggle {
+        width: 42px;
+        flex: 0 0 42px;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+        font-size: 18px;
+        line-height: 42px;
+      }
       .course-progress {
         margin-top: 10px;
       }
@@ -221,16 +230,30 @@
         color: var(--text-muted);
       }
       .course-author {
-        margin-top: 8px;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 8px;
+      }
+      .course-top-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .course-progress-inline {
+        width: 28%;
+        min-width: 88px;
+      }
+      .course-progress-inline .course-progress-track { margin-top: 2px; }
+      .course-progress-inline .course-progress-label {
+        margin-top: 4px;
+        text-align: right;
       }
       .course-author-avatar,
       .course-author-fallback {
-        width: 24px;
-        height: 24px;
-        flex: 0 0 24px;
+        width: 36px;
+        height: 36px;
+        flex: 0 0 36px;
         border-radius: 50%;
       }
       .course-author-avatar {
@@ -241,10 +264,18 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 10px;
+        font-size: 12px;
         font-weight: 700;
         color: #2d251e;
         background: #ece7df;
+      }
+      .course-author-name {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        line-height: 1.2;
+        max-width: 130px;
       }
       .teacher-card:hover { transform: translateY(-1px); filter: brightness(1.01); }
       .teacher-card:active { transform: translateY(0); }
@@ -516,6 +547,7 @@
       let selectedStyleId = "";
       let selectedTeacherFilterId = "";
       let courseSearchQuery = "";
+      let showCourseSearch = false;
       let studentCatalogMode = "all";
       let currentStyles = [];
       let currentStudentTeachers = [];
@@ -675,6 +707,16 @@
         selectedStyleId = styleId ? String(styleId) : "";
         selectedTeacherFilterId = "";
         courseSearchQuery = "";
+        renderStudentScreen().catch((error) => {
+          studentScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
+        });
+      }
+
+      function toggleCourseSearch() {
+        showCourseSearch = !showCourseSearch;
+        if (!showCourseSearch) {
+          courseSearchQuery = "";
+        }
         renderStudentScreen().catch((error) => {
           studentScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
@@ -887,18 +929,23 @@
           ${renderStudentHeader(heroTitle)}
           <div class="catalog-bar">
             <div class="catalog-row">
-              <input
-                id="courseSearchInput"
-                value="${escapeHtml(courseSearchQuery)}"
-                placeholder="Поиск по курсам и преподавателям"
-              />
-            </div>
-            <div class="catalog-row">
+              <button class="secondary search-toggle" onclick="toggleCourseSearch()">⌕</button>
               <select id="teacherFilter">
                 <option value="">Все преподаватели</option>
                 ${teachers.map((teacher) => `<option value="${teacher.id}" ${String(teacher.id) === String(selectedTeacherFilterId) ? "selected" : ""}>${escapeHtml(teacher.name || "Преподаватель")}</option>`).join("")}
               </select>
             </div>
+            ${
+              showCourseSearch
+                ? `<div class="catalog-row">
+                    <input
+                      id="courseSearchInput"
+                      value="${escapeHtml(courseSearchQuery)}"
+                      placeholder="Поиск по курсам и преподавателям"
+                    />
+                  </div>`
+                : ""
+            }
           </div>
           ${renderStyleFilterChips(styles)}
           <div class="catalog-courses-grid">
@@ -911,19 +958,21 @@
                       const levelLabel = getCourseLevelLabel(course.level);
                       return `
                 <div class="course-card catalog-course-card level-${levelClass}" onclick="openCourse(${course.id})">
-                  <div class="course-author">
-                    ${renderCourseAuthorAvatar(course)}
-                    <small class="muted">${escapeHtml(course.teacher_name || "Преподаватель")}</small>
+                  <div class="course-top-row">
+                    <div class="course-author">
+                      ${renderCourseAuthorAvatar(course)}
+                      <small class="muted course-author-name">${escapeHtml(course.teacher_name || "Преподаватель")}</small>
+                    </div>
+                    <div class="course-progress-inline">
+                      <div class="course-progress-track">
+                        <div class="course-progress-fill" style="width:${Math.max(0, Math.min(100, Number(course.progress_percent || 0)))}%"></div>
+                      </div>
+                      <div class="course-progress-label">${Number(course.progress_percent || 0)}%</div>
+                    </div>
                   </div>
                   <div class="course-head">
                     <div class="course-card-title">${escapeHtml(course.title)}</div>
                     <span class="course-level-badge ${levelClass}">${levelLabel}</span>
-                  </div>
-                  <div class="course-progress">
-                    <div class="course-progress-track">
-                      <div class="course-progress-fill" style="width:${Math.max(0, Math.min(100, Number(course.progress_percent || 0)))}%"></div>
-                    </div>
-                    <div class="course-progress-label">${Number(course.progress_percent || 0)}%</div>
                   </div>
                 </div>
               `;
@@ -936,10 +985,12 @@
         `;
 
         const searchInput = document.getElementById("courseSearchInput");
-        searchInput.addEventListener("change", () => {
-          courseSearchQuery = searchInput.value.trim();
-          renderStudentScreen();
-        });
+        if (searchInput) {
+          searchInput.addEventListener("change", () => {
+            courseSearchQuery = searchInput.value.trim();
+            renderStudentScreen();
+          });
+        }
 
         const teacherFilter = document.getElementById("teacherFilter");
         teacherFilter.addEventListener("change", () => {
@@ -1372,6 +1423,7 @@
       window.purchaseCourse = purchaseCourse;
       window.doLesson = doLesson;
       window.setStyleFilter = setStyleFilter;
+      window.toggleCourseSearch = toggleCourseSearch;
       window.openProfileMenu = openProfileMenu;
       window.openStudentScreen = openStudentScreen;
       window.openMySubscriptions = openMySubscriptions;
