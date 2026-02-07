@@ -1,9 +1,9 @@
 ﻿async function renderStudentScreen() {
-        if (typeof setUserHeaderVisible === "function") setUserHeaderVisible(true);
         studentScreen.classList.add("flat-list");
         selectedTeacherId = null;
         openedStudentCourseId = null;
         openedLessonNumber = null;
+        studentScreen.innerHTML = renderCenteredLoader(S.loadingCourses);
         const [teachers, styles] = await Promise.all([apiFetch("/api/teachers"), apiFetch("/api/styles")]);
         currentStudentTeachers = teachers;
         currentStyles = styles;
@@ -80,6 +80,7 @@
             </div>
           </div>
         `;
+        if (typeof setUserHeaderVisible === "function") setUserHeaderVisible(true);
       }
 
       async function loadCourses(teacherId) {

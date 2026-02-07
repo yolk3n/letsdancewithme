@@ -29,7 +29,7 @@ async function openCourse(courseId) {
         selectedTeacherId = null;
         openedStudentCourseId = courseId;
         openedLessonNumber = null;
-        studentScreen.innerHTML = `<div class="section-subtitle">${S.loadingLessons}</div>`;
+        studentScreen.innerHTML = renderCenteredLoader(S.loadingLessons);
 
         const freshCourse = await apiFetch(`/api/student/course/${courseId}`);
         const cacheIndex = currentStudentCourses.findIndex((item) => Number(item.id) === Number(courseId));

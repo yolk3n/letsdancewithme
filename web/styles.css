@@ -56,6 +56,26 @@
       .hidden { display: none; }
       .muted { color: var(--text-muted); }
       .error { color: var(--danger); }
+      .loading-center {
+        min-height: 42vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      .loading-spinner {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 3px solid rgba(16, 24, 40, 0.14);
+        border-top-color: #1d293d;
+        animation: spin 700ms linear infinite;
+      }
+      .loading-label {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
       button, input, select, textarea {
         width: 100%;
         margin-bottom: 8px;
@@ -1383,6 +1403,9 @@
       @keyframes cardIn {
         from { opacity: 0; transform: translateY(6px); }
         to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
       }
       @media (min-width: 860px) {
         .catalog-courses-grid {
