@@ -50,6 +50,7 @@ async function initDb() {
       id BIGSERIAL PRIMARY KEY,
       name TEXT NOT NULL,
       description TEXT,
+      about_short TEXT,
       avatar_url TEXT,
       user_id BIGINT UNIQUE REFERENCES users(telegram_id) ON DELETE SET NULL,
       UNIQUE (name)
@@ -130,6 +131,7 @@ async function initDb() {
 
   await query("ALTER TABLE teachers ADD COLUMN IF NOT EXISTS user_id BIGINT UNIQUE");
   await query("ALTER TABLE teachers ADD COLUMN IF NOT EXISTS avatar_url TEXT");
+  await query("ALTER TABLE teachers ADD COLUMN IF NOT EXISTS about_short TEXT");
   await query(`
     DO $$
     BEGIN

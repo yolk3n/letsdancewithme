@@ -68,7 +68,7 @@ function asCourseLevel(value, fallback = "beginner") {
 
 async function getOrCreateTeacherProfile(telegramId) {
   const existing = await db.query(
-    "SELECT id, user_id, name, description, avatar_url FROM teachers WHERE user_id = $1",
+    "SELECT id, user_id, name, description, about_short, avatar_url FROM teachers WHERE user_id = $1",
     [telegramId]
   );
   if (existing.rows[0]) {
@@ -77,11 +77,11 @@ async function getOrCreateTeacherProfile(telegramId) {
 
   const created = await db.query(
     `
-      INSERT INTO teachers (user_id, name, description, avatar_url)
-      VALUES ($1, $2, $3, $4)
-      RETURNING id, user_id, name, description, avatar_url
+      INSERT INTO teachers (user_id, name, description, about_short, avatar_url)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING id, user_id, name, description, about_short, avatar_url
     `,
-    [telegramId, `Teacher ${telegramId}`, "New teacher profile", null]
+    [telegramId, `Teacher ${telegramId}`, "New teacher profile", null, null]
   );
 
   return created.rows[0];
@@ -238,6 +238,7 @@ app.get(
           t.id,
           t.name,
           t.description,
+          t.about_short,
           t.avatar_url,
           COALESCE(pc.published_courses_count, 0) AS published_courses_count,
           COALESCE(ts.styles, '[]'::json) AS styles,
@@ -312,6 +313,7 @@ app.get(
         c.is_published,
         t.id AS teacher_id,
         t.name AS teacher_name,
+        t.about_short AS teacher_about_short,
         t.avatar_url AS teacher_avatar_url,
         CASE WHEN cp.telegram_id IS NULL THEN false ELSE true END AS is_purchased,
         COALESCE(lt.total_lessons, 0) AS total_lessons,
@@ -499,7 +501,7 @@ app.put(
   requireRole("teacher", "admin"),
   asyncRoute(async (req, res) => {
     const teacher = await getOrCreateTeacherProfile(req.currentUser.telegram_id);
-    const { name, description, avatarUrl } = req.body;
+    const { name, description, aboutShort, avatarUrl } = req.body;
 
     const result = await db.query(
       `
@@ -507,13 +509,15 @@ app.put(
         SET
           name = COALESCE($1, name),
           description = COALESCE($2, description),
-          avatar_url = COALESCE($3, avatar_url)
-        WHERE id = $4
-        RETURNING id, user_id, name, description, avatar_url
+          about_short = COALESCE($3, about_short),
+          avatar_url = COALESCE($4, avatar_url)
+        WHERE id = $5
+        RETURNING id, user_id, name, description, about_short, avatar_url
       `,
       [
         typeof name === "string" ? name.trim() : null,
         typeof description === "string" ? description : null,
+        typeof aboutShort === "string" ? aboutShort.trim() : null,
         typeof avatarUrl === "string" ? avatarUrl : null,
         teacher.id,
       ]

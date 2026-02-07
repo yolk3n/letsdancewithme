@@ -429,6 +429,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
+        min-width: 0;
       }
       .course-top-row {
         display: grid;
@@ -469,22 +470,30 @@
         color: #2d251e;
         background: #ece7df;
       }
-      .course-author-name {
+      .course-author-text {
         display: flex;
         flex-direction: column;
         justify-content: center;
-        min-height: 44px;
+        min-width: 0;
         max-width: 175px;
+      }
+      .course-author-name {
         font-size: 14px;
-        line-height: 1.15;
+        line-height: 1.2;
         font-weight: 700;
         color: #101828;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
-      .course-author-name.single {
-        justify-content: center;
-      }
-      .course-author-line {
-        display: block;
+      .course-author-about {
+        margin-top: 2px;
+        font-size: 12px;
+        line-height: 1.2;
+        color: #45556c;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .teacher-card:hover { transform: translateY(-1px); filter: brightness(1.01); }
       .teacher-card:active { transform: translateY(0); }
@@ -607,7 +616,7 @@
         cursor: pointer;
         border: 0;
         border-radius: var(--card-radius-xl);
-        min-height: 236px;
+        min-height: 190px;
         padding: 22px 20px 16px;
         width: 100%;
         max-width: 100%;

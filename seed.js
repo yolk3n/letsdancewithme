@@ -10,6 +10,7 @@ const TEACHER_DEFS = [
   {
     name: "Иванов Иван",
     description: "Сальса, бачата",
+    aboutShort: "Dance Academy Pro",
     avatarUrl: "https://i.pravatar.cc/300?img=12",
     courses: [
       { title: "Сальса: базовая техника", styleSlug: "salsa", price: 2490, level: "beginner", lessons: 6 },
@@ -20,6 +21,7 @@ const TEACHER_DEFS = [
   {
     name: "Петрова Анна",
     description: "Бачата, lady style",
+    aboutShort: "Lady Style Coach",
     avatarUrl: "https://i.pravatar.cc/300?img=47",
     courses: [
       { title: "Бачата: с нуля", styleSlug: "bachata", price: 2390, level: "beginner", lessons: 5 },
@@ -30,6 +32,7 @@ const TEACHER_DEFS = [
   {
     name: "Сидоров Максим",
     description: "Кизомба, body movement",
+    aboutShort: "Urban Flow Studio",
     avatarUrl: "https://i.pravatar.cc/300?img=15",
     courses: [
       { title: "Кизомба: основы", styleSlug: "kizomba", price: 2590, level: "beginner", lessons: 6 },
@@ -39,6 +42,7 @@ const TEACHER_DEFS = [
   {
     name: "Кузнецова Мария",
     description: "Сальса, кизомба",
+    aboutShort: "Senior Dance Instructor",
     avatarUrl: "https://i.pravatar.cc/300?img=32",
     courses: [
       { title: "Сальса: женская техника", styleSlug: "salsa", price: 2790, level: "beginner", lessons: 7 },
@@ -75,14 +79,14 @@ async function insertStyle(slug, name) {
   return result.rows[0].id;
 }
 
-async function insertTeacher(name, description, avatarUrl) {
+async function insertTeacher(name, description, aboutShort, avatarUrl) {
   const result = await db.query(
     `
-      INSERT INTO teachers (name, description, avatar_url)
-      VALUES ($1, $2, $3)
+      INSERT INTO teachers (name, description, about_short, avatar_url)
+      VALUES ($1, $2, $3, $4)
       RETURNING id
     `,
-    [name, description, avatarUrl]
+    [name, description, aboutShort, avatarUrl]
   );
   return result.rows[0].id;
 }
@@ -149,6 +153,7 @@ async function seed() {
     const teacherId = await insertTeacher(
       teacherDef.name,
       teacherDef.description,
+      teacherDef.aboutShort || null,
       teacherDef.avatarUrl
     );
 

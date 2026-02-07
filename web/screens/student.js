@@ -34,7 +34,8 @@
                           const levelClass = getCourseLevelClass(course.level);
                           const directionClass = getCourseDirectionClass(course);
                           const levelLabel = getCourseLevelLabel(course.level);
-                          const author = formatTeacherNameForCard(course.teacher_name);
+                          const teacherName = String(course.teacher_name || "Преподаватель");
+                          const teacherAbout = String(course.teacher_about_short || "").trim();
                           const progressPercent = Number(course.progress_percent || 0);
                           return `
                     <div class="course-card catalog-course-card dir-${directionClass}" onclick="openCourse(${course.id})">
@@ -47,9 +48,13 @@
                       <div class="course-top-row">
                         <div class="course-author">
                           ${renderCourseAuthorAvatar(course)}
-                          <div class="course-author-name ${author.isSingle ? "single" : ""}">
-                            <span class="course-author-line">${escapeHtml(author.line1)}</span>
-                            ${author.line2 ? `<span class="course-author-line">${escapeHtml(author.line2)}</span>` : ""}
+                          <div class="course-author-text">
+                            <div class="course-author-name" title="${escapeHtml(teacherName)}">${escapeHtml(teacherName)}</div>
+                            ${
+                              teacherAbout
+                                ? `<div class="course-author-about" title="${escapeHtml(teacherAbout)}">${escapeHtml(teacherAbout)}</div>`
+                                : ""
+                            }
                           </div>
                         </div>
                         ${

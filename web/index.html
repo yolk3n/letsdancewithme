@@ -139,25 +139,6 @@
         return `<span class="course-author-fallback">${escapeHtml(getInitials(course.teacher_name || "T"))}</span>`;
       }
 
-      function formatTeacherNameForCard(fullName) {
-        const parts = String(fullName || "")
-          .trim()
-          .split(/\s+/)
-          .filter(Boolean);
-        if (parts.length >= 2) {
-          return {
-            line1: parts[1],
-            line2: parts[0],
-            isSingle: false,
-          };
-        }
-        return {
-          line1: parts[0] || "Преподаватель",
-          line2: "",
-          isSingle: true,
-        };
-      }
-
       function renderTeacherFilterAvatar(teacher) {
         if (teacher?.avatar_url) {
           return `<img class="teacher-filter-avatar" src="${escapeHtml(teacher.avatar_url)}" alt="${escapeHtml(
