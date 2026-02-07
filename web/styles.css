@@ -348,6 +348,10 @@
         line-height: 1.2;
         font-weight: 700;
       }
+      .profile-menu-text-accent {
+        color: #111b34;
+        letter-spacing: 0.01em;
+      }
       .profile-menu-text:hover {
         transform: none;
         filter: none;

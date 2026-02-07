@@ -136,6 +136,11 @@ function renderProfileOverlay(stats) {
         </div>
 
         <div class="profile-overlay-menu">
+          ${
+            currentUser?.role === "teacher" || currentUser?.role === "admin"
+              ? `<button class="profile-menu-text profile-menu-text-accent" onclick="openTeacherCabinetStub()">Кабинет преподавателя</button>`
+              : ""
+          }
           <button class="profile-menu-text" onclick="openPaymentsAndSubscription()">Оплаты и подписка</button>
           <button class="profile-menu-text" onclick="openSupportFromProfile()">Поддержка</button>
         </div>
@@ -186,6 +191,10 @@ function openSupportFromProfile() {
   openSupport();
 }
 
+function openTeacherCabinetStub() {
+  tg.showAlert("Раздел в разработке");
+}
+
 async function completeOnboarding() {
   await apiFetch("/api/onboarding/complete", { method: "POST" });
   await loadCurrentUser();
@@ -226,3 +235,4 @@ window.openProfileOverlay = openProfileOverlay;
 window.closeProfileOverlay = closeProfileOverlay;
 window.openPaymentsAndSubscription = openPaymentsAndSubscription;
 window.openSupportFromProfile = openSupportFromProfile;
+window.openTeacherCabinetStub = openTeacherCabinetStub;
