@@ -761,12 +761,12 @@
       .course-hero-icon-btn:hover {
         filter: brightness(1.02);
       }
-      .course-hero-icon-btn svg {
+      .course-hero-icon {
         width: 18px;
         height: 18px;
         display: block;
         margin: 0 auto;
-        fill: currentColor;
+        opacity: 0.9;
       }
       .course-hero-top {
         display: flex;

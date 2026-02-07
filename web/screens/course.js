@@ -128,14 +128,10 @@ async function openCourse(courseId) {
             <section class="course-hero dir-${directionClass}">
               <div class="course-hero-top">
                 <button class="secondary course-hero-icon-btn course-hero-back" onclick="openStudentScreen()" aria-label="Другие курсы" title="Другие курсы">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M14.7 5.3a1 1 0 0 1 0 1.4L10.41 11H19a1 1 0 1 1 0 2h-8.59l4.3 4.3a1 1 0 0 1-1.42 1.4l-6-6a1 1 0 0 1 0-1.4l6-6a1 1 0 0 1 1.41 0z"/>
-                  </svg>
+                  <img src="/assets/back.svg" alt="" class="course-hero-icon" aria-hidden="true" />
                 </button>
                 <button class="secondary course-hero-icon-btn course-hero-share" onclick="shareCourse(${courseId})" aria-label="Поделиться курсом" title="Поделиться">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M18 8a3 3 0 1 0-2.82-4H15a3 3 0 0 0 .18 1.02l-6.17 3.24a3 3 0 0 0-4.01 3.8A3 3 0 0 0 5 13a3 3 0 0 0 .17.98l6.18 3.24A3 3 0 1 0 12 15a3 3 0 0 0-.17.98L5.65 12.74A3 3 0 0 0 6 12c0-.26-.03-.51-.1-.74l6.18-3.24A3 3 0 0 0 15 9a3 3 0 0 0 3-1z"/>
-                  </svg>
+                  <img src="/assets/share.svg" alt="" class="course-hero-icon" aria-hidden="true" />
                 </button>
               </div>
               <div class="course-hero-meta">
