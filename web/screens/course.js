@@ -15,19 +15,19 @@ function shareCourse(courseId) {
     alert("Шаринг Mini App не настроен: добавь TG_BOT_USERNAME в env web-сервиса.");
     return;
   }
-  const shareText = `${title} — ${teacher}. ${price}`;
-  const inlineQuery = `${shareText} ${shareLink}`;
+  const shareDescription = `${title} — ${teacher}. ${price}`;
+  const sharePayload = `${shareLink}\n${shareDescription}`;
 
   if (tg && typeof tg.switchInlineQuery === "function") {
     try {
-      tg.switchInlineQuery(inlineQuery, ["users", "groups", "channels"]);
+      tg.switchInlineQuery(sharePayload, ["users", "groups", "channels"]);
       return;
     } catch (error) {
       // Fallback below.
     }
   }
 
-  const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(shareText)}`;
+  const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(sharePayload)}`;
   if (tg && typeof tg.openTelegramLink === "function") {
     tg.openTelegramLink(shareUrl);
     return;
