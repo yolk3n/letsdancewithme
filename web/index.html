@@ -532,11 +532,11 @@
       }
 
       function openProfileMenu() {
-        selectedAppScreen = "profile";
-        setUserHeaderVisible(true);
-        routeByRole().catch((error) => {
-          profileScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
-        });
+        if (typeof openProfileOverlay === "function") {
+          openProfileOverlay().catch((error) => {
+            tg.showAlert(escapeHtml(error.message || S.initError));
+          });
+        }
       }
 
       function openStudentScreen() {

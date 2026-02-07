@@ -180,6 +180,160 @@
       .profile-menu button {
         margin: 0;
       }
+      .profile-overlay-root {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(15, 23, 42, 0.28);
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+      }
+      .profile-overlay-panel {
+        width: min(
+          calc(var(--app-max-width) - (var(--page-gutter) * 2)),
+          calc(100vw - (var(--page-gutter) * 2))
+        );
+        margin-top: 0;
+        border-radius: 0 0 28px 28px;
+        background: #ffffff;
+        padding: 14px 16px 16px;
+        box-shadow: 0 8px 28px rgba(16, 24, 40, 0.2);
+        animation: overlaySheetTopIn 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .profile-overlay-top {
+        display: flex;
+        justify-content: flex-start;
+      }
+      .profile-overlay-back {
+        color: #374151;
+        background: #f9fafb;
+        border-color: #e5e7eb;
+        box-shadow: none;
+      }
+      .profile-overlay-avatar-wrap {
+        margin-top: 10px;
+        display: flex;
+        justify-content: center;
+      }
+      .profile-overlay-avatar,
+      .profile-overlay-avatar-fallback {
+        width: 112px;
+        height: 112px;
+        border-radius: 50%;
+      }
+      .profile-overlay-avatar {
+        object-fit: cover;
+        border: 4px solid #ffffff;
+        box-shadow: 0 4px 18px rgba(16, 24, 40, 0.14);
+      }
+      .profile-overlay-avatar-fallback {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 700;
+        background: linear-gradient(145deg, #f3f4f6, #e5e7eb);
+        color: #111827;
+      }
+      .profile-overlay-name {
+        margin: 14px 0 0;
+        text-align: center;
+        font-size: 38px;
+        line-height: 0.95;
+        letter-spacing: -0.01em;
+        font-family: var(--font-display);
+        color: #111827;
+      }
+      .profile-overlay-rank {
+        margin-top: 6px;
+        text-align: center;
+        font-size: 15px;
+        line-height: 1.25;
+        font-weight: 700;
+        color: #374151;
+      }
+      .profile-overlay-tagline {
+        margin-top: 4px;
+        text-align: center;
+        font-size: 14px;
+        color: #6b7280;
+      }
+      .profile-overlay-stats {
+        margin-top: 16px;
+        border-top: 1px solid #e5e7eb;
+        border-bottom: 1px solid #e5e7eb;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+      .profile-stat-item {
+        min-height: 84px;
+        padding: 8px 6px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+      }
+      .profile-stat-item + .profile-stat-item {
+        border-left: 1px solid #e5e7eb;
+      }
+      .profile-stat-value {
+        font-size: 34px;
+        line-height: 1;
+        font-family: var(--font-display);
+        color: #111827;
+      }
+      .profile-stat-label {
+        font-size: 11px;
+        line-height: 1;
+        letter-spacing: 0.08em;
+        font-weight: 800;
+        color: #9ca3af;
+      }
+      .profile-stat-item.with-ring {
+        gap: 2px;
+      }
+      .profile-stat-ring {
+        width: 56px;
+        height: 56px;
+        position: relative;
+      }
+      .profile-stat-ring svg {
+        width: 56px;
+        height: 56px;
+        transform: rotate(-90deg);
+      }
+      .profile-stat-ring-bg {
+        fill: none;
+        stroke: #e5e7eb;
+        stroke-width: 4;
+      }
+      .profile-stat-ring-val {
+        fill: none;
+        stroke: #111b34;
+        stroke-width: 4;
+        stroke-linecap: round;
+      }
+      .profile-stat-ring span {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        line-height: 1;
+        font-weight: 700;
+        color: #111827;
+      }
+      .profile-overlay-menu {
+        margin-top: 14px;
+        display: grid;
+        gap: 8px;
+      }
+      .profile-overlay-menu button {
+        margin: 0;
+      }
       .style-chips {
         display: flex;
         flex-wrap: nowrap;
@@ -1591,6 +1745,10 @@
       }
       @keyframes overlaySheetIn {
         from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes overlaySheetTopIn {
+        from { opacity: 0; transform: translateY(-20px); }
         to { opacity: 1; transform: translateY(0); }
       }
       @keyframes spin {
