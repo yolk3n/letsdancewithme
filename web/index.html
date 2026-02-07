@@ -6,49 +6,47 @@
     <title>Let's Dance With Me</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;700&display=swap" rel="stylesheet" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="/strings.ru.js"></script>
     <style>
       :root {
-        --bg-main: #fffaf8;
-        --bg-soft: #fffdfb;
-        --card-bg: rgba(255, 255, 255, 0.9);
-        --card-border: rgba(20, 24, 40, 0.1);
-        --text-main: #07122f;
-        --text-muted: #7a859a;
-        --accent-pink: #f24f88;
-        --accent-cyan: #00a8c7;
-        --accent-yellow: #f1b341;
+        --bg-main: #ffffff;
+        --bg-soft: #f8fafc;
+        --card-bg: #ffffff;
+        --card-border: rgba(16, 24, 40, 0.08);
+        --text-main: #101828;
+        --text-muted: #6a7282;
+        --accent-pink: #101828;
+        --accent-cyan: #101828;
+        --accent-yellow: #101828;
         --danger: #c93e57;
-        --radius-lg: 18px;
+        --radius-lg: 16px;
         --radius-md: 12px;
-        --font-body: "Nunito Sans", sans-serif;
-        --font-display: "Nunito Sans", sans-serif;
+        --font-body: "Arimo", sans-serif;
+        --font-display: "Arimo", sans-serif;
       }
       * { box-sizing: border-box; }
       body {
         margin: 0;
         min-height: 100vh;
-        padding: 16px;
+        padding: 0;
         color: var(--text-main);
         font-family: var(--font-body);
-        background: linear-gradient(180deg, #fffdfa 0%, var(--bg-main) 100%);
+        background: var(--bg-main);
       }
       .app-shell {
-        max-width: 760px;
+        max-width: 399px;
         margin: 0 auto;
+        padding: 0 0 24px;
       }
       .card {
-        margin-bottom: 14px;
+        margin-bottom: 12px;
         padding: 16px;
         border: 1px solid var(--card-border);
         border-radius: var(--radius-lg);
         background: var(--card-bg);
-        box-shadow: 0 3px 10px rgba(53, 35, 22, 0.08);
+        box-shadow: none;
         animation: cardIn 170ms ease;
       }
       .card > b:first-child {
@@ -120,23 +118,25 @@
         cursor: pointer;
       }
       .profile-greeting {
-        font-weight: 900;
-        font-size: 24px;
-        line-height: 1.15;
-        letter-spacing: -0.02em;
+        font-weight: 700;
+        font-size: 18px;
+        line-height: 28px;
+        letter-spacing: 0;
       }
       #user {
-        background: transparent;
+        background: rgba(255, 255, 255, 0.8);
         border: 0;
+        border-bottom: 1px solid rgba(249, 250, 251, 0.5);
         box-shadow: none;
-        padding: 4px 0 14px;
-        margin-bottom: 6px;
+        padding: 36px 24px 16px;
+        margin-bottom: 0;
+        border-radius: 0;
       }
       .profile-avatar,
       .profile-avatar-fallback {
-        width: 56px;
-        height: 56px;
-        flex: 0 0 56px;
+        width: 40px;
+        height: 40px;
+        flex: 0 0 40px;
         border-radius: 50%;
       }
       .profile-avatar {
@@ -147,8 +147,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 13px;
-        font-weight: 800;
+        font-size: 9px;
+        font-weight: 700;
         color: #2a2118;
         background: linear-gradient(145deg, #ffd7e8, #cceef7);
         border: 1px solid rgba(54, 34, 20, 0.17);
@@ -164,27 +164,29 @@
       .style-chips {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 14px;
+        gap: 8px;
+        margin: 0 0 12px;
       }
       .style-chip {
         width: auto;
         margin: 0;
-        padding: 12px 20px;
+        min-height: 38px;
+        padding: 8px 16px;
         border-radius: 999px;
-        border: 1px solid rgba(255, 111, 103, 0.12);
-        background: #fff4f2;
-        color: #8e5d59;
+        border: 1.15738px solid #e2e8f0;
+        background: #ffffff;
+        color: #45556c;
         font-size: 14px;
-        line-height: 1;
+        line-height: 20px;
         font-family: var(--font-display);
-        font-weight: 800;
+        font-weight: 700;
         box-shadow: none;
       }
       .style-chip.active {
         color: #fff;
-        border-color: #ff6f67;
-        background: #ff6f67;
+        border-color: #1d293d;
+        background: #1d293d;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
       }
       .teacher-card {
         border: 1px solid rgba(38, 30, 20, 0.22);
@@ -197,8 +199,8 @@
       }
       .catalog-bar {
         display: grid;
-        gap: 8px;
-        margin-bottom: 16px;
+        gap: 11.99px;
+        margin-bottom: 24px;
       }
       .catalog-row {
         display: flex;
@@ -209,35 +211,37 @@
         display: flex;
         align-items: center;
         gap: 8px;
+        padding: 0;
       }
       .teacher-filter-btn {
         width: auto;
         margin: 0;
-        padding: 12px 20px;
+        min-height: 38px;
+        padding: 8px 16px;
         border-radius: 999px;
-        border: 1px solid rgba(255, 111, 103, 0.12);
-        background: #fff4f2;
-        color: #8e5d59;
+        border: 1.15738px solid #e2e8f0;
+        background: #ffffff;
+        color: #45556c;
         box-shadow: none;
         display: inline-flex;
         align-items: center;
         gap: 8px;
         font-size: 14px;
-        line-height: 1;
+        line-height: 20px;
         font-family: var(--font-display);
-        font-weight: 800;
+        font-weight: 400;
       }
       .teacher-filter-btn.active {
-        color: #fff;
-        border-color: #ff6f67;
-        background: #ff6f67;
+        color: #45556c;
+        border-color: #e2e8f0;
+        background: #ffffff;
       }
       .teacher-filter-avatar,
       .teacher-filter-fallback {
-        width: 28px;
-        height: 28px;
+        width: 20px;
+        height: 20px;
         border-radius: 50%;
-        flex: 0 0 28px;
+        flex: 0 0 20px;
       }
       .teacher-filter-avatar { object-fit: cover; }
       .teacher-filter-fallback {
@@ -259,6 +263,10 @@
         border: 1px solid rgba(45, 31, 20, 0.2);
         font-size: 12px;
         line-height: 1;
+      }
+      .catalog-surface {
+        background: #f8fafc;
+        padding: 8px 24px 0;
       }
       .teacher-picker {
         border: 1px solid rgba(38, 30, 20, 0.1);
@@ -367,39 +375,42 @@
         margin-top: 10px;
       }
       .course-progress-track {
-        height: 4px;
+        height: 7.99px;
         border-radius: 999px;
-        background: rgba(38, 30, 20, 0.12);
+        background: rgba(30, 41, 57, 0.2);
         overflow: hidden;
       }
       .course-progress-fill {
         height: 100%;
         border-radius: 999px;
-        background: linear-gradient(90deg, #3e9db4, #5bb58a);
+        background: #101828;
       }
       .course-progress-label {
-        margin-top: 6px;
-        font-size: 12px;
-        color: var(--text-muted);
+        margin-top: 4px;
+        font-size: 10px;
+        line-height: 15px;
+        font-weight: 700;
+        opacity: 0.6;
+        color: #6a7282;
       }
       .course-author {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 8px;
       }
       .course-top-row {
         display: grid;
         grid-template-columns: 1fr auto;
-        align-items: center;
+        align-items: end;
         justify-content: space-between;
-        gap: 12px;
-        margin-top: 18px;
-        padding-top: 14px;
-        border-top: 1px solid rgba(20, 24, 40, 0.1);
+        gap: 10px;
+        margin-top: 45px;
+        padding-top: 0;
+        border-top: 0;
       }
       .course-progress-inline {
-        width: 28%;
-        min-width: 92px;
+        width: 90.98px;
+        min-width: 90.98px;
       }
       .course-progress-inline .course-progress-track { margin-top: 2px; }
       .course-progress-inline .course-progress-label {
@@ -408,9 +419,9 @@
       }
       .course-author-avatar,
       .course-author-fallback {
-        width: 54px;
-        height: 54px;
-        flex: 0 0 54px;
+        width: 44px;
+        height: 44px;
+        flex: 0 0 44px;
         border-radius: 50%;
       }
       .course-author-avatar {
@@ -430,12 +441,12 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        min-height: 54px;
-        max-width: 168px;
-        font-size: 15px;
-        line-height: 1.02;
-        font-weight: 800;
-        color: #1f2b4b;
+        min-height: 44px;
+        max-width: 160px;
+        font-size: 14px;
+        line-height: 18px;
+        font-weight: 700;
+        color: #101828;
       }
       .course-author-name.single {
         justify-content: center;
@@ -446,7 +457,7 @@
       .teacher-card:hover { transform: translateY(-1px); filter: brightness(1.01); }
       .teacher-card:active { transform: translateY(0); }
       #studentScreen.flat-list {
-        background: transparent;
+        background: #fff;
         border: 0;
         box-shadow: none;
         padding: 0;
@@ -554,23 +565,25 @@
       }
       .catalog-courses-grid {
         display: grid;
-        gap: 14px;
+        gap: 24px;
       }
       .catalog-course-card {
         cursor: pointer;
-        border-color: rgba(18, 23, 43, 0.08);
-        background: #fff;
-        box-shadow: 0 4px 12px rgba(13, 20, 44, 0.06);
-        transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+        border: 0;
+        border-radius: 32px;
+        min-height: 190px;
+        padding: 24px 24px 0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+        transition: transform 120ms ease, filter 120ms ease;
       }
       .catalog-course-card.level-beginner {
-        background: #fff;
+        background: #c6d2ff;
       }
       .catalog-course-card.level-advanced {
-        background: #fff;
+        background: #ffd6a8;
       }
       .catalog-course-card.level-professional {
-        background: #fff;
+        background: #e9d4ff;
       }
       .catalog-course-card:hover { transform: translateY(-1px); }
       .catalog-course-card:active { transform: translateY(0); }
@@ -584,42 +597,41 @@
       }
       .course-card-title {
         flex: 1 1 auto;
-        font-size: 17px;
-        line-height: 1.18;
+        font-size: 24px;
+        line-height: 26px;
         font-weight: 800;
-        letter-spacing: -0.01em;
+        letter-spacing: -0.6px;
       }
       .catalog-course-card.level-beginner .course-card-title {
-        color: #091632;
+        color: #1e1a4d;
       }
       .catalog-course-card.level-advanced .course-card-title {
-        color: #091632;
+        color: #441306;
       }
       .catalog-course-card.level-professional .course-card-title {
-        color: #091632;
+        color: #3c0366;
       }
       .course-level-badge {
         border-radius: 999px;
-        padding: 4px 10px;
-        font-size: 14px;
-        line-height: 1.2;
+        min-height: 28.46px;
+        padding: 5px 12px;
+        font-size: 11px;
+        line-height: 16px;
         font-weight: 800;
-        border: 1px solid rgba(30, 39, 77, 0.12);
-        background: #f3f0f9;
-        color: #7a6a98;
+        border: 0;
+        background: rgba(255, 255, 255, 0.6);
+        color: #45556c;
         white-space: nowrap;
+        text-transform: uppercase;
       }
       .course-level-badge.beginner {
-        border-color: rgba(61, 143, 171, 0.35);
-        background: rgba(220, 244, 255, 0.86);
+        color: #1e1a4d;
       }
       .course-level-badge.advanced {
-        border-color: rgba(203, 126, 61, 0.34);
-        background: rgba(255, 236, 214, 0.9);
+        color: #441306;
       }
       .course-level-badge.professional {
-        border-color: rgba(117, 87, 178, 0.35);
-        background: rgba(235, 227, 255, 0.88);
+        color: #3c0366;
       }
       .course-card-meta {
         margin-top: 8px;
@@ -1000,7 +1012,7 @@
         }
       }
       @media (max-width: 700px) {
-        body { padding: 12px; }
+        body { padding: 0; }
         .card { padding: 14px; border-radius: 14px; }
         button, input, select, textarea { font-size: 16px; }
         .lesson-hero-title { font-size: 36px; }
@@ -1553,58 +1565,60 @@
         studentScreen.innerHTML = `
           <div class="catalog-header-space"></div>
           ${renderStyleFilterChips(styles)}
-          <div class="catalog-bar">
-            <div class="catalog-row">
-              <div class="teacher-filter-wrap">
-                ${renderTeacherFilterControl(teachers)}
+          <div class="catalog-surface">
+            <div class="catalog-bar">
+              <div class="catalog-row">
+                <div class="teacher-filter-wrap">
+                  ${renderTeacherFilterControl(teachers)}
+                </div>
               </div>
+              ${renderTeacherPicker(teachers)}
             </div>
-            ${renderTeacherPicker(teachers)}
-          </div>
-          <div class="catalog-courses-grid">
-          ${
-            courses.length
-              ? courses
-                  .map(
-                    (course) => {
-                      const levelClass = getCourseLevelClass(course.level);
-                      const levelLabel = getCourseLevelLabel(course.level);
-                      const author = formatTeacherNameForCard(course.teacher_name);
-                      const progressPercent = Number(course.progress_percent || 0);
-                      return `
-                <div class="course-card catalog-course-card level-${levelClass}" onclick="openCourse(${course.id})">
-                  <div class="course-head">
-                    <div class="course-card-title">${escapeHtml(course.title)}</div>
-                    <div class="course-head-side">
-                      <span class="course-level-badge ${levelClass}">${levelLabel}</span>
-                    </div>
-                  </div>
-                  <div class="course-top-row">
-                    <div class="course-author">
-                      ${renderCourseAuthorAvatar(course)}
-                      <div class="course-author-name ${author.isSingle ? "single" : ""}">
-                        <span class="course-author-line">${escapeHtml(author.line1)}</span>
-                        ${author.line2 ? `<span class="course-author-line">${escapeHtml(author.line2)}</span>` : ""}
+            <div class="catalog-courses-grid">
+            ${
+              courses.length
+                ? courses
+                    .map(
+                      (course) => {
+                        const levelClass = getCourseLevelClass(course.level);
+                        const levelLabel = getCourseLevelLabel(course.level);
+                        const author = formatTeacherNameForCard(course.teacher_name);
+                        const progressPercent = Number(course.progress_percent || 0);
+                        return `
+                  <div class="course-card catalog-course-card level-${levelClass}" onclick="openCourse(${course.id})">
+                    <div class="course-head">
+                      <div class="course-card-title">${escapeHtml(course.title)}</div>
+                      <div class="course-head-side">
+                        <span class="course-level-badge ${levelClass}">${levelLabel}</span>
                       </div>
                     </div>
-                    ${
-                      progressPercent > 0
-                        ? `<div class="course-progress-inline">
-                            <div class="course-progress-track">
-                              <div class="course-progress-fill" style="width:${Math.max(0, Math.min(100, progressPercent))}%"></div>
-                            </div>
-                            <div class="course-progress-label">${progressPercent}%</div>
-                          </div>`
-                        : ""
-                    }
+                    <div class="course-top-row">
+                      <div class="course-author">
+                        ${renderCourseAuthorAvatar(course)}
+                        <div class="course-author-name ${author.isSingle ? "single" : ""}">
+                          <span class="course-author-line">${escapeHtml(author.line1)}</span>
+                          ${author.line2 ? `<span class="course-author-line">${escapeHtml(author.line2)}</span>` : ""}
+                        </div>
+                      </div>
+                      ${
+                        progressPercent > 0
+                          ? `<div class="course-progress-inline">
+                              <div class="course-progress-track">
+                                <div class="course-progress-fill" style="width:${Math.max(0, Math.min(100, progressPercent))}%"></div>
+                              </div>
+                              <div class="course-progress-label">${progressPercent}%</div>
+                            </div>`
+                          : ""
+                      }
+                    </div>
                   </div>
-                </div>
-              `;
-                    }
-                  )
-                  .join("")
-              : `<small class="muted">Курсы не найдены.</small>`
-          }
+                `;
+                      }
+                    )
+                    .join("")
+                : `<small class="muted">Курсы не найдены.</small>`
+            }
+            </div>
           </div>
         `;
       }
