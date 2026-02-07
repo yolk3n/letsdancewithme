@@ -42,7 +42,6 @@ function openCoursePurchaseOverlay(courseId) {
         <div class="teacher-picker course-buy-overlay" onclick="event.stopPropagation()">
           <div class="teacher-picker-head">
             <div class="course-buy-title">Курс требует подписку</div>
-            <button class="secondary teacher-picker-close" onclick="closeCoursePurchaseOverlay()">×</button>
           </div>
           <div class="course-buy-text">Следующий урок платный. Чтобы продолжить, купи курс.</div>
           <button class="course-buy-btn" onclick="purchaseCourseFromOverlay(${courseId})">${S.buyCourse} ${coursePrice}</button>
