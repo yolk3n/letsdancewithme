@@ -1425,16 +1425,22 @@
         color: #111827;
       }
       .lesson-page.dir-salsa .lesson-kicker-badge,
+      .lesson-page.dir-salsa .lesson-tip-card,
+      .lesson-page.dir-salsa .lesson-audio-card,
       .lesson-page.dir-salsa .lesson-audio-action {
         background: #c7d2ff;
         color: #1e1a4d;
       }
       .lesson-page.dir-bachata .lesson-kicker-badge,
+      .lesson-page.dir-bachata .lesson-tip-card,
+      .lesson-page.dir-bachata .lesson-audio-card,
       .lesson-page.dir-bachata .lesson-audio-action {
         background: #f8d5ac;
         color: #441306;
       }
       .lesson-page.dir-kizomba .lesson-kicker-badge,
+      .lesson-page.dir-kizomba .lesson-tip-card,
+      .lesson-page.dir-kizomba .lesson-audio-card,
       .lesson-page.dir-kizomba .lesson-audio-action {
         background: #dec5f6;
         color: #3c0366;
@@ -1449,53 +1455,61 @@
       }
       .lesson-tip-card {
         margin-top: 20px;
-        border: 1px solid #e5e7eb;
-        border-radius: 16px;
-        background: #f6f7f8;
-        padding: 13px;
+        border: 0;
+        border-radius: 14px;
+        background: #c7d2ff;
+        padding: 13px 14px 11px;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08), 0 4px 12px rgba(16, 24, 40, 0.06);
       }
       .lesson-tip-main {
         min-width: 0;
       }
       .lesson-tip-title {
-        font-size: 16px;
-        line-height: 1.2;
+        font-size: 17px;
+        line-height: 1.25;
         font-weight: 700;
-        color: #111827;
+        color: #1f2937;
       }
       .lesson-tip-text {
         margin-top: 4px;
         font-size: 14px;
         line-height: 1.45;
-        color: #4b5563;
+        color: #334155;
       }
       .lesson-audio-card {
         margin-top: 12px;
-        border: 1px solid #e5e7eb;
+        border: 0;
         border-radius: 14px;
-        background: #f9fafb;
-        padding: 10px;
+        background: #c7d2ff;
+        padding: 13px 14px 11px;
         display: flex;
         align-items: center;
         gap: 10px;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08), 0 4px 12px rgba(16, 24, 40, 0.06);
       }
       .lesson-audio-main {
         min-width: 0;
         flex: 1;
       }
       .lesson-audio-name {
-        font-size: 14px;
+        font-size: 16px;
         line-height: 1.25;
-        color: #0f172a;
+        color: #1f2937;
         font-weight: 700;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
       .lesson-audio-meta {
-        margin-top: 2px;
-        font-size: 12px;
-        color: #6b7280;
+        margin-top: 4px;
+        width: fit-content;
+        border-radius: 999px;
+        padding: 2px 8px;
+        font-size: 11px;
+        line-height: 1.3;
+        font-weight: 700;
+        color: #45556c;
+        background: rgba(255, 255, 255, 0.6);
       }
       .lesson-audio-action {
         width: 40px;
@@ -1506,8 +1520,8 @@
         border-radius: 50%;
         text-align: center;
         border: 0;
-        background: #e5e7eb;
-        color: #111827;
+        background: rgba(255, 255, 255, 0.62);
+        color: #45556c;
         box-shadow: none;
         display: inline-flex;
         align-items: center;
