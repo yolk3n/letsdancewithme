@@ -9,7 +9,7 @@ async function main() {
   const telegramId = Number(telegramIdRaw);
 
   if (!Number.isInteger(telegramId) || telegramId <= 0) {
-    console.error("Usage: npm run make-admin -- <telegram_id> [student|teacher|admin]");
+    console.error("Usage: npm run set-role -- <telegram_id> [student|teacher|admin]");
     process.exit(1);
   }
 

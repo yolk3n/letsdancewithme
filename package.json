@@ -7,8 +7,8 @@
     "start": "node server.js",
     "bot": "node index.js",
     "seed": "node seed.js",
-    "make-admin": "node make-admin.js",
-    "set-role": "node make-admin.js",
+    "set-role": "node set-role.js",
+    "role": "node set-role.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
