@@ -693,11 +693,12 @@
         flex: 0 0 auto;
       }
       .course-view {
-        background: #f5f6f8;
+        background: #ffffff;
         min-height: calc(100vh - 10px);
+        width: 100%;
       }
       .course-hero {
-        padding: 18px 22px 28px;
+        padding: 16px 20px 24px;
         border-radius: 0 0 42px 42px;
         color: #101828;
       }
@@ -711,95 +712,137 @@
         background: #dec5f6;
       }
       .course-hero-back {
-        width: 40px;
-        min-width: 40px;
-        height: 40px;
-        margin: 0 0 24px;
+        width: 50px;
+        min-width: 50px;
+        height: 50px;
+        margin: 0 0 14px;
         border: 0;
         border-radius: 50%;
         box-shadow: none;
         text-align: center;
-        background: rgba(245, 247, 255, 0.9);
+        font-size: 26px;
+        font-weight: 700;
+        color: rgba(16, 24, 40, 0.58);
+        background: rgba(255, 255, 255, 0.4);
       }
       .course-hero-meta {
         display: flex;
-        align-items: flex-start;
+        align-items: stretch;
         justify-content: space-between;
-        gap: 10px;
+        gap: 12px;
       }
-      .course-hero-instructor {
+      .course-hero-meta-card {
         display: flex;
         align-items: center;
         gap: 10px;
+        min-height: 64px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.48);
+        border: 1px solid rgba(255, 255, 255, 0.4);
         min-width: 0;
       }
-      .course-hero-instructor .course-author-avatar,
-      .course-hero-instructor .course-author-fallback {
-        width: 46px;
-        height: 46px;
-        flex: 0 0 46px;
+      .course-hero-meta-card-price {
+        min-width: 120px;
+        justify-content: flex-end;
       }
-      .course-hero-instructor-text {
+      .course-hero-meta-card .course-author-avatar,
+      .course-hero-meta-card .course-author-fallback {
+        width: 44px;
+        height: 44px;
+        flex: 0 0 44px;
+      }
+      .course-hero-meta-copy {
         display: flex;
         flex-direction: column;
         min-width: 0;
       }
-      .course-hero-price {
-        display: flex;
-        flex-direction: column;
+      .course-hero-meta-copy.right {
         align-items: flex-end;
-        white-space: nowrap;
       }
-      .course-hero-label {
-        font-size: 12px;
-        line-height: 1.2;
-        font-weight: 700;
-        letter-spacing: 0.04em;
-        color: rgba(16, 24, 40, 0.55);
-        text-transform: uppercase;
-      }
-      .course-hero-value {
-        font-size: 14px;
-        line-height: 1.25;
+      .course-hero-meta-value {
+        font-size: 18px;
+        line-height: 1.1;
         font-weight: 700;
         color: #101828;
+        white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
+      .course-hero-meta-label {
+        margin-top: 2px;
+        font-size: 12px;
+        line-height: 1.2;
+        font-weight: 700;
+        color: rgba(16, 24, 40, 0.6);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
       .course-hero-title {
-        margin: 20px 0 16px;
-        font-size: 52px;
-        line-height: 0.92;
-        letter-spacing: -0.02em;
+        margin: 14px 0 14px;
+        font-size: clamp(34px, 8vw, 44px);
+        line-height: 0.98;
+        letter-spacing: -0.01em;
         font-family: var(--font-display);
         font-weight: 700;
         color: #101828;
+        max-width: 100%;
+        overflow-wrap: anywhere;
       }
       .course-hero-stats {
         display: flex;
         align-items: center;
         gap: 8px;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
       }
       .course-stat-pill {
         border-radius: 999px;
-        padding: 6px 14px;
+        padding: 6px 12px;
         font-size: 12px;
         line-height: 1.2;
         font-weight: 700;
         color: #4e5668;
         background: rgba(255, 255, 255, 0.6);
       }
-      .course-hero-progress {
+      .course-progress-ring {
         margin-left: auto;
-        font-size: 16px;
-        line-height: 1.2;
+        width: 44px;
+        height: 44px;
+        position: relative;
+        flex: 0 0 44px;
+      }
+      .course-progress-ring svg {
+        width: 44px;
+        height: 44px;
+        transform: rotate(-90deg);
+      }
+      .course-progress-ring-bg {
+        fill: none;
+        stroke: rgba(78, 86, 104, 0.2);
+        stroke-width: 4;
+      }
+      .course-progress-ring-val {
+        fill: none;
+        stroke: #4e5668;
+        stroke-linecap: round;
+        stroke-width: 4;
+      }
+      .course-progress-ring span {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        line-height: 1;
         font-weight: 700;
         color: #4e5668;
       }
       .course-lessons {
         position: relative;
-        padding: 18px 16px 12px;
+        padding: 16px 16px 12px;
+        background: #ffffff;
       }
       .course-lesson-row {
         position: relative;
@@ -810,6 +853,9 @@
       }
       .course-lesson-row + .course-lesson-row {
         margin-top: 10px;
+      }
+      .course-lesson-row.current .course-lesson-card {
+        border-color: #d3d7de;
       }
       .course-lesson-row::before {
         content: "";
@@ -829,46 +875,41 @@
       .course-lesson-node {
         position: relative;
         z-index: 1;
-        width: 44px;
-        height: 44px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-        font-weight: 700;
-        color: #9aa1ad;
-        border: 2px solid #e6e8ec;
-        background: #f7f8fa;
+        margin: 0 auto;
+        border: 2px solid #cfd5dd;
+        background: #f3f5f8;
       }
       .course-lesson-node.unlocked {
-        color: #4f5664;
-        border-color: #d8dde5;
+        border-color: #cfd5dd;
       }
-      .course-lesson-node.completed {
-        color: #111827;
+      .course-lesson-node.locked {
+        background: #f7f8fa;
       }
       .course-lesson-card {
-        border-radius: 16px;
+        border-radius: 14px;
         border: 1px solid #e5e7eb;
         background: #fff;
-        padding: 14px 14px 12px;
+        padding: 13px 14px 11px;
         min-height: 72px;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        gap: 5px;
+        gap: 6px;
       }
       .course-lesson-card.is-locked {
-        background: #f8f9fb;
+        background: #fbfcfd;
       }
       .course-lesson-card[onclick] {
         cursor: pointer;
       }
       .course-lesson-title {
-        font-size: 20px;
-        line-height: 1;
+        font-size: 17px;
+        line-height: 1.25;
         font-weight: 700;
+        letter-spacing: -0.01em;
         color: #1f2937;
       }
       .course-lesson-time {
@@ -878,14 +919,14 @@
         font-size: 11px;
         line-height: 1.3;
         font-weight: 700;
-        color: #98a1af;
-        background: #eef1f5;
+        color: #8d96a5;
+        background: #f0f3f7;
       }
       .course-cta-wrap {
         position: sticky;
         bottom: 0;
         padding: 10px 16px 16px;
-        background: linear-gradient(180deg, rgba(245, 246, 248, 0) 0%, #f5f6f8 36%);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #ffffff 38%);
       }
       .course-cta {
         margin: 0;
@@ -901,6 +942,25 @@
         background: #111b34;
         color: #f3f5ff;
         box-shadow: 0 10px 20px rgba(17, 27, 52, 0.22);
+      }
+      .course-buy-overlay {
+        border-radius: 24px 24px 0 0;
+      }
+      .course-buy-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #101828;
+      }
+      .course-buy-text {
+        margin: 4px 2px 10px;
+        font-size: 14px;
+        line-height: 1.35;
+        color: #4e5668;
+      }
+      .course-buy-btn {
+        margin: 0;
+        border-radius: 14px;
+        text-align: center;
       }
       .lesson-btn[disabled] {
         cursor: not-allowed;
@@ -1276,6 +1336,6 @@
         button, input, select, textarea { font-size: 16px; }
         .lesson-hero-title { font-size: 36px; }
         .lesson-card-title { font-size: 26px; }
-        .course-hero-title { font-size: 52px; }
+        .course-hero-title { font-size: clamp(34px, 8vw, 44px); }
         .course-cta { font-size: 34px; }
       }
