@@ -1102,7 +1102,7 @@
       .course-cta-wrap {
         position: sticky;
         bottom: 0;
-        padding: 10px 16px 16px;
+        padding: 10px 16px 22px;
         background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #ffffff 38%);
       }
       .course-cta {
@@ -1118,7 +1118,7 @@
         font-weight: 700;
         background: #111b34;
         color: #f3f5ff;
-        box-shadow: 0 10px 20px rgba(17, 27, 52, 0.22);
+        box-shadow: 0 4px 12px rgba(17, 27, 52, 0.2);
       }
       .course-buy-overlay {
         border-radius: 24px 24px 0 0;
