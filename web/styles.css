@@ -746,42 +746,42 @@
         background: #dec5f6;
       }
       .course-hero-back {
-        width: auto;
-        min-width: 0;
-        height: 36px;
-        margin: 0 0 20px;
-        padding: 0 12px;
+        width: 40px;
+        min-width: 40px;
+        height: 40px;
+        margin: 0;
+        padding: 0;
         border: 1px solid rgba(255, 255, 255, 0.6);
         border-radius: 999px;
         box-shadow: none;
-        text-align: left;
-        font-size: 14px;
+        text-align: center;
+        font-size: 20px;
         line-height: 1;
         font-weight: 700;
         color: rgba(16, 24, 40, 0.58);
-        background: rgba(255, 255, 255, 0.34);
+        background: rgba(255, 255, 255, 0.28);
       }
       .course-hero-top {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 10px;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
       }
       .course-hero-top .course-hero-back {
         margin: 0;
       }
       .course-hero-share {
-        width: auto;
-        min-width: 0;
-        height: 36px;
+        width: 40px;
+        min-width: 40px;
+        height: 40px;
         margin: 0;
-        padding: 0 12px;
+        padding: 0;
         border: 1px solid rgba(255, 255, 255, 0.6);
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.34);
+        background: rgba(255, 255, 255, 0.28);
         color: rgba(16, 24, 40, 0.58);
-        font-size: 14px;
+        font-size: 19px;
         line-height: 1;
         font-weight: 700;
         text-align: center;

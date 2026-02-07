@@ -6,18 +6,20 @@ function shareCourse(courseId) {
   const title = String(course?.title || "Курс");
   const teacher = String(course?.teacher_name || "Преподаватель");
   const price = formatRub(course?.price || 0);
+  const shareLink = buildCourseShareLink(courseId);
   const shareText = `${title} — ${teacher}. ${price}`;
+  const inlineQuery = `${shareText} ${shareLink}`;
 
   if (tg && typeof tg.switchInlineQuery === "function") {
     try {
-      tg.switchInlineQuery(shareText, ["users", "groups", "channels"]);
+      tg.switchInlineQuery(inlineQuery, ["users", "groups", "channels"]);
       return;
     } catch (error) {
       // Fallback below.
     }
   }
 
-  const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(shareText)}`;
+  const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(shareText)}`;
   if (tg && typeof tg.openTelegramLink === "function") {
     tg.openTelegramLink(shareUrl);
     return;
@@ -117,8 +119,8 @@ async function openCourse(courseId) {
           <div class="course-view">
             <section class="course-hero dir-${directionClass}">
               <div class="course-hero-top">
-                <button class="secondary course-hero-back" onclick="openStudentScreen()">&lt; Другие курсы</button>
-                <button class="secondary course-hero-share" onclick="shareCourse(${courseId})">Поделиться</button>
+                <button class="secondary course-hero-back" onclick="openStudentScreen()" aria-label="Другие курсы" title="Другие курсы">←</button>
+                <button class="secondary course-hero-share" onclick="shareCourse(${courseId})" aria-label="Поделиться курсом" title="Поделиться">↗</button>
               </div>
               <div class="course-hero-meta">
                 <div class="course-hero-meta-card">

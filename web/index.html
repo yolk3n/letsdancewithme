@@ -68,6 +68,7 @@
       let currentAdminUsers = [];
       let editingLessonId = null;
       let selectedAppScreen = "student";
+      let pendingStartCourseId = null;
 
       renderStaticTexts();
 
@@ -84,6 +85,49 @@
         onboardingText.textContent = S.onboardingText;
         onboardingBtn.textContent = S.onboardingStart;
         userBlock.textContent = S.loadingUser;
+      }
+
+      function parseStartCourseId(rawValue) {
+        const value = String(rawValue || "").trim();
+        const match = value.match(/^course_(\d+)$/i);
+        if (!match) return null;
+        const id = Number(match[1]);
+        return Number.isInteger(id) && id > 0 ? id : null;
+      }
+
+      function getLaunchCourseId() {
+        const startParamFromTg = tg?.initDataUnsafe?.start_param;
+        const fromTg = parseStartCourseId(startParamFromTg);
+        if (fromTg) return fromTg;
+
+        const params = new URLSearchParams(window.location.search);
+        const fromWebApp = parseStartCourseId(params.get("tgWebAppStartParam"));
+        if (fromWebApp) return fromWebApp;
+        const fromStartApp = parseStartCourseId(params.get("startapp"));
+        if (fromStartApp) return fromStartApp;
+
+        const courseId = Number(params.get("courseId"));
+        return Number.isInteger(courseId) && courseId > 0 ? courseId : null;
+      }
+
+      function buildCourseShareLink(courseId) {
+        const safeId = Number(courseId);
+        if (!Number.isInteger(safeId) || safeId < 1) return window.location.href;
+
+        const startParam = `course_${safeId}`;
+        const botUsername = String(
+          tg?.initDataUnsafe?.chat?.username ||
+          tg?.initDataUnsafe?.receiver?.username ||
+          ""
+        ).replace(/^@/, "");
+
+        if (botUsername) {
+          return `https://t.me/${botUsername}?startapp=${startParam}`;
+        }
+
+        const fallbackUrl = new URL(window.location.href);
+        fallbackUrl.searchParams.set("courseId", String(safeId));
+        return fallbackUrl.toString();
       }
 
       function renderCenteredLoader(label = "") {
@@ -420,9 +464,15 @@
 
       async function bootstrap() {
         bindEvents();
+        pendingStartCourseId = getLaunchCourseId();
         await syncProfileFromTelegram();
         await loadCurrentUser();
         await routeByRole();
+        if (selectedAppScreen === "student" && pendingStartCourseId) {
+          const courseIdToOpen = pendingStartCourseId;
+          pendingStartCourseId = null;
+          await openCourse(courseIdToOpen);
+        }
       }
 
       async function syncProfileFromTelegram() {
@@ -536,6 +586,7 @@
       window.openAdminPanel = openAdminPanel;
       window.openSupport = openSupport;
       window.setUserHeaderVisible = setUserHeaderVisible;
+      window.buildCourseShareLink = buildCourseShareLink;
     </script>
   </body>
 </html>
