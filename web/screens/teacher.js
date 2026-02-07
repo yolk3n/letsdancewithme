@@ -1,6 +1,8 @@
 ﻿let teacherStudioTab = "overview";
 let teacherStudioEditCourseId = null;
 let teacherStudioEditLessonId = null;
+let teacherStudioCreateCourseOpen = false;
+let teacherStudioLessonFormOpen = false;
 
 function studioLevelLabel(level) {
   if (level === "advanced") return "Продвинутый";
@@ -37,7 +39,7 @@ function studioFormatDuration(sec) {
   return `${Math.floor(value / 60)}:${String(value % 60).padStart(2, "0")}`;
 }
 
-function studioBuildOverview(courses, teacherProfile, studentsCount) {
+function studioBuildOverview(courses, studentsCount) {
   const publishedCourses = courses.filter((c) => c.is_published);
   const earnings = publishedCourses.reduce((sum, item) => sum + Number(item.price || 0), 0);
 
@@ -116,7 +118,12 @@ function studioBuildCreateCourseForm() {
 function studioBuildCoursesList(courses) {
   return `
     <section class="studio-panel">
-      <h3>Мои курсы</h3>
+      <div class="studio-curriculum-head">
+        <h3>Мои курсы</h3>
+        <button class="secondary studio-add-lesson-btn" onclick="teacherStudioToggleCreateCourse()">
+          ${teacherStudioCreateCourseOpen ? "Закрыть" : "+ Курс"}
+        </button>
+      </div>
       <div class="studio-courses-compact-list">
         ${
           courses.length
@@ -137,6 +144,37 @@ function studioBuildCoursesList(courses) {
         }
       </div>
     </section>
+  `;
+}
+
+function studioBuildLessonForm(courseId, editingLesson) {
+  return `
+    <div class="studio-lesson-form">
+      <div class="row">
+        <input id="studioLessonNumber" type="number" min="1" placeholder="${S.lessonNumberPh}" value="${editingLesson ? Number(editingLesson.lesson_number || "") : ""}" />
+        <input id="studioLessonDuration" type="number" min="1" placeholder="${S.lessonDurationPh}" value="${editingLesson ? Number(editingLesson.duration_sec || "") : ""}" />
+      </div>
+      <input id="studioLessonTitle" placeholder="${S.lessonNamePh}" value="${editingLesson ? escapeHtml(editingLesson.title || "") : ""}" />
+      <input id="studioLessonPreviewUrl" placeholder="${S.lessonPreviewPh}" value="${editingLesson ? escapeHtml(editingLesson.preview_url || "") : ""}" />
+      <textarea id="studioLessonDescription" placeholder="${S.lessonDescriptionPh}">${editingLesson ? escapeHtml(editingLesson.description || "") : ""}</textarea>
+
+      <input id="studioLessonTipText" placeholder="Текст подсказки" value="${editingLesson ? escapeHtml(editingLesson.tip_text || "") : ""}" />
+      <div class="row">
+        <input id="studioLessonAudioTitle" placeholder="Название mp3" value="${editingLesson ? escapeHtml(editingLesson.audio_title || "") : ""}" />
+        <input id="studioLessonAudioDuration" type="number" min="1" placeholder="Длительность mp3 (сек)" value="${editingLesson ? Number(editingLesson.audio_duration_sec || "") : ""}" />
+      </div>
+      <input id="studioLessonAudioUrl" placeholder="Ссылка на mp3" value="${editingLesson ? escapeHtml(editingLesson.audio_url || "") : ""}" />
+
+      <select id="studioLessonIsFree">
+        <option value="true" ${editingLesson?.is_free ? "selected" : ""}>${S.lessonFree}</option>
+        <option value="false" ${editingLesson && !editingLesson.is_free ? "selected" : ""}>${S.lessonPaid}</option>
+      </select>
+
+      <div class="studio-lesson-actions">
+        <button onclick="teacherStudioSaveLesson(${courseId})">${editingLesson ? S.updateLesson : S.saveLesson}</button>
+        <button class="secondary" onclick="teacherStudioResetLessonEdit()">Отмена</button>
+      </div>
+    </div>
   `;
 }
 
@@ -172,7 +210,9 @@ function studioBuildEditCourse(course, lessons, editingLesson) {
       <section class="studio-panel">
         <div class="studio-curriculum-head">
           <small class="studio-section-kicker">CURRICULUM</small>
-          <button class="secondary studio-add-lesson-btn" onclick="teacherStudioResetLessonEdit()">+ Урок</button>
+          <button class="secondary studio-add-lesson-btn" onclick="teacherStudioOpenLessonCreate()">
+            ${teacherStudioLessonFormOpen ? "Закрыть" : "+ Урок"}
+          </button>
         </div>
 
         <div class="studio-lessons-list">
@@ -194,32 +234,7 @@ function studioBuildEditCourse(course, lessons, editingLesson) {
           }
         </div>
 
-        <div class="studio-lesson-form">
-          <div class="row">
-            <input id="studioLessonNumber" type="number" min="1" placeholder="${S.lessonNumberPh}" value="${editingLesson ? Number(editingLesson.lesson_number || "") : ""}" />
-            <input id="studioLessonDuration" type="number" min="1" placeholder="${S.lessonDurationPh}" value="${editingLesson ? Number(editingLesson.duration_sec || "") : ""}" />
-          </div>
-          <input id="studioLessonTitle" placeholder="${S.lessonNamePh}" value="${editingLesson ? escapeHtml(editingLesson.title || "") : ""}" />
-          <input id="studioLessonPreviewUrl" placeholder="${S.lessonPreviewPh}" value="${editingLesson ? escapeHtml(editingLesson.preview_url || "") : ""}" />
-          <textarea id="studioLessonDescription" placeholder="${S.lessonDescriptionPh}">${editingLesson ? escapeHtml(editingLesson.description || "") : ""}</textarea>
-
-          <input id="studioLessonTipText" placeholder="Текст подсказки" value="${editingLesson ? escapeHtml(editingLesson.tip_text || "") : ""}" />
-          <div class="row">
-            <input id="studioLessonAudioTitle" placeholder="Название mp3" value="${editingLesson ? escapeHtml(editingLesson.audio_title || "") : ""}" />
-            <input id="studioLessonAudioDuration" type="number" min="1" placeholder="Длительность mp3 (сек)" value="${editingLesson ? Number(editingLesson.audio_duration_sec || "") : ""}" />
-          </div>
-          <input id="studioLessonAudioUrl" placeholder="Ссылка на mp3" value="${editingLesson ? escapeHtml(editingLesson.audio_url || "") : ""}" />
-
-          <select id="studioLessonIsFree">
-            <option value="true" ${editingLesson?.is_free ? "selected" : ""}>${S.lessonFree}</option>
-            <option value="false" ${editingLesson && !editingLesson.is_free ? "selected" : ""}>${S.lessonPaid}</option>
-          </select>
-
-          <div class="studio-lesson-actions">
-            <button onclick="teacherStudioSaveLesson(${course.id})">${editingLesson ? S.updateLesson : S.saveLesson}</button>
-            ${editingLesson ? `<button class="secondary" onclick="teacherStudioResetLessonEdit()">Отмена</button>` : ""}
-          </div>
-        </div>
+        ${teacherStudioLessonFormOpen ? studioBuildLessonForm(course.id, editingLesson) : ""}
       </section>
     </section>
   `;
@@ -253,6 +268,7 @@ async function renderTeacherScreen() {
     if (!editCourse) {
       teacherStudioEditCourseId = null;
       teacherStudioEditLessonId = null;
+      teacherStudioLessonFormOpen = false;
     } else {
       lessons = await apiFetch(`/api/teacher/courses/${editCourse.id}/lessons`);
       currentTeacherLessons = lessons;
@@ -286,10 +302,10 @@ async function renderTeacherScreen() {
 
       ${
         teacherStudioTab === "overview"
-          ? studioBuildOverview(courses, profile, studentsCount)
+          ? studioBuildOverview(courses, studentsCount)
           : `
             <section class="studio-body">
-              ${studioBuildCreateCourseForm()}
+              ${teacherStudioCreateCourseOpen ? studioBuildCreateCourseForm() : ""}
               ${studioBuildCoursesList(courses)}
               ${editCourse ? studioBuildEditCourse(editCourse, lessons, editingLesson) : ""}
             </section>
@@ -301,6 +317,8 @@ async function renderTeacherScreen() {
 
 async function teacherStudioSetTab(tab) {
   teacherStudioTab = tab === "courses" ? "courses" : "overview";
+  teacherStudioCreateCourseOpen = false;
+  teacherStudioLessonFormOpen = false;
   if (teacherStudioTab !== "courses") {
     teacherStudioEditCourseId = null;
     teacherStudioEditLessonId = null;
@@ -310,6 +328,8 @@ async function teacherStudioSetTab(tab) {
 
 async function teacherStudioOpenCreate() {
   teacherStudioTab = "courses";
+  teacherStudioCreateCourseOpen = true;
+  teacherStudioLessonFormOpen = false;
   teacherStudioEditCourseId = null;
   teacherStudioEditLessonId = null;
   await renderTeacherScreen();
@@ -317,8 +337,20 @@ async function teacherStudioOpenCreate() {
   if (node) node.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+async function teacherStudioToggleCreateCourse() {
+  teacherStudioCreateCourseOpen = !teacherStudioCreateCourseOpen;
+  if (teacherStudioCreateCourseOpen) {
+    teacherStudioEditCourseId = null;
+    teacherStudioEditLessonId = null;
+    teacherStudioLessonFormOpen = false;
+  }
+  await renderTeacherScreen();
+}
+
 async function teacherStudioEditCourse(courseId) {
   teacherStudioTab = "courses";
+  teacherStudioCreateCourseOpen = false;
+  teacherStudioLessonFormOpen = false;
   teacherStudioEditCourseId = Number(courseId);
   teacherStudioEditLessonId = null;
   await renderTeacherScreen();
@@ -327,6 +359,7 @@ async function teacherStudioEditCourse(courseId) {
 async function teacherStudioCloseEditCourse() {
   teacherStudioEditCourseId = null;
   teacherStudioEditLessonId = null;
+  teacherStudioLessonFormOpen = false;
   await renderTeacherScreen();
 }
 
@@ -353,6 +386,7 @@ async function teacherStudioCreateCourse() {
   });
 
   tg.showAlert(S.courseCreated);
+  teacherStudioCreateCourseOpen = false;
   await renderTeacherScreen();
 }
 
@@ -383,11 +417,24 @@ async function teacherStudioSaveCourse(courseId) {
 
 async function teacherStudioStartLessonEdit(lessonId) {
   teacherStudioEditLessonId = Number(lessonId);
+  teacherStudioLessonFormOpen = true;
+  teacherStudioCreateCourseOpen = false;
+  await renderTeacherScreen();
+}
+
+async function teacherStudioOpenLessonCreate() {
+  if (teacherStudioLessonFormOpen && !teacherStudioEditLessonId) {
+    teacherStudioLessonFormOpen = false;
+  } else {
+    teacherStudioLessonFormOpen = true;
+    teacherStudioEditLessonId = null;
+  }
   await renderTeacherScreen();
 }
 
 async function teacherStudioResetLessonEdit() {
   teacherStudioEditLessonId = null;
+  teacherStudioLessonFormOpen = false;
   await renderTeacherScreen();
 }
 
@@ -424,16 +471,19 @@ async function teacherStudioSaveLesson(courseId) {
   }
 
   teacherStudioEditLessonId = null;
+  teacherStudioLessonFormOpen = false;
   tg.showAlert(S.lessonSaved);
   await renderTeacherScreen();
 }
 
 window.teacherStudioSetTab = teacherStudioSetTab;
 window.teacherStudioOpenCreate = teacherStudioOpenCreate;
+window.teacherStudioToggleCreateCourse = teacherStudioToggleCreateCourse;
 window.teacherStudioEditCourse = teacherStudioEditCourse;
 window.teacherStudioCloseEditCourse = teacherStudioCloseEditCourse;
 window.teacherStudioCreateCourse = teacherStudioCreateCourse;
 window.teacherStudioSaveCourse = teacherStudioSaveCourse;
 window.teacherStudioStartLessonEdit = teacherStudioStartLessonEdit;
+window.teacherStudioOpenLessonCreate = teacherStudioOpenLessonCreate;
 window.teacherStudioResetLessonEdit = teacherStudioResetLessonEdit;
 window.teacherStudioSaveLesson = teacherStudioSaveLesson;
