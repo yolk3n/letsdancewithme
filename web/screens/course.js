@@ -97,14 +97,14 @@ async function openCourse(courseId) {
                 <div class="course-hero-meta-card">
                   ${renderCourseAuthorAvatar(course || {})}
                   <div class="course-hero-meta-copy">
-                    <span class="course-hero-meta-value">${escapeHtml(teacherSurname)}</span>
                     <span class="course-hero-meta-label">${escapeHtml(teacherAbout)}</span>
+                    <span class="course-hero-meta-value">${escapeHtml(teacherSurname)}</span>
                   </div>
                 </div>
                 <div class="course-hero-meta-card course-hero-meta-card-price">
                   <div class="course-hero-meta-copy right">
-                    <span class="course-hero-meta-value">${formatRub(course?.price || 0)}</span>
                     <span class="course-hero-meta-label">Цена</span>
+                    <span class="course-hero-meta-value">${formatRub(course?.price || 0)}</span>
                   </div>
                 </div>
               </div>
@@ -136,7 +136,10 @@ async function openCourse(courseId) {
                 lessons.length
                   ? lessons
                       .map((lesson) => {
+                        const isCompleted = Number(lesson.lesson_number) <= Number(completedLessons);
                         const isCurrent = targetLesson && Number(targetLesson.lesson_number) === Number(lesson.lesson_number);
+                        const nodeState = isCurrent ? "current" : isCompleted ? "completed" : "future";
+                        const nodeIcon = isCurrent ? "•" : isCompleted ? "✓" : "🔒";
                         const durationText = lesson.duration_sec
                           ? `${Math.floor(lesson.duration_sec / 60)}:${String(lesson.duration_sec % 60).padStart(2, "0")}`
                           : "--:--";
@@ -144,9 +147,12 @@ async function openCourse(courseId) {
                         const action = lesson.is_unlocked ? `onclick="openLessonPage(${courseId}, ${lesson.lesson_number})"` : "";
                         return `
                   <div class="course-lesson-row ${isCurrent ? "current" : ""}">
-                    <div class="course-lesson-node ${lesson.is_unlocked ? "unlocked" : "locked"}"></div>
+                    <div class="course-lesson-node ${nodeState}">${nodeIcon}</div>
                     <div class="course-lesson-card ${lesson.is_unlocked ? "" : "is-locked"}" ${action}>
-                      <div class="course-lesson-title">${escapeHtml(title)}</div>
+                      <div class="course-lesson-title-row">
+                        <div class="course-lesson-title">${escapeHtml(title)}</div>
+                        ${lesson.is_free ? `<span class="course-lesson-free">free</span>` : ""}
+                      </div>
                       <div class="course-lesson-time">${durationText}</div>
                     </div>
                   </div>

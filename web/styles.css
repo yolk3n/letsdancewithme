@@ -502,6 +502,8 @@
         border: 0;
         box-shadow: none;
         padding: 0;
+        margin: 0;
+        border-radius: 0;
         overflow-x: hidden;
       }
       .teacher-card-head {
@@ -736,10 +738,10 @@
         align-items: center;
         gap: 10px;
         min-height: 64px;
-        padding: 10px 12px;
-        border-radius: 14px;
-        background: rgba(255, 255, 255, 0.48);
-        border: 1px solid rgba(255, 255, 255, 0.4);
+        padding: 0;
+        border-radius: 0;
+        background: transparent;
+        border: 0;
         min-width: 0;
       }
       .course-hero-meta-card-price {
@@ -770,7 +772,7 @@
         text-overflow: ellipsis;
       }
       .course-hero-meta-label {
-        margin-top: 2px;
+        margin-top: 0;
         font-size: 12px;
         line-height: 1.2;
         font-weight: 700;
@@ -794,7 +796,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
       }
       .course-stat-pill {
         border-radius: 999px;
@@ -854,9 +856,6 @@
       .course-lesson-row + .course-lesson-row {
         margin-top: 10px;
       }
-      .course-lesson-row.current .course-lesson-card {
-        border-color: #d3d7de;
-      }
       .course-lesson-row::before {
         content: "";
         position: absolute;
@@ -879,18 +878,32 @@
         height: 24px;
         border-radius: 50%;
         margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        line-height: 1;
+        font-weight: 700;
         border: 2px solid #cfd5dd;
         background: #f3f5f8;
+        color: #8a94a3;
       }
-      .course-lesson-node.unlocked {
-        border-color: #cfd5dd;
+      .course-lesson-node.completed {
+        border-color: #bfc7d3;
+        color: #7a8596;
       }
-      .course-lesson-node.locked {
+      .course-lesson-node.future {
         background: #f7f8fa;
+        color: #a0a8b5;
+      }
+      .course-lesson-node.current {
+        border-color: #c5ccd8;
+        color: #727d8f;
+        font-size: 21px;
       }
       .course-lesson-card {
         border-radius: 14px;
-        border: 1px solid #e5e7eb;
+        border: 0;
         background: #fff;
         padding: 13px 14px 11px;
         min-height: 72px;
@@ -911,6 +924,24 @@
         font-weight: 700;
         letter-spacing: -0.01em;
         color: #1f2937;
+      }
+      .course-lesson-title-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .course-lesson-free {
+        border-radius: 999px;
+        padding: 2px 8px;
+        font-size: 10px;
+        line-height: 1.2;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: #5f7287;
+        background: #ecf3fb;
+        flex: 0 0 auto;
       }
       .course-lesson-time {
         width: fit-content;
