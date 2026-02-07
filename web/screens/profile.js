@@ -32,12 +32,6 @@ function getProfileRank(topDirection, coursesCount) {
   return `${getDirectionRankPrefix(topDirection)} ${getCourseRankTitle(coursesCount)}`.trim();
 }
 
-function getProfileTagline(directionName, directionsCount) {
-  if (directionName) return `${directionName} enthusiast`;
-  if (directionsCount >= 2) return "Мульти-стиль танцор";
-  return "Dance enthusiast";
-}
-
 function buildProgressRingSvg(progressPercent) {
   const safe = Math.max(0, Math.min(100, Number(progressPercent) || 0));
   const radius = 22;
@@ -93,16 +87,12 @@ async function loadProfileStats() {
     }
   }
 
-  const directionsCount = directionCounter.size;
   const rank = getProfileRank(topDirection, purchasedCount);
-  const tagline = getProfileTagline(topDirection, directionsCount);
-
   return {
     purchasedCount,
     averageProgress,
     hours,
     rank,
-    tagline,
   };
 }
 
@@ -129,26 +119,25 @@ function renderProfileOverlay(stats) {
 
         <h3 class="profile-overlay-name">${escapeHtml(displayName)}</h3>
         <div class="profile-overlay-rank">${escapeHtml(stats.rank)}</div>
-        <div class="profile-overlay-tagline">${escapeHtml(stats.tagline)}</div>
-
+        <div class="profile-overlay-stats-title">Статистика</div>
         <div class="profile-overlay-stats" role="group" aria-label="Статистика">
           <div class="profile-stat-item">
             <div class="profile-stat-value">${stats.purchasedCount}</div>
-            <div class="profile-stat-label">COURSES</div>
+            <div class="profile-stat-label">КУРСЫ</div>
           </div>
           <div class="profile-stat-item with-ring">
             ${buildProgressRingSvg(stats.averageProgress)}
-            <div class="profile-stat-label">AVG. SCORE</div>
+            <div class="profile-stat-label">СР. ПРОГРЕСС</div>
           </div>
           <div class="profile-stat-item">
             <div class="profile-stat-value">${stats.hours}</div>
-            <div class="profile-stat-label">HOURS</div>
+            <div class="profile-stat-label">ЧАСЫ</div>
           </div>
         </div>
 
         <div class="profile-overlay-menu">
-          <button onclick="openPaymentsAndSubscription()">Оплаты и подписка</button>
-          <button class="secondary" onclick="openSupportFromProfile()">Поддержка</button>
+          <button class="profile-menu-text" onclick="openPaymentsAndSubscription()">Оплаты и подписка</button>
+          <button class="profile-menu-text" onclick="openSupportFromProfile()">Поддержка</button>
         </div>
       </div>
     </div>

@@ -253,14 +253,18 @@
         font-weight: 700;
         color: #374151;
       }
-      .profile-overlay-tagline {
-        margin-top: 4px;
+      .profile-overlay-stats-title {
+        margin-top: 12px;
         text-align: center;
-        font-size: 14px;
-        color: #6b7280;
+        font-size: 12px;
+        line-height: 1;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-weight: 800;
+        color: #9ca3af;
       }
       .profile-overlay-stats {
-        margin-top: 16px;
+        margin-top: 8px;
         border-top: 1px solid #e5e7eb;
         border-bottom: 1px solid #e5e7eb;
         display: grid;
@@ -329,10 +333,25 @@
       .profile-overlay-menu {
         margin-top: 14px;
         display: grid;
-        gap: 8px;
+        gap: 10px;
       }
-      .profile-overlay-menu button {
+      .profile-menu-text {
         margin: 0;
+        padding: 0;
+        width: auto;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        color: #111827;
+        text-align: center;
+        font-size: 16px;
+        line-height: 1.2;
+        font-weight: 700;
+      }
+      .profile-menu-text:hover {
+        transform: none;
+        filter: none;
+        text-decoration: underline;
       }
       .style-chips {
         display: flex;
