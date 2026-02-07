@@ -125,7 +125,7 @@
 
       function buildCourseShareLink(courseId) {
         const safeId = Number(courseId);
-        if (!Number.isInteger(safeId) || safeId < 1) return window.location.href;
+        if (!Number.isInteger(safeId) || safeId < 1) return "";
 
         const startParam = `course_${safeId}`;
         const botUsername = String(
@@ -142,10 +142,7 @@
           }
           return `https://t.me/${botUsername}?startapp=${startParam}`;
         }
-
-        const fallbackUrl = new URL(window.location.href);
-        fallbackUrl.searchParams.set("courseId", String(safeId));
-        return fallbackUrl.toString();
+        return "";
       }
 
       function renderCenteredLoader(label = "") {

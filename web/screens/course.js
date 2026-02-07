@@ -7,6 +7,14 @@ function shareCourse(courseId) {
   const teacher = String(course?.teacher_name || "Преподаватель");
   const price = formatRub(course?.price || 0);
   const shareLink = buildCourseShareLink(courseId);
+  if (!shareLink) {
+    if (tg && typeof tg.showAlert === "function") {
+      tg.showAlert("Шаринг Mini App не настроен: добавь TG_BOT_USERNAME в env web-сервиса.");
+      return;
+    }
+    alert("Шаринг Mini App не настроен: добавь TG_BOT_USERNAME в env web-сервиса.");
+    return;
+  }
   const shareText = `${title} — ${teacher}. ${price}`;
   const inlineQuery = `${shareText} ${shareLink}`;
 
