@@ -16,7 +16,7 @@ function shareCourse(courseId) {
     return;
   }
   const shareDescription = `${title} — ${teacher}. ${price}`;
-  const sharePayload = `${shareLink}\n${shareDescription}`;
+  const sharePayload = `${shareDescription}\n${shareLink}`;
 
   if (tg && typeof tg.switchInlineQuery === "function") {
     try {
