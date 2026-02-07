@@ -138,7 +138,7 @@ function renderProfileOverlay(stats) {
         <div class="profile-overlay-menu">
           ${
             currentUser?.role === "teacher" || currentUser?.role === "admin"
-              ? `<button class="profile-menu-text profile-menu-text-accent" onclick="openTeacherCabinetStub()">Кабинет преподавателя</button>`
+              ? `<button class="profile-menu-text profile-menu-text-accent" onclick="openTeacherCabinetFromProfile()">Кабинет преподавателя</button>`
               : ""
           }
           <button class="profile-menu-text" onclick="openPaymentsAndSubscription()">Оплаты и подписка</button>
@@ -191,8 +191,9 @@ function openSupportFromProfile() {
   openSupport();
 }
 
-function openTeacherCabinetStub() {
-  tg.showAlert("Раздел в разработке");
+function openTeacherCabinetFromProfile() {
+  closeProfileOverlay();
+  openTeacherCabinet();
 }
 
 async function completeOnboarding() {
@@ -235,4 +236,4 @@ window.openProfileOverlay = openProfileOverlay;
 window.closeProfileOverlay = closeProfileOverlay;
 window.openPaymentsAndSubscription = openPaymentsAndSubscription;
 window.openSupportFromProfile = openSupportFromProfile;
-window.openTeacherCabinetStub = openTeacherCabinetStub;
+window.openTeacherCabinetFromProfile = openTeacherCabinetFromProfile;
