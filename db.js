@@ -81,6 +81,10 @@ async function initDb() {
       is_free BOOLEAN NOT NULL DEFAULT true,
       duration_sec INTEGER,
       preview_url TEXT,
+      tip_text TEXT,
+      audio_title TEXT,
+      audio_url TEXT,
+      audio_duration_sec INTEGER,
       UNIQUE (course_id, lesson_number)
     )
   `);
@@ -173,6 +177,10 @@ async function initDb() {
   await query("ALTER TABLE lessons ADD COLUMN IF NOT EXISTS is_free BOOLEAN NOT NULL DEFAULT true");
   await query("ALTER TABLE lessons ADD COLUMN IF NOT EXISTS duration_sec INTEGER");
   await query("ALTER TABLE lessons ADD COLUMN IF NOT EXISTS preview_url TEXT");
+  await query("ALTER TABLE lessons ADD COLUMN IF NOT EXISTS tip_text TEXT");
+  await query("ALTER TABLE lessons ADD COLUMN IF NOT EXISTS audio_title TEXT");
+  await query("ALTER TABLE lessons ADD COLUMN IF NOT EXISTS audio_url TEXT");
+  await query("ALTER TABLE lessons ADD COLUMN IF NOT EXISTS audio_duration_sec INTEGER");
   await query(`
     WITH ranked_free AS (
       SELECT

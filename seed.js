@@ -113,7 +113,36 @@ async function attachCourseStyle(courseId, styleId) {
   );
 }
 
-async function insertLesson(courseId, lessonNumber, title, description, isFree, durationSec) {
+function buildLessonTitle(courseTitle, lessonNumber) {
+  const cleanCourseTitle = String(courseTitle || "").replace(/^Урок\s*\d+\s*:\s*/i, "").trim();
+  return `Практика ${lessonNumber}: ${cleanCourseTitle}`;
+}
+
+function buildLessonTip(lessonNumber) {
+  return `Сконцентрируйся на балансе и переносе веса. Повтор ${lessonNumber} поможет закрепить технику.`;
+}
+
+function buildLessonAudio(courseTitle, lessonNumber) {
+  const safeTitle = String(courseTitle || "course").replace(/[^\w\d]+/g, "-").toLowerCase();
+  return {
+    title: `${String(courseTitle || "Трек")} — Ритм ${lessonNumber}.mp3`,
+    url: `https://cdn.example.com/audio/${safeTitle}-lesson-${lessonNumber}.mp3`,
+    durationSec: 120 + lessonNumber * 9,
+  };
+}
+
+async function insertLesson(
+  courseId,
+  lessonNumber,
+  title,
+  description,
+  isFree,
+  durationSec,
+  tipText,
+  audioTitle,
+  audioUrl,
+  audioDurationSec
+) {
   await db.query(
     `
       INSERT INTO lessons (
@@ -123,17 +152,28 @@ async function insertLesson(courseId, lessonNumber, title, description, isFree, 
         description,
         is_free,
         duration_sec,
-        preview_url
+        preview_url,
+        tip_text,
+        audio_title,
+        audio_url,
+        audio_duration_sec
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     `,
-    [courseId, lessonNumber, title, description, isFree, durationSec, null]
+    [
+      courseId,
+      lessonNumber,
+      title,
+      description,
+      isFree,
+      durationSec,
+      null,
+      tipText,
+      audioTitle,
+      audioUrl,
+      audioDurationSec,
+    ]
   );
-}
-
-function buildLessonTitle(courseTitle, lessonNumber) {
-  const cleanCourseTitle = String(courseTitle || "").replace(/^Урок\s*\d+\s*:\s*/i, "").trim();
-  return `Практика ${lessonNumber}: ${cleanCourseTitle}`;
 }
 
 async function seed() {
@@ -176,13 +216,20 @@ async function seed() {
       for (let lessonNumber = 1; lessonNumber <= courseDef.lessons; lessonNumber += 1) {
         const isFree = lessonNumber <= 3;
         const durationSec = 420 + lessonNumber * 45;
+        const lessonTip = buildLessonTip(lessonNumber);
+        const lessonAudio = buildLessonAudio(courseDef.title, lessonNumber);
+
         await insertLesson(
           courseId,
           lessonNumber,
           buildLessonTitle(courseDef.title, lessonNumber),
           `Практика по теме "${courseDef.title}", часть ${lessonNumber}.`,
           isFree,
-          durationSec
+          durationSec,
+          lessonTip,
+          lessonAudio.title,
+          lessonAudio.url,
+          lessonAudio.durationSec
         );
         totalLessons += 1;
       }

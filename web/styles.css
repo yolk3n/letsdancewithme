@@ -1541,6 +1541,10 @@
         background: #f8fafc;
         color: #334155;
         box-shadow: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
       }
       .lesson-next-btn {
         margin-top: 18px;

@@ -9,6 +9,12 @@
         const durationText = lesson.duration_sec
           ? `${Math.floor(lesson.duration_sec / 60)}:${String(lesson.duration_sec % 60).padStart(2, "0")}`
           : "--:--";
+        const audioDurationText = lesson.audio_duration_sec
+          ? `${Math.floor(lesson.audio_duration_sec / 60)}:${String(lesson.audio_duration_sec % 60).padStart(2, "0")}`
+          : "--:--";
+        const tipText = String(lesson.tip_text || S.lessonTipText || "").trim();
+        const audioTitle = String(lesson.audio_title || S.lessonAudioName || "").trim();
+        const audioUrl = String(lesson.audio_url || "").trim();
         const previewHtml = lesson.preview_url
           ? `<p class="lesson-page-description"><a href="${escapeHtml(
               lesson.preview_url
@@ -42,18 +48,30 @@
                   <div class="lesson-tip-icon">i</div>
                   <div class="lesson-tip-main">
                     <div class="lesson-tip-title">${escapeHtml(S.lessonTipTitle)}</div>
-                    <div class="lesson-tip-text">${escapeHtml(S.lessonTipText)}</div>
+                    <div class="lesson-tip-text">${escapeHtml(tipText)}</div>
                   </div>
                 </div>
 
+                ${
+                  audioTitle
+                    ? `
                 <div class="lesson-audio-card">
                   <div class="lesson-audio-icon">MP3</div>
                   <div class="lesson-audio-main">
-                    <div class="lesson-audio-name">${escapeHtml(S.lessonAudioName)}</div>
-                    <div class="lesson-audio-meta">2:34</div>
+                    <div class="lesson-audio-name">${escapeHtml(audioTitle)}</div>
+                    <div class="lesson-audio-meta">${audioDurationText}</div>
                   </div>
-                  <button class="lesson-audio-action" type="button" aria-label="${escapeHtml(S.lessonAudioDownloadAria)}">&#8681;</button>
+                  ${
+                    audioUrl
+                      ? `<a class="lesson-audio-action" aria-label="${escapeHtml(
+                          S.lessonAudioDownloadAria
+                        )}" href="${escapeHtml(audioUrl)}" target="_blank" rel="noopener noreferrer">&#8681;</a>`
+                      : ""
+                  }
                 </div>
+                `
+                    : ""
+                }
 
                 <button class="lesson-next-btn" onclick="doLesson(${courseId}, ${lesson.lesson_number})">${hasNextLesson ? S.lessonNext : S.lessonFinish}</button>
               </div>

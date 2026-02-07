@@ -506,6 +506,10 @@ app.get(
           l.is_free,
           l.duration_sec,
           l.preview_url,
+          l.tip_text,
+          l.audio_title,
+          l.audio_url,
+          l.audio_duration_sec,
           CASE
             WHEN l.is_free = true THEN true
             WHEN cp.telegram_id IS NOT NULL THEN true
@@ -772,6 +776,10 @@ app.post(
       isFree = true,
       durationSec = null,
       previewUrl = null,
+      tipText = null,
+      audioTitle = null,
+      audioUrl = null,
+      audioDurationSec = null,
     } = req.body;
 
     if (!lessonNumber || !title) {
@@ -788,6 +796,12 @@ app.post(
       (!Number.isInteger(Number(durationSec)) || Number(durationSec) < 1)
     ) {
       return res.status(400).json({ error: "durationSec must be null or positive integer" });
+    }
+    if (
+      audioDurationSec !== null &&
+      (!Number.isInteger(Number(audioDurationSec)) || Number(audioDurationSec) < 1)
+    ) {
+      return res.status(400).json({ error: "audioDurationSec must be null or positive integer" });
     }
 
     if (isFree) {
@@ -815,17 +829,25 @@ app.post(
           description,
           is_free,
           duration_sec,
-          preview_url
+          preview_url,
+          tip_text,
+          audio_title,
+          audio_url,
+          audio_duration_sec
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         ON CONFLICT (course_id, lesson_number) DO UPDATE
         SET
           title = EXCLUDED.title,
           description = EXCLUDED.description,
           is_free = EXCLUDED.is_free,
           duration_sec = EXCLUDED.duration_sec,
-          preview_url = EXCLUDED.preview_url
-        RETURNING id, course_id, lesson_number, title, description, is_free, duration_sec, preview_url
+          preview_url = EXCLUDED.preview_url,
+          tip_text = EXCLUDED.tip_text,
+          audio_title = EXCLUDED.audio_title,
+          audio_url = EXCLUDED.audio_url,
+          audio_duration_sec = EXCLUDED.audio_duration_sec
+        RETURNING id, course_id, lesson_number, title, description, is_free, duration_sec, preview_url, tip_text, audio_title, audio_url, audio_duration_sec
       `,
       [
         courseId,
@@ -835,6 +857,10 @@ app.post(
         isFree,
         durationSec === null ? null : Number(durationSec),
         asOptionalTrimmedString(previewUrl),
+        asOptionalTrimmedString(tipText),
+        asOptionalTrimmedString(audioTitle),
+        asOptionalTrimmedString(audioUrl),
+        audioDurationSec === null ? null : Number(audioDurationSec),
       ]
     );
 
@@ -878,6 +904,10 @@ app.put(
       isFree,
       durationSec,
       previewUrl,
+      tipText,
+      audioTitle,
+      audioUrl,
+      audioDurationSec,
       lessonNumber,
     } = req.body;
 
@@ -890,6 +920,13 @@ app.put(
       (!Number.isInteger(Number(durationSec)) || Number(durationSec) < 1)
     ) {
       return res.status(400).json({ error: "durationSec must be null or positive integer" });
+    }
+    if (
+      audioDurationSec !== undefined &&
+      audioDurationSec !== null &&
+      (!Number.isInteger(Number(audioDurationSec)) || Number(audioDurationSec) < 1)
+    ) {
+      return res.status(400).json({ error: "audioDurationSec must be null or positive integer" });
     }
     if (
       lessonNumber !== undefined &&
@@ -917,9 +954,13 @@ app.put(
           is_free = COALESCE($3, is_free),
           duration_sec = COALESCE($4, duration_sec),
           preview_url = COALESCE($5, preview_url),
-          lesson_number = COALESCE($6, lesson_number)
-        WHERE id = $7
-        RETURNING id, course_id, lesson_number, title, description, is_free, duration_sec, preview_url
+          lesson_number = COALESCE($6, lesson_number),
+          tip_text = COALESCE($7, tip_text),
+          audio_title = COALESCE($8, audio_title),
+          audio_url = COALESCE($9, audio_url),
+          audio_duration_sec = COALESCE($10, audio_duration_sec)
+        WHERE id = $11
+        RETURNING id, course_id, lesson_number, title, description, is_free, duration_sec, preview_url, tip_text, audio_title, audio_url, audio_duration_sec
       `,
       [
         title === undefined ? null : asOptionalTrimmedString(title),
@@ -928,6 +969,10 @@ app.put(
         durationSec === undefined ? null : durationSec === null ? null : Number(durationSec),
         previewUrl === undefined ? null : asOptionalTrimmedString(previewUrl),
         lessonNumber === undefined ? null : Number(lessonNumber),
+        tipText === undefined ? null : asOptionalTrimmedString(tipText),
+        audioTitle === undefined ? null : asOptionalTrimmedString(audioTitle),
+        audioUrl === undefined ? null : asOptionalTrimmedString(audioUrl),
+        audioDurationSec === undefined ? null : audioDurationSec === null ? null : Number(audioDurationSec),
         lessonId,
       ]
     );
@@ -957,7 +1002,7 @@ app.get(
 
     const lessons = await db.query(
       `
-        SELECT id, course_id, lesson_number, title, description, is_free, duration_sec, preview_url
+        SELECT id, course_id, lesson_number, title, description, is_free, duration_sec, preview_url, tip_text, audio_title, audio_url, audio_duration_sec
         FROM lessons
         WHERE course_id = $1
         ORDER BY lesson_number
