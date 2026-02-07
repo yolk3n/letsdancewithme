@@ -427,7 +427,6 @@
         align-items: flex-end;
         justify-content: center;
         padding: 0;
-        animation: overlayFadeIn 180ms ease;
       }
       .course-progress {
         margin-top: 10px;
@@ -1504,10 +1503,6 @@
       @keyframes cardIn {
         from { opacity: 0; transform: translateY(6px); }
         to { opacity: 1; transform: translateY(0); }
-      }
-      @keyframes overlayFadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
       }
       @keyframes overlaySheetIn {
         from { opacity: 0; transform: translateY(20px); }
