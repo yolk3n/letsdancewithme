@@ -1426,22 +1426,19 @@
       }
       .lesson-page.dir-salsa .lesson-kicker-badge,
       .lesson-page.dir-salsa .lesson-tip-card,
-      .lesson-page.dir-salsa .lesson-audio-card,
-      .lesson-page.dir-salsa .lesson-audio-pill {
+      .lesson-page.dir-salsa .lesson-audio-card {
         background: #c7d2ff;
         color: #1e1a4d;
       }
       .lesson-page.dir-bachata .lesson-kicker-badge,
       .lesson-page.dir-bachata .lesson-tip-card,
-      .lesson-page.dir-bachata .lesson-audio-card,
-      .lesson-page.dir-bachata .lesson-audio-pill {
+      .lesson-page.dir-bachata .lesson-audio-card {
         background: #f8d5ac;
         color: #441306;
       }
       .lesson-page.dir-kizomba .lesson-kicker-badge,
       .lesson-page.dir-kizomba .lesson-tip-card,
-      .lesson-page.dir-kizomba .lesson-audio-card,
-      .lesson-page.dir-kizomba .lesson-audio-pill {
+      .lesson-page.dir-kizomba .lesson-audio-card {
         background: #dec5f6;
         color: #3c0366;
       }
@@ -1487,6 +1484,11 @@
         align-items: center;
         gap: 10px;
         box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08), 0 4px 12px rgba(16, 24, 40, 0.06);
+        text-decoration: none;
+        color: inherit;
+      }
+      .lesson-audio-card.is-clickable {
+        cursor: pointer;
       }
       .lesson-audio-main {
         min-width: 0;

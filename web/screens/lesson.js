@@ -37,10 +37,10 @@
                 <div class="lesson-page-kicker">
                   <span class="lesson-kicker-badge">${escapeHtml(S.lessonKicker)} ${lesson.lesson_number}</span>
                   <span class="lesson-kicker-badge">${durationText}</span>
+                  ${lesson.is_free ? `<span class="lesson-kicker-badge">FREE</span>` : ""}
                 </div>
                 <h3>${escapeHtml(normalizeLessonTitle(lesson))}</h3>
                 <div class="lesson-description-block">
-                  ${lesson.is_free ? `<span class="course-lesson-free">${escapeHtml(S.free)}</span>` : ""}
                   <p class="lesson-page-description">${escapeHtml(lesson.description || S.lessonDescriptionFallback)}</p>
                 </div>
                 ${previewHtml}
@@ -55,21 +55,21 @@
                 ${
                   audioTitle
                     ? `
-                <div class="lesson-audio-card">
+                <${audioUrl ? "a" : "div"} class="lesson-audio-card ${audioUrl ? "is-clickable" : ""}" ${
+                      audioUrl
+                        ? `aria-label="${escapeHtml(S.lessonAudioDownloadAria)}" href="${escapeHtml(
+                            audioUrl
+                          )}" target="_blank" rel="noopener noreferrer"`
+                        : ""
+                    }>
                   <div class="lesson-audio-main">
                     <div class="lesson-audio-name">${escapeHtml(audioTitle)}</div>
                     <div class="lesson-audio-badges">
-                      ${
-                        audioUrl
-                          ? `<a class="lesson-audio-pill" aria-label="${escapeHtml(
-                              S.lessonAudioDownloadAria
-                            )}" href="${escapeHtml(audioUrl)}" target="_blank" rel="noopener noreferrer">MP3</a>`
-                          : `<span class="lesson-audio-pill">MP3</span>`
-                      }
+                      <span class="lesson-audio-pill">MP3</span>
                       <span class="lesson-audio-pill">${audioDurationText}</span>
                     </div>
                   </div>
-                </div>
+                </${audioUrl ? "a" : "div"}>
                 `
                     : ""
                 }
