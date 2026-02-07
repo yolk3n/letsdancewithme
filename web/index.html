@@ -124,11 +124,11 @@
         letter-spacing: 0;
       }
       #user {
-        background: rgba(255, 255, 255, 0.8);
+        background: #ffffff;
         border: 0;
-        border-bottom: 1px solid rgba(249, 250, 251, 0.5);
+        border-bottom: 0;
         box-shadow: none;
-        padding: 36px 24px 16px;
+        padding: 16px 24px 12px;
         margin-bottom: 0;
         border-radius: 0;
       }
@@ -266,7 +266,7 @@
       }
       .catalog-surface {
         background: #f8fafc;
-        padding: 8px 24px 0;
+        padding: 8px 24px 16px;
       }
       .teacher-picker {
         border: 1px solid rgba(38, 30, 20, 0.1);
@@ -404,7 +404,7 @@
         align-items: end;
         justify-content: space-between;
         gap: 10px;
-        margin-top: 45px;
+        margin-top: 16px;
         padding-top: 0;
         border-top: 0;
       }
@@ -572,7 +572,10 @@
         border: 0;
         border-radius: 32px;
         min-height: 190px;
-        padding: 24px 24px 0;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
         transition: transform 120ms ease, filter 120ms ease;
       }
