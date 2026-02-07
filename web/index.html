@@ -326,8 +326,8 @@
 
       function setStyleFilter(styleId) {
         selectedStyleId = styleId ? String(styleId) : "";
-        selectedTeacherFilterId = "";
         showTeacherPicker = false;
+        if (typeof setOverlayLock === "function") setOverlayLock(false);
         renderStudentScreen().catch((error) => {
           studentScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
