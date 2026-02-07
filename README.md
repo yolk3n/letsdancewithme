@@ -27,6 +27,8 @@ Optional:
 
 - `DATABASE_SSL=true` - enable SSL for DB connection (recommended on Render)
 - `PORT` - API port (default `3000`)
+- `TG_BOT_USERNAME` - bot username for Mini App deep links (without `@`)
+- `TG_MINIAPP_SHORT_NAME` - Mini App short name (if set in BotFather)
 
 ## Run
 
@@ -79,4 +81,3 @@ Admin:
   - `DATABASE_SSL=true`
   - `BOT_TOKEN` (bot service)
 - If API and DB are in Render, use Internal DB URL when possible.
-

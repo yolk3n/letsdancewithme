@@ -69,6 +69,7 @@
       let editingLessonId = null;
       let selectedAppScreen = "student";
       let pendingStartCourseId = null;
+      let appPublicConfig = { bot_username: "", miniapp_short_name: "" };
 
       renderStaticTexts();
 
@@ -110,18 +111,35 @@
         return Number.isInteger(courseId) && courseId > 0 ? courseId : null;
       }
 
+      async function loadPublicConfig() {
+        try {
+          const cfg = await fetch("/api/public/config").then((r) => r.json());
+          appPublicConfig = {
+            bot_username: String(cfg?.bot_username || "").replace(/^@/, ""),
+            miniapp_short_name: String(cfg?.miniapp_short_name || ""),
+          };
+        } catch (error) {
+          appPublicConfig = { bot_username: "", miniapp_short_name: "" };
+        }
+      }
+
       function buildCourseShareLink(courseId) {
         const safeId = Number(courseId);
         if (!Number.isInteger(safeId) || safeId < 1) return window.location.href;
 
         const startParam = `course_${safeId}`;
         const botUsername = String(
+          appPublicConfig.bot_username ||
           tg?.initDataUnsafe?.chat?.username ||
           tg?.initDataUnsafe?.receiver?.username ||
           ""
         ).replace(/^@/, "");
+        const miniAppShortName = String(appPublicConfig.miniapp_short_name || "").trim();
 
         if (botUsername) {
+          if (miniAppShortName) {
+            return `https://t.me/${botUsername}/${miniAppShortName}?startapp=${startParam}`;
+          }
           return `https://t.me/${botUsername}?startapp=${startParam}`;
         }
 
@@ -465,6 +483,7 @@
       async function bootstrap() {
         bindEvents();
         pendingStartCourseId = getLaunchCourseId();
+        await loadPublicConfig();
         await syncProfileFromTelegram();
         await loadCurrentUser();
         await routeByRole();

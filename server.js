@@ -1028,6 +1028,16 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+app.get(
+  "/api/public/config",
+  asyncRoute(async (req, res) => {
+    res.json({
+      bot_username: process.env.TG_BOT_USERNAME || null,
+      miniapp_short_name: process.env.TG_MINIAPP_SHORT_NAME || null,
+    });
+  })
+);
+
 app.use((error, req, res, next) => {
   console.error(error);
   res.status(500).json({ error: "Internal server error" });
