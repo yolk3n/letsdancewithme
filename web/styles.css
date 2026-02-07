@@ -796,9 +796,28 @@
         border: 0;
         min-width: 0;
       }
-      .course-hero-meta-card-price {
-        min-width: 120px;
-        justify-content: flex-end;
+      .course-hero-meta-progress {
+        width: 44px;
+        height: 44px;
+        position: relative;
+        flex: 0 0 44px;
+        margin-left: auto;
+      }
+      .course-hero-meta-progress svg {
+        width: 44px;
+        height: 44px;
+        transform: rotate(-90deg);
+      }
+      .course-hero-meta-progress span {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        line-height: 1;
+        font-weight: 700;
+        color: #4e5668;
       }
       .course-hero-meta-card .course-author-avatar,
       .course-hero-meta-card .course-author-fallback {
@@ -881,6 +900,52 @@
         gap: 8px;
         flex-wrap: wrap;
       }
+      .course-hero-bottom {
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .course-buyers-preview {
+        min-height: 24px;
+        display: inline-flex;
+        align-items: center;
+      }
+      .course-mini-avatars {
+        display: inline-flex;
+        align-items: center;
+      }
+      .course-mini-avatars img,
+      .course-mini-avatars span {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(255, 255, 255, 0.86);
+        margin-left: -8px;
+        background: rgba(255, 255, 255, 0.85);
+      }
+      .course-mini-avatars > :first-child {
+        margin-left: 0;
+      }
+      .course-mini-avatars img {
+        object-fit: cover;
+      }
+      .course-mini-avatars span {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+        color: #4e5668;
+      }
+      .course-hero-price-row {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-left: auto;
+      }
       .course-stat-pill {
         border-radius: 999px;
         padding: 6px 12px;
@@ -889,18 +954,6 @@
         font-weight: 700;
         color: #4e5668;
         background: rgba(255, 255, 255, 0.6);
-      }
-      .course-progress-ring {
-        margin-left: auto;
-        width: 44px;
-        height: 44px;
-        position: relative;
-        flex: 0 0 44px;
-      }
-      .course-progress-ring svg {
-        width: 44px;
-        height: 44px;
-        transform: rotate(-90deg);
       }
       .course-progress-ring-bg {
         fill: none;
@@ -912,17 +965,6 @@
         stroke: #4e5668;
         stroke-linecap: round;
         stroke-width: 4;
-      }
-      .course-progress-ring span {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        line-height: 1;
-        font-weight: 700;
-        color: #4e5668;
       }
       .course-lessons {
         position: relative;
