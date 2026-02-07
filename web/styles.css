@@ -733,6 +733,7 @@
       }
       .course-hero {
         padding: 16px 20px 24px;
+        margin: 0 var(--page-gutter);
         border-radius: 0 0 42px 42px;
         color: #101828;
       }
