@@ -1,6 +1,30 @@
 ﻿let coursePurchaseOverlayOpen = false;
 let coursePurchaseOverlayCourseId = null;
 
+function shareCourse(courseId) {
+  const course = currentStudentCourses.find((item) => Number(item.id) === Number(courseId));
+  const title = String(course?.title || "Курс");
+  const teacher = String(course?.teacher_name || "Преподаватель");
+  const price = formatRub(course?.price || 0);
+  const shareText = `${title} — ${teacher}. ${price}`;
+
+  if (tg && typeof tg.switchInlineQuery === "function") {
+    try {
+      tg.switchInlineQuery(shareText, ["users", "groups", "channels"]);
+      return;
+    } catch (error) {
+      // Fallback below.
+    }
+  }
+
+  const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(shareText)}`;
+  if (tg && typeof tg.openTelegramLink === "function") {
+    tg.openTelegramLink(shareUrl);
+    return;
+  }
+  window.open(shareUrl, "_blank", "noopener,noreferrer");
+}
+
 function openCoursePurchaseOverlay(courseId) {
   coursePurchaseOverlayOpen = true;
   coursePurchaseOverlayCourseId = Number(courseId);
@@ -92,7 +116,10 @@ async function openCourse(courseId) {
         studentScreen.innerHTML = `
           <div class="course-view">
             <section class="course-hero dir-${directionClass}">
-              <button class="secondary course-hero-back" onclick="openStudentScreen()">&lt; Другие курсы</button>
+              <div class="course-hero-top">
+                <button class="secondary course-hero-back" onclick="openStudentScreen()">&lt; Другие курсы</button>
+                <button class="secondary course-hero-share" onclick="shareCourse(${courseId})">Поделиться</button>
+              </div>
               <div class="course-hero-meta">
                 <div class="course-hero-meta-card">
                   ${renderCourseAuthorAvatar(course || {})}

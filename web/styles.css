@@ -761,6 +761,32 @@
         color: rgba(16, 24, 40, 0.58);
         background: rgba(255, 255, 255, 0.34);
       }
+      .course-hero-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .course-hero-top .course-hero-back {
+        margin: 0;
+      }
+      .course-hero-share {
+        width: auto;
+        min-width: 0;
+        height: 36px;
+        margin: 0;
+        padding: 0 12px;
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.34);
+        color: rgba(16, 24, 40, 0.58);
+        font-size: 14px;
+        line-height: 1;
+        font-weight: 700;
+        text-align: center;
+        box-shadow: none;
+      }
       .course-hero-meta {
         display: flex;
         align-items: stretch;
