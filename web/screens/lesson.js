@@ -35,17 +35,14 @@
             <div class="lesson-page-wrap">
               <div class="lesson-page-card">
                 <div class="lesson-page-kicker">
-                  <span>${escapeHtml(S.lessonKicker)} ${lesson.lesson_number}</span>
-                  <span class="lesson-page-kicker-sep">&bull;</span>
-                  <span>${durationText}</span>
+                  <span class="lesson-kicker-badge">${escapeHtml(S.lessonKicker)} ${lesson.lesson_number}</span>
+                  <span class="lesson-kicker-badge">${durationText}</span>
                 </div>
                 <h3>${escapeHtml(normalizeLessonTitle(lesson))}</h3>
-                <h4 class="lesson-section-title">${escapeHtml(S.lessonDescriptionTitle)}</h4>
                 <p class="lesson-page-description">${escapeHtml(lesson.description || S.lessonDescriptionFallback)}</p>
                 ${previewHtml}
 
                 <div class="lesson-tip-card">
-                  <div class="lesson-tip-icon">i</div>
                   <div class="lesson-tip-main">
                     <div class="lesson-tip-title">${escapeHtml(S.lessonTipTitle)}</div>
                     <div class="lesson-tip-text">${escapeHtml(tipText)}</div>
@@ -56,7 +53,6 @@
                   audioTitle
                     ? `
                 <div class="lesson-audio-card">
-                  <div class="lesson-audio-icon">MP3</div>
                   <div class="lesson-audio-main">
                     <div class="lesson-audio-name">${escapeHtml(audioTitle)}</div>
                     <div class="lesson-audio-meta">${audioDurationText}</div>
@@ -65,7 +61,7 @@
                     audioUrl
                       ? `<a class="lesson-audio-action" aria-label="${escapeHtml(
                           S.lessonAudioDownloadAria
-                        )}" href="${escapeHtml(audioUrl)}" target="_blank" rel="noopener noreferrer">&#8681;</a>`
+                        )}" href="${escapeHtml(audioUrl)}" target="_blank" rel="noopener noreferrer">MP3</a>`
                       : ""
                   }
                 </div>

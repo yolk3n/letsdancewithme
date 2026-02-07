@@ -1409,54 +1409,50 @@
         align-items: center;
         gap: 8px;
         margin-bottom: 14px;
-        font-size: 12px;
+      }
+      .lesson-kicker-badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 28px;
+        padding: 6px 11px;
+        border-radius: 999px;
+        font-size: 11px;
         line-height: 1;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        font-weight: 700;
-        color: #475467;
-      }
-      .lesson-page-kicker span:first-child {
+        font-weight: 800;
+        background: #e5e7eb;
         color: #111827;
       }
-      .lesson-page-kicker-sep {
-        color: #9aa3af;
+      .lesson-page.dir-salsa .lesson-kicker-badge,
+      .lesson-page.dir-salsa .lesson-audio-action {
+        background: #c7d2ff;
+        color: #1e1a4d;
       }
-      .lesson-section-title {
-        margin: 18px 0 8px;
-        font-size: 24px;
-        line-height: 0.98;
-        font-family: var(--font-display);
-        color: #111827;
+      .lesson-page.dir-bachata .lesson-kicker-badge,
+      .lesson-page.dir-bachata .lesson-audio-action {
+        background: #f8d5ac;
+        color: #441306;
+      }
+      .lesson-page.dir-kizomba .lesson-kicker-badge,
+      .lesson-page.dir-kizomba .lesson-audio-action {
+        background: #dec5f6;
+        color: #3c0366;
       }
       .lesson-page-description {
         margin: 0;
         color: #374151;
-        line-height: 1.55;
+        line-height: 1.72;
         font-size: 15px;
+        padding-top: 8px;
+        padding-bottom: 6px;
       }
       .lesson-tip-card {
-        margin-top: 16px;
+        margin-top: 20px;
         border: 1px solid #e5e7eb;
         border-radius: 16px;
         background: #f6f7f8;
         padding: 13px;
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-      }
-      .lesson-tip-icon {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        border: 1px solid #e5e7eb;
-        background: #ffffff;
-        color: #6b7280;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-        font-weight: 700;
       }
       .lesson-tip-main {
         min-width: 0;
@@ -1483,19 +1479,6 @@
         align-items: center;
         gap: 10px;
       }
-      .lesson-audio-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        background: #eceff3;
-        color: #374151;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: 0.04em;
-      }
       .lesson-audio-main {
         min-width: 0;
         flex: 1;
@@ -1515,21 +1498,25 @@
         color: #6b7280;
       }
       .lesson-audio-action {
-        width: 34px;
-        min-width: 34px;
-        height: 34px;
+        width: 40px;
+        min-width: 40px;
+        height: 40px;
         margin: 0;
         padding: 0;
-        border-radius: 10px;
+        border-radius: 50%;
         text-align: center;
-        border: 1px solid #d1d5db;
-        background: #ffffff;
-        color: #374151;
+        border: 0;
+        background: #e5e7eb;
+        color: #111827;
         box-shadow: none;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         text-decoration: none;
+        font-size: 10px;
+        line-height: 1;
+        letter-spacing: 0.05em;
+        font-weight: 800;
       }
       .lesson-next-btn {
         margin-top: 18px;
