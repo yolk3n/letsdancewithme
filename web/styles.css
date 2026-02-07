@@ -816,6 +816,25 @@
       }
       .course-hero-price-value {
         white-space: nowrap;
+        font-size: clamp(28px, 7vw, 40px);
+        line-height: 0.95;
+        letter-spacing: -0.02em;
+        font-family: var(--font-display);
+        font-weight: 700;
+      }
+      .course-purchased-badge {
+        margin-top: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 11px;
+        line-height: 1.2;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: #1f7a36;
+        background: rgba(223, 244, 229, 0.95);
       }
       .course-hero-meta-label {
         margin-top: 0;
