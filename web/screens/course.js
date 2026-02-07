@@ -67,8 +67,6 @@ async function openCourse(courseId) {
         const lessons = await apiFetch(`/api/lessons/${courseId}`);
         currentCourseLessons = lessons;
         const course = freshCourse;
-        const hasPaidLessons = lessons.some((lesson) => !lesson.is_free);
-        const showBuyButton = hasPaidLessons && course && !course.is_purchased;
         const directionClass = getCourseDirectionClass(course);
         const levelLabel = getCourseLevelLabel(course?.level);
         const progressPercent = Number(course?.progress_percent || 0);
@@ -101,18 +99,14 @@ async function openCourse(courseId) {
         );
 
         const hasStarted = completedLessons > 0 || safeProgress > 0;
-        const ctaLabel = showBuyButton
-          ? `${S.buyCourse} ${formatRub(course.price)}`
-          : hasStarted
-            ? "Продолжить занятия"
-            : "Начать занятия";
+        const ctaLabel = hasStarted ? "Продолжить занятия" : "Начать занятия";
 
-        const ctaAction = showBuyButton
-          ? `purchaseCourse(${courseId})`
-          : requiresPurchaseOverlay
-            ? `openCoursePurchaseOverlay(${courseId})`
+        const ctaAction = requiresPurchaseOverlay
+          ? `openCoursePurchaseOverlay(${courseId})`
+          : targetLesson && targetLesson.is_unlocked
+            ? `openLessonPage(${courseId}, ${targetLesson.lesson_number})`
             : targetLesson
-              ? `openLessonPage(${courseId}, ${targetLesson.lesson_number})`
+              ? `openCoursePurchaseOverlay(${courseId})`
               : "openStudentScreen()";
 
         const progressRadius = 17;
