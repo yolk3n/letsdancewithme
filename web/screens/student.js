@@ -1,17 +1,28 @@
-﻿async function renderStudentScreen() {
+﻿async function renderStudentScreen(useCache = false) {
         studentScreen.classList.add("flat-list");
         selectedTeacherId = null;
         openedStudentCourseId = null;
         openedLessonNumber = null;
-        studentScreen.innerHTML = renderCenteredLoader(S.loadingCourses);
-        const [teachers, styles] = await Promise.all([apiFetch("/api/teachers"), apiFetch("/api/styles")]);
-        currentStudentTeachers = teachers;
-        currentStyles = styles;
-        const styleQuery = selectedStyleId ? `&styleId=${selectedStyleId}` : "";
-        const teacherQuery = selectedTeacherFilterId ? `&teacherId=${selectedTeacherFilterId}` : "";
-        const purchasedQuery = studentCatalogMode === "subscriptions" ? "&purchased=1" : "";
-        const courses = await apiFetch(`/api/student/courses?1=1${styleQuery}${teacherQuery}${purchasedQuery}`);
-        currentStudentCourses = courses;
+        let teachers = currentStudentTeachers;
+        let styles = currentStyles;
+        let courses = currentStudentCourses;
+
+        if (!useCache || !teachers.length || !styles.length) {
+          studentScreen.innerHTML = renderCenteredLoader(S.loadingCourses);
+          const fetched = await Promise.all([apiFetch("/api/teachers"), apiFetch("/api/styles")]);
+          teachers = fetched[0];
+          styles = fetched[1];
+          currentStudentTeachers = teachers;
+          currentStyles = styles;
+        }
+
+        if (!useCache) {
+          const styleQuery = selectedStyleId ? `&styleId=${selectedStyleId}` : "";
+          const teacherQuery = selectedTeacherFilterId ? `&teacherId=${selectedTeacherFilterId}` : "";
+          const purchasedQuery = studentCatalogMode === "subscriptions" ? "&purchased=1" : "";
+          courses = await apiFetch(`/api/student/courses?1=1${styleQuery}${teacherQuery}${purchasedQuery}`);
+          currentStudentCourses = courses;
+        }
         studentScreen.innerHTML = `
           <div class="catalog-surface">
             <div class="catalog-head">
@@ -81,6 +92,7 @@
             </div>
           </div>
         `;
+        if (typeof setOverlayLock === "function") setOverlayLock(showTeacherPicker);
         if (typeof setUserHeaderVisible === "function") setUserHeaderVisible(true);
       }
 
@@ -130,4 +142,5 @@
           </div>
         `;
       }
+
 

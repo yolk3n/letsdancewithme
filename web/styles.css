@@ -29,6 +29,10 @@
         font-family: var(--font-body);
         background: var(--bg-main);
       }
+      body.overlay-lock {
+        overflow: hidden;
+        touch-action: none;
+      }
       .app-shell {
         width: 100%;
         max-width: 399px;

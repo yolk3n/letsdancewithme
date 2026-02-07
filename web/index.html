@@ -336,7 +336,8 @@
       function toggleTeacherPicker() {
         showTeacherPicker = !showTeacherPicker;
         if (!showTeacherPicker) teacherSearchQuery = "";
-        renderStudentScreen().catch((error) => {
+        if (typeof setOverlayLock === "function") setOverlayLock(showTeacherPicker);
+        renderStudentScreen(true).catch((error) => {
           studentScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
       }
@@ -344,7 +345,8 @@
       function closeTeacherPicker() {
         showTeacherPicker = false;
         teacherSearchQuery = "";
-        renderStudentScreen().catch((error) => {
+        if (typeof setOverlayLock === "function") setOverlayLock(false);
+        renderStudentScreen(true).catch((error) => {
           studentScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
       }
@@ -353,6 +355,7 @@
         selectedTeacherFilterId = String(teacherId || "");
         showTeacherPicker = false;
         teacherSearchQuery = "";
+        if (typeof setOverlayLock === "function") setOverlayLock(false);
         renderStudentScreen().catch((error) => {
           studentScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
@@ -363,6 +366,7 @@
         selectedTeacherFilterId = "";
         showTeacherPicker = false;
         teacherSearchQuery = "";
+        if (typeof setOverlayLock === "function") setOverlayLock(false);
         renderStudentScreen().catch((error) => {
           studentScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
@@ -370,7 +374,7 @@
 
       function setTeacherSearchQuery(value) {
         teacherSearchQuery = String(value || "");
-        renderStudentScreen().catch((error) => {
+        renderStudentScreen(true).catch((error) => {
           studentScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
       }
@@ -564,6 +568,10 @@
         userBlock.classList.toggle("hidden", !visible);
       }
 
+      function setOverlayLock(locked) {
+        document.body.classList.toggle("overlay-lock", Boolean(locked));
+      }
+
       function openSupport() {
         tg.showAlert("Напиши в поддержку: @letsdancewithme_support");
       }
@@ -602,6 +610,7 @@
       window.openAdminPanel = openAdminPanel;
       window.openSupport = openSupport;
       window.setUserHeaderVisible = setUserHeaderVisible;
+      window.setOverlayLock = setOverlayLock;
       window.buildCourseShareLink = buildCourseShareLink;
     </script>
   </body>

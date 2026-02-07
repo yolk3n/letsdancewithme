@@ -29,27 +29,48 @@ function shareCourse(courseId) {
 function openCoursePurchaseOverlay(courseId) {
   coursePurchaseOverlayOpen = true;
   coursePurchaseOverlayCourseId = Number(courseId);
-  if (openedStudentCourseId) {
-    openCourse(openedStudentCourseId);
-  }
+  const course = currentStudentCourses.find((item) => Number(item.id) === Number(courseId));
+  const coursePrice = formatRub(course?.price || 0);
+  const container = document.querySelector("#studentScreen .course-view");
+  if (!container) return;
+  const existing = container.querySelector(".course-buy-overlay-root");
+  if (existing) existing.remove();
+  container.insertAdjacentHTML(
+    "beforeend",
+    `
+      <div class="teacher-picker-overlay course-buy-overlay-root" onclick="closeCoursePurchaseOverlay()">
+        <div class="teacher-picker course-buy-overlay" onclick="event.stopPropagation()">
+          <div class="teacher-picker-head">
+            <div class="course-buy-title">Курс требует подписку</div>
+            <button class="secondary teacher-picker-close" onclick="closeCoursePurchaseOverlay()">×</button>
+          </div>
+          <div class="course-buy-text">Следующий урок платный. Чтобы продолжить, купи курс.</div>
+          <button class="course-buy-btn" onclick="purchaseCourseFromOverlay(${courseId})">${S.buyCourse} ${coursePrice}</button>
+        </div>
+      </div>
+    `
+  );
+  if (typeof setOverlayLock === "function") setOverlayLock(true);
 }
 
 function closeCoursePurchaseOverlay() {
   coursePurchaseOverlayOpen = false;
   coursePurchaseOverlayCourseId = null;
-  if (openedStudentCourseId) {
-    openCourse(openedStudentCourseId);
-  }
+  const overlay = document.querySelector("#studentScreen .course-buy-overlay-root");
+  if (overlay) overlay.remove();
+  if (typeof setOverlayLock === "function") setOverlayLock(false);
 }
 
 async function purchaseCourseFromOverlay(courseId) {
   coursePurchaseOverlayOpen = false;
   coursePurchaseOverlayCourseId = null;
+  if (typeof setOverlayLock === "function") setOverlayLock(false);
   await purchaseCourse(courseId);
 }
 
 async function openCourse(courseId) {
         if (typeof setUserHeaderVisible === "function") setUserHeaderVisible(false);
+        if (typeof setOverlayLock === "function") setOverlayLock(false);
         studentScreen.classList.add("flat-list");
         selectedTeacherId = null;
         openedStudentCourseId = courseId;
@@ -216,20 +237,6 @@ async function openCourse(courseId) {
               <button class="course-cta" onclick="${ctaAction}">${ctaLabel}</button>
             </div>
 
-            ${
-              coursePurchaseOverlayOpen && Number(coursePurchaseOverlayCourseId) === Number(courseId)
-                ? `<div class="teacher-picker-overlay" onclick="closeCoursePurchaseOverlay()">
-                    <div class="teacher-picker course-buy-overlay" onclick="event.stopPropagation()">
-                      <div class="teacher-picker-head">
-                        <div class="course-buy-title">Курс требует подписку</div>
-                        <button class="secondary teacher-picker-close" onclick="closeCoursePurchaseOverlay()">×</button>
-                      </div>
-                      <div class="course-buy-text">Следующий урок платный. Чтобы продолжить, купи курс.</div>
-                      <button class="course-buy-btn" onclick="purchaseCourseFromOverlay(${courseId})">${S.buyCourse} ${formatRub(course?.price || 0)}</button>
-                    </div>
-                  </div>`
-                : ""
-            }
           </div>
         `;
       }
