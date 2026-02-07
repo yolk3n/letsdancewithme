@@ -18,15 +18,6 @@ function shareCourse(courseId) {
   const shareDescription = `${title} — ${teacher}. ${price}`;
   const sharePayload = `${shareDescription}\n${shareLink}`;
 
-  if (tg && typeof tg.switchInlineQuery === "function") {
-    try {
-      tg.switchInlineQuery(sharePayload, ["users", "groups", "channels"]);
-      return;
-    } catch (error) {
-      // Fallback below.
-    }
-  }
-
   const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(sharePayload)}`;
   if (tg && typeof tg.openTelegramLink === "function") {
     tg.openTelegramLink(shareUrl);
