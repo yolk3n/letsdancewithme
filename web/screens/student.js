@@ -38,6 +38,7 @@
                           const teacherName = String(course.teacher_name || "Преподаватель");
                           const teacherAbout = String(course.teacher_about_short || "").trim();
                           const progressPercent = Number(course.progress_percent || 0);
+                          const isPurchased = Boolean(course.is_purchased);
                           return `
                     <div class="course-card catalog-course-card dir-${directionClass}" onclick="openCourse(${course.id})">
                       <div class="course-head">
@@ -59,14 +60,14 @@
                           </div>
                         </div>
                         ${
-                          progressPercent > 0
+                          isPurchased
                             ? `<div class="course-progress-inline">
                                 <div class="course-progress-track">
                                   <div class="course-progress-fill" style="width:${Math.max(0, Math.min(100, progressPercent))}%"></div>
                                 </div>
                                 <div class="course-progress-label">${progressPercent}%</div>
                               </div>`
-                            : ""
+                            : `<div class="course-price-inline">${formatRub(course.price)}</div>`
                         }
                       </div>
                     </div>
