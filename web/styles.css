@@ -1333,16 +1333,16 @@
         color: #7c788f;
       }
       .lesson-page {
-        background: #f3f4f6;
+        background: #ffffff;
         min-height: 100vh;
       }
       .lesson-media-hero {
         position: relative;
         height: 300px;
-        margin: 0 var(--page-gutter);
-        border-radius: 28px 28px 0 0;
+        margin: 0;
+        border-radius: 0 0 34px 34px;
         background:
-          linear-gradient(180deg, rgba(10, 13, 20, 0.45) 0%, rgba(10, 13, 20, 0.58) 100%),
+          linear-gradient(180deg, rgba(10, 13, 20, 0.36) 0%, rgba(10, 13, 20, 0.58) 100%),
           linear-gradient(130deg, #171c26 0%, #2a313e 45%, #1d2330 100%);
         overflow: hidden;
       }
@@ -1355,6 +1355,21 @@
           radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.05) 0 10%, transparent 28%);
         transform: rotate(-12deg);
         pointer-events: none;
+      }
+      .lesson-page.dir-salsa .lesson-media-hero {
+        background:
+          linear-gradient(180deg, rgba(20, 20, 44, 0.36) 0%, rgba(20, 20, 44, 0.58) 100%),
+          linear-gradient(130deg, #8fa4ff 0%, #6f85ff 48%, #5d6ff0 100%);
+      }
+      .lesson-page.dir-bachata .lesson-media-hero {
+        background:
+          linear-gradient(180deg, rgba(46, 23, 9, 0.32) 0%, rgba(46, 23, 9, 0.52) 100%),
+          linear-gradient(130deg, #ffd8ae 0%, #ffc184 48%, #f1a95d 100%);
+      }
+      .lesson-page.dir-kizomba .lesson-media-hero {
+        background:
+          linear-gradient(180deg, rgba(31, 14, 45, 0.34) 0%, rgba(31, 14, 45, 0.55) 100%),
+          linear-gradient(130deg, #e6d2ff 0%, #d5b5ff 50%, #bf8fff 100%);
       }
       .lesson-page-nav {
         position: relative;
@@ -1392,15 +1407,14 @@
         padding-left: 4px;
       }
       .lesson-page-wrap {
-        margin: 0 var(--page-gutter);
-        border-radius: 0 0 28px 28px;
+        margin: 0;
         background: #ffffff;
-        padding: 22px 20px 16px;
+        padding: 18px var(--page-gutter) 20px;
       }
       .lesson-page-card h3 {
         margin: 0;
-        font-size: 40px;
-        line-height: 0.96;
+        font-size: 34px;
+        line-height: 0.98;
         letter-spacing: -0.02em;
         font-family: var(--font-display);
         color: #0f172a;
@@ -1424,9 +1438,9 @@
         color: #94a3b8;
       }
       .lesson-section-title {
-        margin: 22px 0 10px;
-        font-size: 32px;
-        line-height: 0.95;
+        margin: 18px 0 8px;
+        font-size: 26px;
+        line-height: 0.98;
         font-family: var(--font-display);
         color: #0f172a;
       }
@@ -1437,11 +1451,11 @@
         font-size: 15px;
       }
       .lesson-tip-card {
-        margin-top: 18px;
-        border: 1px solid #e5e7eb;
+        margin-top: 16px;
+        border: 1px solid #e9edf3;
         border-radius: 16px;
-        background: #f9fafb;
-        padding: 14px;
+        background: #f8fafc;
+        padding: 13px;
         display: flex;
         align-items: flex-start;
         gap: 12px;
@@ -1476,7 +1490,7 @@
       }
       .lesson-audio-card {
         margin-top: 12px;
-        border: 1px solid #e5e7eb;
+        border: 1px solid #e9edf3;
         border-radius: 14px;
         background: #ffffff;
         padding: 10px;
@@ -1530,14 +1544,31 @@
       }
       .lesson-next-btn {
         margin-top: 18px;
+        width: 100%;
+        height: 50px;
+        border: 0;
         text-align: center;
-        border-radius: 14px;
+        border-radius: var(--radius-md);
+        font-size: 18px;
+        line-height: 1.1;
+        font-family: var(--font-body);
+        font-weight: 700;
+        color: #f3f5ff;
       }
-      .lesson-page-course {
-        margin-top: 10px;
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
+      .lesson-page.dir-salsa .lesson-next-btn {
+        background: #c7d2ff;
+        color: #1e1a4d;
+        box-shadow: 0 4px 12px rgba(84, 92, 178, 0.22);
+      }
+      .lesson-page.dir-bachata .lesson-next-btn {
+        background: #f8d5ac;
+        color: #441306;
+        box-shadow: 0 4px 12px rgba(166, 100, 44, 0.22);
+      }
+      .lesson-page.dir-kizomba .lesson-next-btn {
+        background: #dec5f6;
+        color: #3c0366;
+        box-shadow: 0 4px 12px rgba(100, 62, 148, 0.22);
       }
       .row { display: flex; gap: 8px; align-items: center; }
       .row > * { flex: 1; }

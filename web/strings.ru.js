@@ -89,5 +89,17 @@ window.STRINGS_RU = {
   levelStudent: "🥋 Ученик",
   levelBeginner: "🌱 Новичок",
   minutes: "мин",
-  seconds: "сек"
+  seconds: "сек",
+  lessonBackAria: "Назад к курсу",
+  lessonPlayAria: "Запустить урок",
+  lessonKicker: "Урок",
+  lessonDescriptionTitle: "Описание",
+  lessonDescriptionFallback: "Описание будет добавлено позже.",
+  lessonTipTitle: "Совет",
+  lessonTipText: "Держи корпус собранным и мягко переноси вес, чтобы движения были чище и стабильнее.",
+  lessonAudioName: "Ритм бачаты.mp3",
+  lessonAudioDownloadAria: "Скачать mp3",
+  lessonPreviewLink: "Открыть превью",
+  lessonNext: "Следующий урок →",
+  lessonFinish: "Завершить урок"
 };
