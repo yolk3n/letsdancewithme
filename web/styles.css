@@ -901,7 +901,7 @@
         flex-wrap: wrap;
       }
       .course-hero-bottom {
-        margin-top: 8px;
+        margin-top: 16px;
         display: flex;
         align-items: center;
         justify-content: space-between;

@@ -85,7 +85,7 @@ async function openCourse(courseId) {
         const buyerAvatarPool = Array.isArray(currentStudentTeachers)
           ? currentStudentTeachers.map((item) => item?.avatar_url).filter(Boolean)
           : [];
-        const buyerAvatars = buyerAvatarPool.slice(0, 4);
+        const buyerAvatars = buyerAvatarPool.slice(0, 3);
         const buyerExtra = Math.max(0, 24 - buyerAvatars.length);
 
         const targetLesson =
