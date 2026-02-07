@@ -6,17 +6,29 @@
         openedLessonNumber = null;
         studentScreen.innerHTML = `<div class="section-subtitle">${S.loadingLessons}</div>`;
 
+        const freshCourse = await apiFetch(`/api/student/course/${courseId}`);
+        const cacheIndex = currentStudentCourses.findIndex((item) => Number(item.id) === Number(courseId));
+        if (cacheIndex >= 0) {
+          currentStudentCourses[cacheIndex] = { ...currentStudentCourses[cacheIndex], ...freshCourse };
+        } else {
+          currentStudentCourses.push(freshCourse);
+        }
+
         const lessons = await apiFetch(`/api/lessons/${courseId}`);
         currentCourseLessons = lessons;
-        const course = currentStudentCourses.find((item) => item.id === courseId);
+        const course = freshCourse;
         const hasPaidLessons = lessons.some((lesson) => !lesson.is_free);
         const showBuyButton = hasPaidLessons && course && !course.is_purchased;
         const directionClass = getCourseDirectionClass(course);
         const levelLabel = getCourseLevelLabel(course?.level);
         const progressPercent = Number(course?.progress_percent || 0);
         const completedLessons = Number(course?.completed_lessons || 0);
-        const unlockedLessons = lessons.filter((lesson) => lesson.is_unlocked).length;
+        const totalLessons = Number(course?.total_lessons || lessons.length || 0);
+        const directionLabel =
+          (Array.isArray(course?.styles) && course.styles[0] && course.styles[0].name) ||
+          (directionClass === "bachata" ? "Бачата" : directionClass === "kizomba" ? "Кизомба" : "Сальса");
         const firstUnlocked = lessons.find((lesson) => lesson.is_unlocked);
+        const ctaLabel = showBuyButton ? `${S.buyCourse} ${formatRub(course.price)}` : "Continue Learning";
 
         studentScreen.innerHTML = `
           <div class="course-view">
@@ -37,8 +49,9 @@
               </div>
               <h2 class="course-hero-title">${escapeHtml(course?.title || "Курс")}</h2>
               <div class="course-hero-stats">
+                <span class="course-stat-pill">${escapeHtml(directionLabel)}</span>
                 <span class="course-stat-pill">${escapeHtml(levelLabel)}</span>
-                <span class="course-stat-pill">${unlockedLessons} lessons</span>
+                <span class="course-stat-pill">${totalLessons} lessons</span>
                 <span class="course-hero-progress">${Math.max(0, Math.min(100, progressPercent))}% Done</span>
               </div>
             </section>
@@ -73,10 +86,10 @@
             <div class="course-cta-wrap">
               ${
                 showBuyButton
-                  ? `<button class="course-cta" onclick="purchaseCourse(${courseId})">${S.buyCourse} ${formatRub(course.price)}</button>`
+                  ? `<button class="course-cta" onclick="purchaseCourse(${courseId})">${ctaLabel}</button>`
                   : `<button class="course-cta" onclick="${
                       firstUnlocked ? `openLessonPage(${courseId}, ${firstUnlocked.lesson_number})` : "openStudentScreen()"
-                    }">Continue Learning</button>`
+                    }">${ctaLabel}</button>`
               }
             </div>
           </div>

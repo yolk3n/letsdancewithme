@@ -368,6 +368,78 @@ app.get(
 );
 
 app.get(
+  "/api/student/course/:courseId",
+  requireUser(),
+  asyncRoute(async (req, res) => {
+    const courseId = Number(req.params.courseId);
+    if (!courseId) {
+      return res.status(400).json({ error: "Invalid courseId" });
+    }
+
+    const params = [req.currentUser.telegram_id, courseId];
+    const sql = `
+      WITH lesson_totals AS (
+        SELECT l.course_id, COUNT(*)::int AS total_lessons
+        FROM lessons l
+        GROUP BY l.course_id
+      ),
+      lesson_progress AS (
+        SELECT l.course_id, COUNT(*)::int AS completed_lessons
+        FROM user_lesson_progress ulp
+        JOIN lessons l ON l.id = ulp.lesson_id
+        WHERE ulp.telegram_id = $1
+        GROUP BY l.course_id
+      ),
+      style_agg AS (
+        SELECT
+          cs.course_id,
+          json_agg(json_build_object('id', ds.id, 'name', ds.name) ORDER BY ds.name) AS styles
+        FROM course_styles cs
+        JOIN dance_styles ds ON ds.id = cs.style_id
+        GROUP BY cs.course_id
+      )
+      SELECT
+        c.id,
+        c.title,
+        c.description,
+        c.price,
+        c.level,
+        c.is_published,
+        t.id AS teacher_id,
+        t.name AS teacher_name,
+        t.about_short AS teacher_about_short,
+        t.avatar_url AS teacher_avatar_url,
+        CASE WHEN cp.telegram_id IS NULL THEN false ELSE true END AS is_purchased,
+        COALESCE(lt.total_lessons, 0) AS total_lessons,
+        COALESCE(lp.completed_lessons, 0) AS completed_lessons,
+        CASE
+          WHEN COALESCE(lt.total_lessons, 0) = 0 THEN 0
+          ELSE ROUND((COALESCE(lp.completed_lessons, 0)::numeric / lt.total_lessons::numeric) * 100)::int
+        END AS progress_percent,
+        COALESCE(sa.styles, '[]'::json) AS styles
+      FROM courses c
+      JOIN teachers t ON t.id = c.teacher_id
+      LEFT JOIN lesson_totals lt ON lt.course_id = c.id
+      LEFT JOIN lesson_progress lp ON lp.course_id = c.id
+      LEFT JOIN course_purchases cp
+        ON cp.course_id = c.id
+        AND cp.telegram_id = $1
+        AND cp.status = 'paid'
+      LEFT JOIN style_agg sa ON sa.course_id = c.id
+      WHERE c.is_published = true
+        AND c.id = $2
+      LIMIT 1
+    `;
+
+    const result = await db.query(sql, params);
+    if (!result.rows[0]) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+    res.json(result.rows[0]);
+  })
+);
+
+app.get(
   "/api/courses/:teacherId",
   asyncRoute(async (req, res) => {
     const teacherId = Number(req.params.teacherId);
