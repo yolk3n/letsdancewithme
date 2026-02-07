@@ -273,13 +273,14 @@
       .catalog-head,
       .catalog-inner {
         padding: 0 var(--page-gutter);
+        box-sizing: border-box;
       }
       .catalog-head {
         margin-bottom: 12px;
       }
       .catalog-inner {
         width: 100%;
-        overflow-x: clip;
+        overflow-x: hidden;
       }
       .teacher-picker {
         border: 1px solid rgba(38, 30, 20, 0.1);
@@ -579,8 +580,10 @@
       }
       .catalog-courses-grid {
         display: grid;
+        grid-template-columns: minmax(0, 1fr);
         gap: 24px;
         width: 100%;
+        min-width: 0;
       }
       .catalog-course-card {
         cursor: pointer;
@@ -589,6 +592,8 @@
         min-height: 190px;
         padding: 24px;
         width: 100%;
+        max-width: 100%;
+        min-width: 0;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -617,14 +622,18 @@
         justify-content: space-between;
         gap: 8px;
         margin-top: 0;
+        width: 100%;
+        min-width: 0;
       }
       .course-card-title {
         flex: 1 1 auto;
+        min-width: 0;
         font-size: 24px;
         line-height: 26px;
         font-weight: 800;
         letter-spacing: -0.6px;
         color: var(--title-color, #101828);
+        overflow-wrap: anywhere;
       }
       .course-level-badge {
         border-radius: 999px;
@@ -654,6 +663,7 @@
         flex-direction: column;
         align-items: flex-end;
         gap: 0;
+        flex: 0 0 auto;
       }
       .lesson-btn[disabled] {
         cursor: not-allowed;
