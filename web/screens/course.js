@@ -16,7 +16,7 @@ function shareCourse(courseId) {
     return;
   }
   const shareDescription = `${title} — ${teacher}. ${price}`;
-  const sharePayload = `${shareDescription}\n${shareLink}`;
+  const sharePayload = shareDescription;
 
   const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(sharePayload)}`;
   if (tg && typeof tg.openTelegramLink === "function") {
