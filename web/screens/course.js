@@ -55,8 +55,8 @@ async function openCourse(courseId) {
           (directionClass === "bachata" ? "Бачата" : directionClass === "kizomba" ? "Кизомба" : "Сальса");
 
         const teacherFullName = String(course?.teacher_name || "Преподаватель").trim();
-        const teacherSurname = teacherFullName.split(/\s+/).filter(Boolean)[0] || teacherFullName;
         const teacherAbout = String(course?.teacher_about_short || "О себе не указано").trim();
+        const priceLead = `₽ ${Number(course?.price || 0)}`;
 
         const targetLesson =
           lessons.find((lesson) => Number(lesson.lesson_number) === completedLessons + 1) ||
@@ -92,19 +92,19 @@ async function openCourse(courseId) {
         studentScreen.innerHTML = `
           <div class="course-view">
             <section class="course-hero dir-${directionClass}">
-              <button class="secondary hero-icon-btn course-hero-back" onclick="openStudentScreen()">&larr;</button>
+              <button class="secondary course-hero-back" onclick="openStudentScreen()">&lt; Другие курсы</button>
               <div class="course-hero-meta">
                 <div class="course-hero-meta-card">
                   ${renderCourseAuthorAvatar(course || {})}
                   <div class="course-hero-meta-copy">
                     <span class="course-hero-meta-label">${escapeHtml(teacherAbout)}</span>
-                    <span class="course-hero-meta-value">${escapeHtml(teacherSurname)}</span>
+                    <span class="course-hero-meta-value course-hero-author-name">${escapeHtml(teacherFullName)}</span>
                   </div>
                 </div>
                 <div class="course-hero-meta-card course-hero-meta-card-price">
                   <div class="course-hero-meta-copy right">
                     <span class="course-hero-meta-label">Цена</span>
-                    <span class="course-hero-meta-value">${formatRub(course?.price || 0)}</span>
+                    <span class="course-hero-meta-value course-hero-price-value">${escapeHtml(priceLead)}</span>
                   </div>
                 </div>
               </div>
@@ -139,14 +139,18 @@ async function openCourse(courseId) {
                         const isCompleted = Number(lesson.lesson_number) <= Number(completedLessons);
                         const isCurrent = targetLesson && Number(targetLesson.lesson_number) === Number(lesson.lesson_number);
                         const nodeState = isCurrent ? "current" : isCompleted ? "completed" : "future";
-                        const nodeIcon = isCurrent ? "•" : isCompleted ? "✓" : "🔒";
+                        const nodeIcon = isCurrent
+                          ? `<span class="course-lesson-node-dot">•</span>`
+                          : isCompleted
+                            ? `<span class="course-lesson-node-check">✓</span>`
+                            : `<svg class="course-lesson-node-lock" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V8a5 5 0 0 1 10 0v2h1a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h1zm2 0h6V8a3 3 0 0 0-6 0v2zm3 4a1.5 1.5 0 0 1 1.5 1.5c0 .6-.35 1.13-.86 1.37V19h-1.28v-2.13A1.5 1.5 0 0 1 12 14z"/></svg>`;
                         const durationText = lesson.duration_sec
                           ? `${Math.floor(lesson.duration_sec / 60)}:${String(lesson.duration_sec % 60).padStart(2, "0")}`
                           : "--:--";
                         const title = normalizeLessonTitle(lesson);
                         const action = lesson.is_unlocked ? `onclick="openLessonPage(${courseId}, ${lesson.lesson_number})"` : "";
                         return `
-                  <div class="course-lesson-row ${isCurrent ? "current" : ""}">
+                  <div class="course-lesson-row ${isCurrent ? "current" : ""} ${isCompleted ? "completed" : ""}">
                     <div class="course-lesson-node ${nodeState}">${nodeIcon}</div>
                     <div class="course-lesson-card ${lesson.is_unlocked ? "" : "is-locked"}" ${action}>
                       <div class="course-lesson-title-row">
