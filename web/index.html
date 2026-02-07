@@ -54,6 +54,7 @@
       let selectedStyleId = "";
       let selectedTeacherFilterId = "";
       let showTeacherPicker = false;
+      let teacherSearchQuery = "";
       let studentCatalogMode = "all";
       let currentStyles = [];
       let currentStudentTeachers = [];
@@ -285,6 +286,7 @@
 
       function toggleTeacherPicker() {
         showTeacherPicker = !showTeacherPicker;
+        if (!showTeacherPicker) teacherSearchQuery = "";
         renderStudentScreen().catch((error) => {
           studentScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
@@ -292,6 +294,7 @@
 
       function closeTeacherPicker() {
         showTeacherPicker = false;
+        teacherSearchQuery = "";
         renderStudentScreen().catch((error) => {
           studentScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
@@ -300,6 +303,7 @@
       function selectTeacherFilter(teacherId) {
         selectedTeacherFilterId = String(teacherId || "");
         showTeacherPicker = false;
+        teacherSearchQuery = "";
         renderStudentScreen().catch((error) => {
           studentScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
@@ -309,6 +313,14 @@
         if (event && typeof event.stopPropagation === "function") event.stopPropagation();
         selectedTeacherFilterId = "";
         showTeacherPicker = false;
+        teacherSearchQuery = "";
+        renderStudentScreen().catch((error) => {
+          studentScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
+        });
+      }
+
+      function setTeacherSearchQuery(value) {
+        teacherSearchQuery = String(value || "");
         renderStudentScreen().catch((error) => {
           studentScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
@@ -332,12 +344,25 @@
       function renderTeacherPicker(teachers) {
         if (!showTeacherPicker) return "";
         const selectedId = String(selectedTeacherFilterId || "");
+        const query = teacherSearchQuery.trim().toLowerCase();
+        const filteredTeachers = query
+          ? teachers.filter((teacher) => String(teacher?.name || "").toLowerCase().includes(query))
+          : teachers;
         return `
           <div class="teacher-picker-overlay" onclick="closeTeacherPicker()">
             <div class="teacher-picker" onclick="event.stopPropagation()">
               <div class="teacher-picker-head">
                 <h3>Выберите преподавателя</h3>
                 <button class="secondary teacher-picker-close" onclick="closeTeacherPicker()">×</button>
+              </div>
+              <div class="teacher-picker-search-wrap">
+                <input
+                  class="teacher-picker-search"
+                  type="text"
+                  placeholder="Поиск по имени"
+                  value="${escapeHtml(teacherSearchQuery)}"
+                  oninput="setTeacherSearchQuery(this.value)"
+                />
               </div>
               <button class="teacher-picker-item" onclick="clearTeacherFilter()">
                 <span class="teacher-picker-avatar">👥</span>
@@ -346,7 +371,8 @@
                 </span>
                 <span class="teacher-picker-radio ${!selectedId ? "selected" : ""}"></span>
               </button>
-              ${teachers
+              ${filteredTeachers.length
+                ? filteredTeachers
                 .map(
                   (teacher) => `
                     <button class="teacher-picker-item" onclick="selectTeacherFilter(${teacher.id})">
@@ -359,7 +385,8 @@
                     </button>
                   `
                 )
-                .join("")}
+                .join("")
+                : `<div class="teacher-picker-empty muted">Ничего не найдено</div>`}
             </div>
           </div>
         `;
@@ -508,6 +535,7 @@
       window.closeTeacherPicker = closeTeacherPicker;
       window.selectTeacherFilter = selectTeacherFilter;
       window.clearTeacherFilter = clearTeacherFilter;
+      window.setTeacherSearchQuery = setTeacherSearchQuery;
       window.openProfileMenu = openProfileMenu;
       window.openStudentScreen = openStudentScreen;
       window.openMySubscriptions = openMySubscriptions;
