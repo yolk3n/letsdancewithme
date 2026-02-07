@@ -7,12 +7,29 @@ function getProfileDisplayName() {
   return S.userDefaultName || "Пользователь";
 }
 
-function getProfileRank(coursesCount, directionsCount) {
-  if (coursesCount >= 15 && directionsCount >= 3) return "Гранд-магистр танцпола";
-  if (coursesCount >= 10 && directionsCount >= 3) return "Коллекционер ритмов";
-  if (coursesCount >= 6 && directionsCount >= 2) return "Охотник за связками";
-  if (coursesCount >= 3) return "Подающий надежды вихрь";
-  return "Разминка чемпиона";
+function getCourseRankTitle(coursesCount) {
+  const count = Math.max(0, Number(coursesCount) || 0);
+  if (count >= 13) return "Мегазвезда";
+  if (count >= 12) return "Икона";
+  if (count >= 11) return "Легенда";
+  if (count >= 10) return "Наставник";
+  if (count >= 9) return "Преподаватель";
+  if (count >= 8) return "Мастер";
+  if (count >= 7) return "Артист";
+  if (count >= 5) return "Импровизатор";
+  if (count >= 4) return "Танцор";
+  if (count >= 3) return "Практик";
+  if (count >= 2) return "Ученик";
+  return "Новичок";
+}
+
+function getDirectionRankPrefix(directionName) {
+  const raw = String(directionName || "").trim();
+  return raw || "Универсал";
+}
+
+function getProfileRank(topDirection, coursesCount) {
+  return `${getDirectionRankPrefix(topDirection)} ${getCourseRankTitle(coursesCount)}`.trim();
 }
 
 function getProfileTagline(directionName, directionsCount) {
@@ -77,7 +94,7 @@ async function loadProfileStats() {
   }
 
   const directionsCount = directionCounter.size;
-  const rank = getProfileRank(purchasedCount, directionsCount);
+  const rank = getProfileRank(topDirection, purchasedCount);
   const tagline = getProfileTagline(topDirection, directionsCount);
 
   return {
