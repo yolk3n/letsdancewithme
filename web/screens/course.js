@@ -133,6 +133,12 @@ async function openCourse(courseId) {
                     <span class="course-hero-meta-value course-hero-author-name">${escapeHtml(teacherFullName)}</span>
                   </div>
                 </div>
+                <div class="course-hero-meta-card course-hero-meta-card-price">
+                  <div class="course-hero-meta-copy right">
+                    ${course.is_purchased ? `<span class="course-purchased-badge">Курс куплен</span>` : ""}
+                    <span class="course-hero-meta-value course-hero-price-value">${escapeHtml(priceLead)}</span>
+                  </div>
+                </div>
               </div>
 
               <h2 class="course-hero-title">${escapeHtml(course?.title || "Курс")}</h2>
@@ -141,9 +147,6 @@ async function openCourse(courseId) {
                 <span class="course-stat-pill">${escapeHtml(directionLabel)}</span>
                 <span class="course-stat-pill">${escapeHtml(levelLabel)}</span>
                 <span class="course-stat-pill">${totalLessons} ${pluralizeRu(totalLessons, ["урок", "урока", "уроков"])}</span>
-              </div>
-
-              <div class="course-hero-bottom">
                 <div class="course-progress-ring" title="${safeProgress}%">
                   <svg viewBox="0 0 44 44" aria-hidden="true">
                     <circle class="course-progress-ring-bg" cx="22" cy="22" r="${progressRadius}"></circle>
@@ -156,10 +159,6 @@ async function openCourse(courseId) {
                     ></circle>
                   </svg>
                   <span>${safeProgress}%</span>
-                </div>
-                <div class="course-hero-price-row">
-                  ${course.is_purchased ? `<span class="course-purchased-badge">Курс куплен</span>` : ""}
-                  <span class="course-hero-meta-value course-hero-price-value">${escapeHtml(priceLead)}</span>
                 </div>
               </div>
             </section>
