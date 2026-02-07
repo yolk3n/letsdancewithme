@@ -1,4 +1,5 @@
 ﻿async function renderStudentScreen() {
+        if (typeof setUserHeaderVisible === "function") setUserHeaderVisible(true);
         studentScreen.classList.add("flat-list");
         selectedTeacherId = null;
         openedStudentCourseId = null;
@@ -82,6 +83,7 @@
       }
 
       async function loadCourses(teacherId) {
+        if (typeof setUserHeaderVisible === "function") setUserHeaderVisible(true);
         studentScreen.classList.remove("flat-list");
         selectedTeacherId = teacherId;
         openedStudentCourseId = null;

@@ -1,4 +1,5 @@
 ﻿function openLessonPage(courseId, lessonNumber) {
+        if (typeof setUserHeaderVisible === "function") setUserHeaderVisible(false);
         const lesson = currentCourseLessons.find((item) => Number(item.lesson_number) === Number(lessonNumber));
         const course = currentStudentCourses.find((item) => Number(item.id) === Number(courseId));
         if (!lesson) return;

@@ -1,4 +1,5 @@
 ﻿async function openCourse(courseId) {
+        if (typeof setUserHeaderVisible === "function") setUserHeaderVisible(false);
         studentScreen.classList.add("flat-list");
         selectedTeacherId = null;
         openedStudentCourseId = courseId;

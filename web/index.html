@@ -455,6 +455,7 @@
 
       function openProfileMenu() {
         selectedAppScreen = "profile";
+        setUserHeaderVisible(true);
         routeByRole().catch((error) => {
           profileScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
@@ -462,6 +463,7 @@
 
       function openStudentScreen() {
         selectedAppScreen = "student";
+        setUserHeaderVisible(true);
         routeByRole().catch((error) => {
           studentScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
@@ -469,6 +471,7 @@
 
       function openTeacherCabinet() {
         selectedAppScreen = "teacher";
+        setUserHeaderVisible(true);
         routeByRole().catch((error) => {
           teacherScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
@@ -476,9 +479,14 @@
 
       function openAdminPanel() {
         selectedAppScreen = "admin";
+        setUserHeaderVisible(true);
         routeByRole().catch((error) => {
           adminScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
+      }
+
+      function setUserHeaderVisible(visible) {
+        userBlock.classList.toggle("hidden", !visible);
       }
 
       function openSupport() {
@@ -514,6 +522,7 @@
       window.openTeacherCabinet = openTeacherCabinet;
       window.openAdminPanel = openAdminPanel;
       window.openSupport = openSupport;
+      window.setUserHeaderVisible = setUserHeaderVisible;
     </script>
   </body>
 </html>
