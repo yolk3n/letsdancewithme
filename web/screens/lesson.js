@@ -5,7 +5,9 @@
         if (!lesson) return;
         openedLessonNumber = lessonNumber;
 
-        const durationText = lesson.duration_sec ? `${Math.round(lesson.duration_sec / 60)} ${S.minutes}` : S.noDuration;
+        const durationText = lesson.duration_sec
+          ? `${Math.floor(lesson.duration_sec / 60)}:${String(lesson.duration_sec % 60).padStart(2, "0")}`
+          : "--:--";
         const previewHtml = lesson.preview_url
           ? `<p class="lesson-page-description"><a href="${escapeHtml(
               lesson.preview_url
@@ -14,37 +16,45 @@
         const hasNextLesson = currentCourseLessons.some((item) => Number(item.lesson_number) === Number(lesson.lesson_number) + 1);
 
         studentScreen.innerHTML = `
-          <div class="lesson-page-nav">
-            <button class="secondary hero-icon-btn" onclick="openCourse(${courseId})">←</button>
-            <div class="lesson-page-nav-title">Урок ${lesson.lesson_number}</div>
-            <span class="lesson-page-nav-dots">⋮</span>
-          </div>
-          <div class="lesson-media">
-            <div class="lesson-media-play">▶</div>
-          </div>
-          <div class="lesson-page-wrap">
-            <div class="lesson-page-card">
-              <div class="lesson-page-meta">
-                <span class="lesson-type-icon" title="${lesson.is_free ? S.free : S.paid}">${lesson.is_free ? "🆓" : "💳"}</span>
-                <span class="lesson-duration-pill">⏱ ${durationText}</span>
+          <div class="lesson-page">
+            <div class="lesson-media-hero">
+              <div class="lesson-page-nav">
+                <button class="secondary course-hero-icon-btn lesson-back-btn" onclick="openCourse(${courseId})" aria-label="Назад к курсу">&larr;</button>
               </div>
-              <h3>${escapeHtml(normalizeLessonTitle(lesson))}</h3>
-              <p class="lesson-page-description">${escapeHtml(lesson.description || "Описание будет добавлено позже.")}</p>
-              ${previewHtml}
-              <div class="lesson-materials">
-                <h4>Материалы</h4>
-                <div class="lesson-material-item">
-                  <span class="lesson-material-icon">♫</span>
-                  <span class="lesson-material-main"><b>Трек для тренировки.mp3</b><small>4.2 MB</small></span>
-                  <span class="lesson-material-download">⇩</span>
+              <button class="lesson-media-play" aria-label="Воспроизвести урок">&#9654;</button>
+            </div>
+            <div class="lesson-page-wrap">
+              <div class="lesson-page-card">
+                <div class="lesson-page-kicker">
+                  <span>LESSON ${lesson.lesson_number}</span>
+                  <span class="lesson-page-kicker-sep">&bull;</span>
+                  <span>${durationText}</span>
                 </div>
-                <div class="lesson-material-item">
-                  <span class="lesson-material-icon">📄</span>
-                  <span class="lesson-material-main"><b>Памятка по шагам.pdf</b><small>1.5 MB</small></span>
-                  <span class="lesson-material-download">⇩</span>
+                <h3>${escapeHtml(normalizeLessonTitle(lesson))}</h3>
+                <h4 class="lesson-section-title">Description</h4>
+                <p class="lesson-page-description">${escapeHtml(lesson.description || "Описание будет добавлено позже.")}</p>
+                ${previewHtml}
+
+                <div class="lesson-tip-card">
+                  <div class="lesson-tip-icon">i</div>
+                  <div class="lesson-tip-main">
+                    <div class="lesson-tip-title">Pro Tip</div>
+                    <div class="lesson-tip-text">Фокус на опоре и мягком переносе веса, чтобы движения были чище и стабильнее.</div>
+                  </div>
                 </div>
+
+                <div class="lesson-audio-card">
+                  <div class="lesson-audio-icon">MP3</div>
+                  <div class="lesson-audio-main">
+                    <div class="lesson-audio-name">Bachata Basic Rhythm.mp3</div>
+                    <div class="lesson-audio-meta">2:34</div>
+                  </div>
+                  <button class="lesson-audio-action" type="button" aria-label="Скачать mp3">&#8681;</button>
+                </div>
+
+                <button class="lesson-next-btn" onclick="doLesson(${courseId}, ${lesson.lesson_number})">${hasNextLesson ? "Следующий урок &rarr;" : "Завершить урок"}</button>
               </div>
-              <button class="lesson-next-btn" onclick="doLesson(${courseId}, ${lesson.lesson_number})">${hasNextLesson ? "Следующий урок →" : "Завершить урок"}</button>
+              <div class="lesson-page-course muted">${escapeHtml(course?.title || "Курс")}</div>
             </div>
           </div>
         `;
@@ -74,4 +84,3 @@ async function doLesson(courseId, lessonNumber) {
           if (openedLessonNumber) openLessonPage(openedStudentCourseId, openedLessonNumber);
         }
       }
-
