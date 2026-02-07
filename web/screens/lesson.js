@@ -37,7 +37,7 @@
                 <div class="lesson-page-kicker">
                   <span class="lesson-kicker-badge">${escapeHtml(S.lessonKicker)} ${lesson.lesson_number}</span>
                   <span class="lesson-kicker-badge">${durationText}</span>
-                  ${lesson.is_free ? `<span class="lesson-kicker-badge">FREE</span>` : ""}
+                  ${lesson.is_free ? `<span class="lesson-kicker-badge is-free">FREE</span>` : ""}
                 </div>
                 <h3>${escapeHtml(normalizeLessonTitle(lesson))}</h3>
                 <div class="lesson-description-block">

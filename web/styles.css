@@ -1424,6 +1424,10 @@
         background: #e5e7eb;
         color: #111827;
       }
+      .lesson-kicker-badge.is-free {
+        background: #dff4e5;
+        color: #1f7a36;
+      }
       .lesson-page.dir-salsa .lesson-kicker-badge,
       .lesson-page.dir-salsa .lesson-tip-card,
       .lesson-page.dir-salsa .lesson-audio-card {
