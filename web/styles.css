@@ -782,7 +782,7 @@
       .course-hero-meta {
         display: flex;
         align-items: stretch;
-        justify-content: space-between;
+        justify-content: flex-start;
         gap: 12px;
       }
       .course-hero-meta-card {
@@ -795,10 +795,6 @@
         background: transparent;
         border: 0;
         min-width: 0;
-      }
-      .course-hero-meta-card-price {
-        min-width: 120px;
-        justify-content: flex-end;
       }
       .course-hero-meta-card .course-author-avatar,
       .course-hero-meta-card .course-author-fallback {
@@ -841,7 +837,6 @@
         font-weight: 700;
       }
       .course-purchased-badge {
-        margin-top: 6px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -880,6 +875,20 @@
         align-items: center;
         gap: 8px;
         flex-wrap: wrap;
+        margin-bottom: 12px;
+      }
+      .course-hero-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .course-hero-price-row {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-left: auto;
       }
       .course-stat-pill {
         border-radius: 999px;
@@ -891,7 +900,7 @@
         background: rgba(255, 255, 255, 0.6);
       }
       .course-progress-ring {
-        margin-left: auto;
+        margin-left: 0;
         width: 44px;
         height: 44px;
         position: relative;
