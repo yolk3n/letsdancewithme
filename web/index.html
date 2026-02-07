@@ -352,10 +352,6 @@
           <div class="teacher-picker-overlay" onclick="closeTeacherPicker()">
             <div class="teacher-picker" onclick="event.stopPropagation()">
               <div class="teacher-picker-head">
-                <h3>Выберите преподавателя</h3>
-                <button class="secondary teacher-picker-close" onclick="closeTeacherPicker()">×</button>
-              </div>
-              <div class="teacher-picker-search-wrap">
                 <input
                   class="teacher-picker-search"
                   type="text"
@@ -363,14 +359,8 @@
                   value="${escapeHtml(teacherSearchQuery)}"
                   oninput="setTeacherSearchQuery(this.value)"
                 />
+                <button class="secondary teacher-picker-close" onclick="closeTeacherPicker()">×</button>
               </div>
-              <button class="teacher-picker-item" onclick="clearTeacherFilter()">
-                <span class="teacher-picker-avatar">👥</span>
-                <span class="teacher-picker-main">
-                  <span class="teacher-picker-name">Все преподаватели</span>
-                </span>
-                <span class="teacher-picker-radio ${!selectedId ? "selected" : ""}"></span>
-              </button>
               ${filteredTeachers.length
                 ? filteredTeachers
                 .map(

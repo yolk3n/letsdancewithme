@@ -9,6 +9,7 @@
         --chip-border: #e2e8f0;
         --chip-text: #45556c;
         --page-gutter: 24px;
+        --app-max-width: 399px;
         --card-radius-xl: 32px;
         --accent-pink: #101828;
         --accent-cyan: #101828;
@@ -289,22 +290,23 @@
         padding: 16px 14px 10px;
         display: grid;
         gap: 6px;
-        width: min(440px, calc(100vw - 24px));
+        width: min(
+          calc(var(--app-max-width) - (var(--page-gutter) * 2)),
+          calc(100vw - (var(--page-gutter) * 2))
+        );
         max-height: 70vh;
         overflow: auto;
       }
       .teacher-picker-head {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start;
         gap: 8px;
         margin-bottom: 4px;
       }
-      .teacher-picker-search-wrap {
-        margin: 0 0 8px;
-      }
       .teacher-picker-search {
         width: 100%;
+        flex: 1 1 auto;
         margin: 0;
         min-height: 40px;
         padding: 10px 14px;
@@ -323,14 +325,6 @@
       .teacher-picker-empty {
         padding: 8px 6px 10px;
         font-size: 13px;
-      }
-      .teacher-picker-head h3 {
-        margin: 0;
-        font-size: 28px;
-        line-height: 1;
-        letter-spacing: 0.01em;
-        font-family: var(--font-display);
-        font-weight: 400;
       }
       .teacher-picker-close {
         width: 34px;
@@ -390,8 +384,8 @@
         flex: 0 0 18px;
       }
       .teacher-picker-radio.selected {
-        border-color: #ff6f67;
-        background: radial-gradient(circle at center, #ff6f67 0 45%, transparent 48% 100%);
+        border-color: #101828;
+        background: radial-gradient(circle at center, #101828 0 45%, transparent 48% 100%);
       }
       .teacher-picker .teacher-filter-avatar,
       .teacher-picker .teacher-filter-fallback {
