@@ -135,9 +135,8 @@ async function openCourse(courseId) {
                 </div>
                 <div class="course-hero-meta-card course-hero-meta-card-price">
                   <div class="course-hero-meta-copy right">
-                    <span class="course-hero-meta-label">Цена</span>
-                    <span class="course-hero-meta-value course-hero-price-value">${escapeHtml(priceLead)}</span>
                     ${course.is_purchased ? `<span class="course-purchased-badge">Курс куплен</span>` : ""}
+                    <span class="course-hero-meta-value course-hero-price-value">${escapeHtml(priceLead)}</span>
                   </div>
                 </div>
               </div>
