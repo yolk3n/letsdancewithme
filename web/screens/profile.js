@@ -35,9 +35,7 @@
         const showTeacherScreen = selectedAppScreen === "teacher" && canUseTeacher;
         const showAdminScreen = selectedAppScreen === "admin" && canUseAdmin;
 
-        if (!currentUser.is_onboarded && !(showTeacherScreen || showAdminScreen)) {
-          onboardingCard.classList.remove("hidden");
-        }
+        // Onboarding is temporarily disabled: always route directly to app screens.
 
         if (showAdminScreen) {
           adminScreen.classList.remove("hidden");
