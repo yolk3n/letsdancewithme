@@ -365,8 +365,9 @@
       .studio-header-card {
         background: #eef2f6;
         border: 0;
-        border-radius: 0 0 28px 28px;
-        padding: 14px var(--page-gutter) 14px;
+        margin: 0 var(--page-gutter);
+        border-radius: 0 0 42px 42px;
+        padding: 16px 20px 16px;
         box-shadow: none;
       }
       .studio-top-row {
@@ -1072,7 +1073,8 @@
       }
       .teacher-card:hover { transform: translateY(-1px); filter: brightness(1.01); }
       .teacher-card:active { transform: translateY(0); }
-      #studentScreen.flat-list {
+      #studentScreen.flat-list,
+      #teacherScreen.studio-flat {
         background: #fff;
         border: 0;
         box-shadow: none;
@@ -1080,6 +1082,7 @@
         margin: 0;
         border-radius: 0;
         overflow-x: hidden;
+        animation: none;
       }
       .teacher-card-head {
         display: flex;

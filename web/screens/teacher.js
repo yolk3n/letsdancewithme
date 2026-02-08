@@ -217,6 +217,7 @@ function studioBuildEditCourse(course, lessons, editingLesson) {
 async function renderTeacherScreen() {
   if (typeof setUserHeaderVisible === "function") setUserHeaderVisible(true);
   teacherScreen.classList.remove("flat-list");
+  teacherScreen.classList.add("studio-flat");
   teacherScreen.innerHTML = renderCenteredLoader(S.loading);
 
   const [profile, courses, teachers] = await Promise.all([
