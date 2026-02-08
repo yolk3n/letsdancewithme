@@ -447,8 +447,8 @@
         gap: 4px;
         padding: 4px;
         border-radius: 999px;
-        background: #ced6df;
-        border: 1px solid #b5c0cc;
+        background: rgba(255, 255, 255, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.15);
       }
       .studio-tabs button {
         width: auto;
@@ -492,6 +492,14 @@
         font-size: 13px;
         line-height: 1;
         text-align: center;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .studio-edit-icon {
+        width: 14px;
+        height: 14px;
+        display: block;
       }
       .studio-about-editor {
         margin-top: 4px;
@@ -528,6 +536,7 @@
         border: 1px solid var(--chip-border);
         background: #ffffff;
         color: #111827;
+        text-align: left;
       }
       .studio-about-counter {
         font-size: 11px;

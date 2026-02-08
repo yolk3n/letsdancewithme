@@ -319,7 +319,9 @@ async function renderTeacherScreen() {
                       placeholder="О себе"
                       readonly
                     />
-                    <button class="secondary studio-about-edit-btn" onclick="teacherStudioStartAboutEdit()" aria-label="Редактировать о себе" title="Редактировать о себе">✎</button>
+                    <button id="studioAboutEditBtn" class="secondary studio-about-edit-btn" onclick="teacherStudioStartAboutEdit()" aria-label="Редактировать о себе" title="Редактировать о себе">
+                      <img src="/assets/edit.svg" alt="" class="studio-edit-icon" aria-hidden="true" />
+                    </button>
                   </div>
                   <span class="studio-about-counter hidden" id="studioAboutCounter">${Math.min(
                     STUDIO_ABOUT_MAX_LEN,
@@ -387,10 +389,12 @@ function teacherStudioStartAboutEdit() {
   const input = document.getElementById("studioAboutInput");
   const counter = document.getElementById("studioAboutCounter");
   const wrap = document.getElementById("studioAboutWrap");
-  if (!input || !counter || !wrap) return;
+  const editBtn = document.getElementById("studioAboutEditBtn");
+  if (!input || !counter || !wrap || !editBtn) return;
   input.readOnly = false;
   input.classList.add("is-editing");
   wrap.classList.add("is-editing");
+  editBtn.classList.add("hidden");
   counter.classList.remove("hidden");
   input.focus();
   const len = input.value.length;
@@ -401,10 +405,12 @@ function teacherStudioFinishAboutEdit() {
   const input = document.getElementById("studioAboutInput");
   const counter = document.getElementById("studioAboutCounter");
   const wrap = document.getElementById("studioAboutWrap");
-  if (!input || !counter || !wrap) return;
+  const editBtn = document.getElementById("studioAboutEditBtn");
+  if (!input || !counter || !wrap || !editBtn) return;
   input.readOnly = true;
   input.classList.remove("is-editing");
   wrap.classList.remove("is-editing");
+  editBtn.classList.remove("hidden");
   counter.classList.add("hidden");
 }
 
