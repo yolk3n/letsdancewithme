@@ -217,9 +217,21 @@ function studioBuildCoursesList(courses) {
                         <img src="/assets/edit.svg" alt="" class="studio-edit-icon" aria-hidden="true" />
                       </button>
 
-                      <div class="studio-my-course-sales">
-                        <span>${Number(course.sales_count || 0)} продаж</span>
-                        <span>${studioFormatMoney(course.sales_revenue || 0)}</span>
+                      <div class="studio-my-course-bottom">
+                        <div class="studio-my-course-metrics">
+                          <div class="studio-my-course-metric">
+                            <span>Продаж</span>
+                            <strong>${Number(course.sales_count || 0)}</strong>
+                          </div>
+                          <div class="studio-my-course-metric">
+                            <span>Доход</span>
+                            <strong>${studioFormatMoney(course.sales_revenue || 0)}</strong>
+                          </div>
+                        </div>
+                        <div class="studio-my-course-price">
+                          <span>Цена</span>
+                          <strong>${studioFormatMoney(course.price || 0)}</strong>
+                        </div>
                       </div>
                     </article>
                   `
