@@ -675,10 +675,28 @@ app.get(
     }
     const result = await db.query(
       `
-        SELECT id, teacher_id, title, description, price, is_published, level
-        FROM courses
-        WHERE teacher_id = $1
-        ORDER BY id
+        SELECT
+          c.id,
+          c.teacher_id,
+          c.title,
+          c.description,
+          c.price,
+          c.is_published,
+          c.level,
+          COALESCE(s.sales_count, 0)::int AS sales_count,
+          COALESCE(s.sales_revenue, 0)::numeric(12,2) AS sales_revenue
+        FROM courses c
+        LEFT JOIN (
+          SELECT
+            cp.course_id,
+            COUNT(*) AS sales_count,
+            COALESCE(SUM(cp.amount), 0) AS sales_revenue
+          FROM course_purchases cp
+          WHERE cp.status = 'paid'
+          GROUP BY cp.course_id
+        ) s ON s.course_id = c.id
+        WHERE c.teacher_id = $1
+        ORDER BY c.id DESC
       `,
       [teacher.id]
     );

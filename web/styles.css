@@ -522,6 +522,7 @@
         font-size: 14px;
         line-height: 1.35;
         text-align: center;
+        box-sizing: border-box;
       }
       .inline-edit-input::placeholder,
       .studio-about-input::placeholder {
@@ -533,7 +534,8 @@
         cursor: text;
       }
       .inline-edit-field.is-editing .inline-edit-input {
-        padding-right: 52px;
+        min-width: 220px;
+        padding-right: 64px;
       }
       .studio-profile-sub-wrap.is-editing .studio-about-input,
       .studio-about-input.is-editing {
@@ -766,6 +768,76 @@
       .studio-courses-compact-list {
         display: grid;
         gap: 8px;
+      }
+      .studio-courses-home {
+        display: grid;
+        gap: 14px;
+      }
+      .studio-create-course-full {
+        width: 100%;
+        margin: 0;
+        min-height: 52px;
+        border-radius: 14px;
+        text-align: center;
+        font-weight: 700;
+        color: #111827;
+        background: #ffffff;
+        border: 1px solid #d5dde6;
+        box-shadow: none;
+      }
+      .studio-my-courses-grid {
+        display: grid;
+        gap: 16px;
+      }
+      .studio-my-course-card {
+        position: relative;
+        min-height: 190px;
+        padding-bottom: 18px;
+      }
+      .studio-my-course-edit {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 46px;
+        min-width: 46px;
+        height: 46px;
+        margin: 0;
+        padding: 0;
+        border-radius: 50%;
+        border: 0;
+        background: rgba(255, 255, 255, 0.92);
+        color: #111827;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08), 0 4px 12px rgba(16, 24, 40, 0.06);
+      }
+      .studio-my-course-edit:hover,
+      .studio-my-course-edit:active {
+        transform: translate(-50%, -50%);
+      }
+      .studio-my-course-sales {
+        position: absolute;
+        right: 20px;
+        bottom: 16px;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 3px;
+      }
+      .studio-my-course-sales span:first-child {
+        font-size: 12px;
+        line-height: 1.2;
+        color: rgba(16, 24, 40, 0.72);
+        font-weight: 700;
+      }
+      .studio-my-course-sales span:last-child {
+        font-size: 20px;
+        line-height: 1;
+        color: var(--title-color, #111827);
+        font-weight: 800;
+        letter-spacing: -0.02em;
       }
       .studio-course-row {
         margin: 0;

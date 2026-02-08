@@ -193,26 +193,35 @@ function studioBuildCreateCourseForm() {
 
 function studioBuildCoursesList(courses) {
   return `
-    <section class="studio-panel">
-      <div class="studio-curriculum-head">
-        <h3>Мои курсы</h3>
-        <button class="secondary studio-add-lesson-btn" onclick="teacherStudioToggleCreateCourse()">
-          ${teacherStudioCreateCourseOpen ? "Закрыть" : "+ Курс"}
-        </button>
-      </div>
-      <div class="studio-courses-compact-list">
+    <section class="studio-courses-home">
+      <button class="secondary studio-create-course-full" onclick="teacherStudioOpenCreate()">
+        + Создать новый курс
+      </button>
+      <div class="studio-my-courses-grid">
         ${
           courses.length
             ? courses
                 .map(
                   (course) => `
-                    <button class="studio-course-row" onclick="teacherStudioEditCourse(${course.id})">
-                      <span class="studio-course-row-main">
-                        <span class="studio-course-row-title">${escapeHtml(course.title || "Курс")}</span>
-                        <span class="studio-course-row-sub muted">${studioLevelLabel(course.level)} • ${course.is_published ? "Опубликован" : "Скрыт"}</span>
-                      </span>
-                      <span class="studio-course-row-price">${studioFormatMoney(course.price)}</span>
-                    </button>
+                    <article class="course-card catalog-course-card studio-my-course-card dir-${studioDirectionClass(course)}">
+                      <div class="course-head">
+                        <div class="course-card-title">${escapeHtml(course.title || "Курс")}</div>
+                        <div class="course-head-side">
+                          <span class="course-level-badge ${escapeHtml(course.level || "beginner")}">${escapeHtml(
+                            studioLevelLabel(course.level)
+                          )}</span>
+                        </div>
+                      </div>
+
+                      <button class="secondary studio-my-course-edit" onclick="teacherStudioEditCourse(${course.id})" aria-label="Редактировать курс" title="Редактировать курс">
+                        <img src="/assets/edit.svg" alt="" class="studio-edit-icon" aria-hidden="true" />
+                      </button>
+
+                      <div class="studio-my-course-sales">
+                        <span>${Number(course.sales_count || 0)} продаж</span>
+                        <span>${studioFormatMoney(course.sales_revenue || 0)}</span>
+                      </div>
+                    </article>
                   `
                 )
                 .join("")
