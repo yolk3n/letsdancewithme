@@ -310,23 +310,25 @@ async function renderTeacherScreen() {
                 ${avatar}
                 <div class="studio-profile-copy">
                   <div class="studio-profile-name">${escapeHtml(profile.name || "Преподаватель")}</div>
-                  <div class="studio-profile-sub-wrap" id="studioAboutWrap">
-                    <input
-                      id="studioAboutInput"
-                      class="studio-about-input"
-                      maxlength="${STUDIO_ABOUT_MAX_LEN}"
-                      value="${escapeHtml(aboutRaw)}"
-                      placeholder="О себе"
-                      readonly
-                    />
+                  <div class="studio-profile-sub-wrap inline-edit-row" id="studioAboutWrap">
+                    <div class="inline-edit-field" id="studioAboutField">
+                      <input
+                        id="studioAboutInput"
+                        class="studio-about-input inline-edit-input"
+                        maxlength="${STUDIO_ABOUT_MAX_LEN}"
+                        value="${escapeHtml(aboutRaw)}"
+                        placeholder="О себе"
+                        readonly
+                      />
+                      <span class="studio-about-counter inline-edit-counter hidden" id="studioAboutCounter">${Math.min(
+                        STUDIO_ABOUT_MAX_LEN,
+                        aboutRaw.length
+                      )}/${STUDIO_ABOUT_MAX_LEN}</span>
+                    </div>
                     <button id="studioAboutEditBtn" class="secondary studio-about-edit-btn" onclick="teacherStudioStartAboutEdit()" aria-label="Редактировать о себе" title="Редактировать о себе">
                       <img src="/assets/edit.svg" alt="" class="studio-edit-icon" aria-hidden="true" />
                     </button>
                   </div>
-                  <span class="studio-about-counter hidden" id="studioAboutCounter">${Math.min(
-                    STUDIO_ABOUT_MAX_LEN,
-                    aboutRaw.length
-                  )}/${STUDIO_ABOUT_MAX_LEN}</span>
                 </div>
               </div>
             `
@@ -360,7 +362,8 @@ function teacherStudioBindAboutInline() {
   const input = document.getElementById("studioAboutInput");
   const counter = document.getElementById("studioAboutCounter");
   const wrap = document.getElementById("studioAboutWrap");
-  if (!input || !counter || !wrap) return;
+  const field = document.getElementById("studioAboutField");
+  if (!input || !counter || !wrap || !field) return;
 
   input.dataset.initial = String(teacherStudioAboutValue || "");
   counter.textContent = `${Math.min(STUDIO_ABOUT_MAX_LEN, input.value.length)}/${STUDIO_ABOUT_MAX_LEN}`;
@@ -390,10 +393,12 @@ function teacherStudioStartAboutEdit() {
   const counter = document.getElementById("studioAboutCounter");
   const wrap = document.getElementById("studioAboutWrap");
   const editBtn = document.getElementById("studioAboutEditBtn");
-  if (!input || !counter || !wrap || !editBtn) return;
+  const field = document.getElementById("studioAboutField");
+  if (!input || !counter || !wrap || !editBtn || !field) return;
   input.readOnly = false;
   input.classList.add("is-editing");
   wrap.classList.add("is-editing");
+  field.classList.add("is-editing");
   editBtn.classList.add("hidden");
   counter.classList.remove("hidden");
   input.focus();
@@ -406,10 +411,12 @@ function teacherStudioFinishAboutEdit() {
   const counter = document.getElementById("studioAboutCounter");
   const wrap = document.getElementById("studioAboutWrap");
   const editBtn = document.getElementById("studioAboutEditBtn");
-  if (!input || !counter || !wrap || !editBtn) return;
+  const field = document.getElementById("studioAboutField");
+  if (!input || !counter || !wrap || !editBtn || !field) return;
   input.readOnly = true;
   input.classList.remove("is-editing");
   wrap.classList.remove("is-editing");
+  field.classList.remove("is-editing");
   editBtn.classList.remove("hidden");
   counter.classList.add("hidden");
 }

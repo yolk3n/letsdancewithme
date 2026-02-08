@@ -471,6 +471,7 @@
         background: var(--nav-bg);
         box-shadow: none;
       }
+      .inline-edit-row,
       .studio-profile-sub-wrap {
         margin-top: 2px;
         display: inline-flex;
@@ -478,6 +479,12 @@
         justify-content: center;
         gap: 8px;
         min-height: 28px;
+      }
+      .inline-edit-field {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
       .studio-about-edit-btn {
         width: 28px;
@@ -501,13 +508,7 @@
         height: 14px;
         display: block;
       }
-      .studio-about-editor {
-        margin-top: 4px;
-        display: grid;
-        gap: 6px;
-        max-width: 260px;
-        justify-items: center;
-      }
+      .inline-edit-input,
       .studio-about-input {
         margin: 0;
         width: auto;
@@ -522,12 +523,17 @@
         line-height: 1.35;
         text-align: center;
       }
+      .inline-edit-input::placeholder,
       .studio-about-input::placeholder {
         color: #5f6b7a;
         opacity: 0.9;
       }
+      .inline-edit-input:read-only,
       .studio-about-input:read-only {
         cursor: text;
+      }
+      .inline-edit-field.is-editing .inline-edit-input {
+        padding-right: 52px;
       }
       .studio-profile-sub-wrap.is-editing .studio-about-input,
       .studio-about-input.is-editing {
@@ -538,9 +544,15 @@
         color: #111827;
         text-align: left;
       }
+      .inline-edit-counter,
       .studio-about-counter {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
         font-size: 11px;
         color: #6b7280;
+        pointer-events: none;
       }
       .studio-overview,
       .studio-body {
