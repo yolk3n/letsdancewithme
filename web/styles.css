@@ -467,8 +467,8 @@
         box-shadow: none;
       }
       .studio-tabs button.active {
-        color: #111827;
-        background: #bcc6d2;
+        color: #ffffff;
+        background: var(--nav-bg);
         box-shadow: none;
       }
       .studio-profile-sub-wrap {
@@ -502,31 +502,36 @@
       }
       .studio-about-input {
         margin: 0;
+        width: auto;
+        min-width: 120px;
+        min-height: 28px;
+        padding: 0;
+        border-radius: 999px;
+        border: 0;
+        background: transparent;
+        color: #5f6b7a;
+        font-size: 14px;
+        line-height: 1.35;
+        text-align: center;
+      }
+      .studio-about-input::placeholder {
+        color: #5f6b7a;
+        opacity: 0.9;
+      }
+      .studio-about-input:read-only {
+        cursor: text;
+      }
+      .studio-profile-sub-wrap.is-editing .studio-about-input,
+      .studio-about-input.is-editing {
         min-height: 34px;
         padding: 7px 12px;
-        border-radius: 999px;
         border: 1px solid var(--chip-border);
         background: #ffffff;
-        font-size: 14px;
-        line-height: 1.2;
+        color: #111827;
       }
       .studio-about-counter {
         font-size: 11px;
         color: #6b7280;
-      }
-      .studio-about-actions {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-      }
-      .studio-about-action {
-        width: auto;
-        min-height: 30px;
-        margin: 0;
-        padding: 6px 11px;
-        border-radius: 999px;
-        text-align: center;
       }
       .studio-overview,
       .studio-body {

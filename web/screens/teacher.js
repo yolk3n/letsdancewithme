@@ -3,9 +3,8 @@ let teacherStudioEditCourseId = null;
 let teacherStudioEditLessonId = null;
 let teacherStudioCreateCourseOpen = false;
 let teacherStudioLessonFormOpen = false;
-let teacherStudioAboutEditOpen = false;
-let teacherStudioAboutDraft = "";
 let teacherStudioAboutValue = "";
+let teacherStudioAboutSaving = false;
 const STUDIO_ABOUT_MAX_LEN = 25;
 
 function studioLevelLabel(level) {
@@ -265,9 +264,7 @@ async function renderTeacherScreen() {
   const viewMode = studioGetViewMode(Boolean(editCourse));
   const showProfileHeader = true;
   const aboutRaw = String(profile?.about_short || "").trim();
-  const aboutText = aboutRaw || "О себе не указано";
   teacherStudioAboutValue = aboutRaw;
-  const aboutDraftValue = teacherStudioAboutEditOpen ? teacherStudioAboutDraft : aboutRaw;
 
   let bodyContent = "";
   if (viewMode === "overview") {
@@ -313,34 +310,21 @@ async function renderTeacherScreen() {
                 ${avatar}
                 <div class="studio-profile-copy">
                   <div class="studio-profile-name">${escapeHtml(profile.name || "Преподаватель")}</div>
-                  ${
-                    teacherStudioAboutEditOpen
-                      ? `
-                        <div class="studio-about-editor">
-                          <input
-                            id="studioAboutInput"
-                            class="studio-about-input"
-                            maxlength="${STUDIO_ABOUT_MAX_LEN}"
-                            value="${escapeHtml(aboutDraftValue)}"
-                            placeholder="О себе"
-                          />
-                          <span class="studio-about-counter">${Math.min(
-                            STUDIO_ABOUT_MAX_LEN,
-                            aboutDraftValue.length
-                          )}/${STUDIO_ABOUT_MAX_LEN}</span>
-                          <div class="studio-about-actions">
-                            <button class="secondary studio-about-action" onclick="teacherStudioCancelAboutEdit()">Отмена</button>
-                            <button class="studio-about-action" onclick="teacherStudioSaveAbout()">Сохранить</button>
-                          </div>
-                        </div>
-                      `
-                      : `
-                        <div class="studio-profile-sub-wrap">
-                          <div class="studio-profile-sub">${escapeHtml(aboutText)}</div>
-                          <button class="secondary studio-about-edit-btn" onclick="teacherStudioStartAboutEdit()" aria-label="Редактировать о себе" title="Редактировать о себе">✎</button>
-                        </div>
-                      `
-                  }
+                  <div class="studio-profile-sub-wrap" id="studioAboutWrap">
+                    <input
+                      id="studioAboutInput"
+                      class="studio-about-input"
+                      maxlength="${STUDIO_ABOUT_MAX_LEN}"
+                      value="${escapeHtml(aboutRaw)}"
+                      placeholder="О себе"
+                      readonly
+                    />
+                    <button class="secondary studio-about-edit-btn" onclick="teacherStudioStartAboutEdit()" aria-label="Редактировать о себе" title="Редактировать о себе">✎</button>
+                  </div>
+                  <span class="studio-about-counter hidden" id="studioAboutCounter">${Math.min(
+                    STUDIO_ABOUT_MAX_LEN,
+                    aboutRaw.length
+                  )}/${STUDIO_ABOUT_MAX_LEN}</span>
                 </div>
               </div>
             `
@@ -356,6 +340,7 @@ async function renderTeacherScreen() {
       ${bodyContent}
     </div>
   `;
+  teacherStudioBindAboutInline();
 }
 
 async function teacherStudioSetTab(tab) {
@@ -369,34 +354,89 @@ async function teacherStudioSetTab(tab) {
   await renderTeacherScreen();
 }
 
-function teacherStudioStartAboutEdit() {
-  teacherStudioAboutEditOpen = true;
-  teacherStudioAboutDraft = String(teacherStudioAboutValue || "").slice(0, STUDIO_ABOUT_MAX_LEN);
-  renderTeacherScreen();
-}
-
-function teacherStudioCancelAboutEdit() {
-  teacherStudioAboutEditOpen = false;
-  teacherStudioAboutDraft = "";
-  renderTeacherScreen();
-}
-
-async function teacherStudioSaveAbout() {
+function teacherStudioBindAboutInline() {
   const input = document.getElementById("studioAboutInput");
-  const value = String(input?.value || "").trim();
+  const counter = document.getElementById("studioAboutCounter");
+  const wrap = document.getElementById("studioAboutWrap");
+  if (!input || !counter || !wrap) return;
+
+  input.dataset.initial = String(teacherStudioAboutValue || "");
+  counter.textContent = `${Math.min(STUDIO_ABOUT_MAX_LEN, input.value.length)}/${STUDIO_ABOUT_MAX_LEN}`;
+
+  input.oninput = () => {
+    counter.textContent = `${Math.min(STUDIO_ABOUT_MAX_LEN, input.value.length)}/${STUDIO_ABOUT_MAX_LEN}`;
+  };
+  input.onkeydown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      input.blur();
+      return;
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      input.value = input.dataset.initial || "";
+      teacherStudioFinishAboutEdit();
+    }
+  };
+  input.onblur = () => {
+    teacherStudioSaveAboutInline();
+  };
+}
+
+function teacherStudioStartAboutEdit() {
+  const input = document.getElementById("studioAboutInput");
+  const counter = document.getElementById("studioAboutCounter");
+  const wrap = document.getElementById("studioAboutWrap");
+  if (!input || !counter || !wrap) return;
+  input.readOnly = false;
+  input.classList.add("is-editing");
+  wrap.classList.add("is-editing");
+  counter.classList.remove("hidden");
+  input.focus();
+  const len = input.value.length;
+  input.setSelectionRange(len, len);
+}
+
+function teacherStudioFinishAboutEdit() {
+  const input = document.getElementById("studioAboutInput");
+  const counter = document.getElementById("studioAboutCounter");
+  const wrap = document.getElementById("studioAboutWrap");
+  if (!input || !counter || !wrap) return;
+  input.readOnly = true;
+  input.classList.remove("is-editing");
+  wrap.classList.remove("is-editing");
+  counter.classList.add("hidden");
+}
+
+async function teacherStudioSaveAboutInline() {
+  const input = document.getElementById("studioAboutInput");
+  if (!input || teacherStudioAboutSaving) return;
+  const value = String(input.value || "").trim();
+  const initial = String(input.dataset.initial || "");
   if (value.length > STUDIO_ABOUT_MAX_LEN) {
-    return tg.showAlert(`Поле "О себе" не должно превышать ${STUDIO_ABOUT_MAX_LEN} символов`);
+    tg.showAlert(`Поле "О себе" не должно превышать ${STUDIO_ABOUT_MAX_LEN} символов`);
+    return;
+  }
+  if (value === initial) {
+    teacherStudioFinishAboutEdit();
+    return;
   }
 
-  await apiFetch("/api/teacher/profile", {
-    method: "PUT",
-    body: JSON.stringify({ aboutShort: value }),
-  });
-
-  teacherStudioAboutEditOpen = false;
-  teacherStudioAboutDraft = "";
-  tg.showAlert("О себе обновлено");
-  await renderTeacherScreen();
+  teacherStudioAboutSaving = true;
+  try {
+    await apiFetch("/api/teacher/profile", {
+      method: "PUT",
+      body: JSON.stringify({ aboutShort: value }),
+    });
+    teacherStudioAboutValue = value;
+    input.dataset.initial = value;
+  } catch (error) {
+    tg.showAlert(escapeHtml(error?.message || S.initError));
+    input.value = initial;
+  } finally {
+    teacherStudioAboutSaving = false;
+    teacherStudioFinishAboutEdit();
+  }
 }
 
 async function teacherStudioOpenCreate() {
@@ -561,8 +601,6 @@ window.teacherStudioSetTab = teacherStudioSetTab;
 window.teacherStudioOpenCreate = teacherStudioOpenCreate;
 window.teacherStudioToggleCreateCourse = teacherStudioToggleCreateCourse;
 window.teacherStudioStartAboutEdit = teacherStudioStartAboutEdit;
-window.teacherStudioCancelAboutEdit = teacherStudioCancelAboutEdit;
-window.teacherStudioSaveAbout = teacherStudioSaveAbout;
 window.teacherStudioCancelCreate = teacherStudioCancelCreate;
 window.teacherStudioEditCourse = teacherStudioEditCourse;
 window.teacherStudioCloseEditCourse = teacherStudioCloseEditCourse;
