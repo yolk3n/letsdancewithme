@@ -1,27 +1,27 @@
-﻿let teacherStudioTab = "courses";
+﻿let teacherStudioTab = "overview";
 let teacherStudioEditCourseId = null;
 let teacherStudioEditLessonId = null;
 let teacherStudioCreateCourseOpen = false;
 let teacherStudioLessonFormOpen = false;
 
 function studioLevelLabel(level) {
-  if (level === "advanced") return "Р СџРЎР‚Р С•Р Т‘Р Р†Р С‘Р Р…РЎС“РЎвЂљРЎвЂ№Р в„–";
-  if (level === "professional") return "Р СџРЎР‚Р С•РЎвЂћР ВµРЎРѓРЎРѓР С‘Р С•Р Р…Р В°Р В»";
-  return "Р СњР С•Р Р†Р С‘РЎвЂЎР С•Р С”";
+  if (level === "advanced") return "Продвинутый";
+  if (level === "professional") return "Профессионал";
+  return "Новичок";
 }
 
 function studioDirectionClass(course) {
   const styles = Array.isArray(course?.styles) ? course.styles.map((item) => String(item?.name || "")) : [];
   const haystack = `${styles.join(" ")} ${String(course?.title || "")}`.toLowerCase();
-  if (haystack.includes("salsa") || haystack.includes("РЎРѓР В°Р В»РЎРЉРЎРѓ")) return "salsa";
-  if (haystack.includes("bachata") || haystack.includes("Р В±Р В°РЎвЂЎР В°РЎвЂљ")) return "bachata";
-  if (haystack.includes("kizomba") || haystack.includes("Р С”Р С‘Р В·Р С•Р СР В±")) return "kizomba";
+  if (haystack.includes("salsa") || haystack.includes("сальса")) return "salsa";
+  if (haystack.includes("bachata") || haystack.includes("бачата")) return "bachata";
+  if (haystack.includes("kizomba") || haystack.includes("кизомба")) return "kizomba";
   return "salsa";
 }
 
 function studioFormatMoney(value) {
   const num = Number(value || 0);
-  return `РІвЂљР… ${new Intl.NumberFormat("ru-RU").format(Math.round(num))}`;
+  return `₽ ${new Intl.NumberFormat("ru-RU").format(Math.round(num))}`;
 }
 
 function studioInitials(name) {
@@ -49,15 +49,15 @@ function studioBuildOverview(courses, studentsCount) {
       <div class="studio-overview-inline">
         <div class="studio-overview-item">
           <span class="studio-overview-value">${studioFormatMoney(earnings)}</span>
-          <span class="studio-overview-label">Р вЂќР С•РЎвЂ¦Р С•Р Т‘</span>
+          <span class="studio-overview-label">Доход</span>
         </div>
         <div class="studio-overview-item">
           <span class="studio-overview-value">${Number(studentsCount || 0)}</span>
-          <span class="studio-overview-label">Р РЋРЎвЂљРЎС“Р Т‘Р ВµР Р…РЎвЂљРЎвЂ№</span>
+          <span class="studio-overview-label">Студенты</span>
         </div>
         <div class="studio-overview-item">
           <span class="studio-overview-value">${coursesCount}</span>
-          <span class="studio-overview-label">Р С™РЎС“РЎР‚РЎРѓРЎвЂ№</span>
+          <span class="studio-overview-label">Курсы</span>
         </div>
       </div>
     </section>
@@ -67,15 +67,15 @@ function studioBuildOverview(courses, studentsCount) {
 function studioBuildCreateCourseForm() {
   return `
     <section class="studio-panel" id="studioCreateCourseCard">
-      <h3>Р СњР С•Р Р†РЎвЂ№Р в„– Р С”РЎС“РЎР‚РЎРѓ</h3>
+      <h3>Новый курс</h3>
       <input id="studioCreateCourseTitle" placeholder="${S.courseNamePh}" />
       <input id="studioCreateCourseDescription" placeholder="${S.courseDescriptionPh}" />
       <div class="row">
         <input id="studioCreateCoursePrice" type="number" min="199" placeholder="${S.coursePricePh}" />
         <select id="studioCreateCourseLevel">
-          <option value="beginner">Р СњР С•Р Р†Р С‘РЎвЂЎР С•Р С”</option>
-          <option value="advanced">Р СџРЎР‚Р С•Р Т‘Р Р†Р С‘Р Р…РЎС“РЎвЂљРЎвЂ№Р в„–</option>
-          <option value="professional">Р СџРЎР‚Р С•РЎвЂћР ВµРЎРѓРЎРѓР С‘Р С•Р Р…Р В°Р В»</option>
+          <option value="beginner">Новичок</option>
+          <option value="advanced">Продвинутый</option>
+          <option value="professional">Профессионал</option>
         </select>
       </div>
       <div class="row">
@@ -93,9 +93,9 @@ function studioBuildCoursesList(courses) {
   return `
     <section class="studio-panel">
       <div class="studio-curriculum-head">
-        <h3>Р СљР С•Р С‘ Р С”РЎС“РЎР‚РЎРѓРЎвЂ№</h3>
+        <h3>Мои курсы</h3>
         <button class="secondary studio-add-lesson-btn" onclick="teacherStudioToggleCreateCourse()">
-          ${teacherStudioCreateCourseOpen ? "Р вЂ”Р В°Р С”РЎР‚РЎвЂ№РЎвЂљРЎРЉ" : "+ Р С™РЎС“РЎР‚РЎРѓ"}
+          ${teacherStudioCreateCourseOpen ? "Закрыть" : "+ Курс"}
         </button>
       </div>
       <div class="studio-courses-compact-list">
@@ -106,15 +106,15 @@ function studioBuildCoursesList(courses) {
                   (course) => `
                     <button class="studio-course-row" onclick="teacherStudioEditCourse(${course.id})">
                       <span class="studio-course-row-main">
-                        <span class="studio-course-row-title">${escapeHtml(course.title || "Р С™РЎС“РЎР‚РЎРѓ")}</span>
-                        <span class="studio-course-row-sub muted">${studioLevelLabel(course.level)} РІР‚Сћ ${course.is_published ? "Р С›Р С—РЎС“Р В±Р В»Р С‘Р С”Р С•Р Р†Р В°Р Р…" : "Р РЋР С”РЎР‚РЎвЂ№РЎвЂљ"}</span>
+                        <span class="studio-course-row-title">${escapeHtml(course.title || "Курс")}</span>
+                        <span class="studio-course-row-sub muted">${studioLevelLabel(course.level)} • ${course.is_published ? "Опубликован" : "Скрыт"}</span>
                       </span>
                       <span class="studio-course-row-price">${studioFormatMoney(course.price)}</span>
                     </button>
                   `
                 )
                 .join("")
-            : `<div class="studio-empty muted">Р С™РЎС“РЎР‚РЎРѓР С•Р Р† Р С—Р С•Р С”Р В° Р Р…Р ВµРЎвЂљ</div>`
+            : `<div class="studio-empty muted">Курсов пока нет</div>`
         }
       </div>
     </section>
@@ -132,12 +132,12 @@ function studioBuildLessonForm(courseId, editingLesson) {
       <input id="studioLessonPreviewUrl" placeholder="${S.lessonPreviewPh}" value="${editingLesson ? escapeHtml(editingLesson.preview_url || "") : ""}" />
       <textarea id="studioLessonDescription" placeholder="${S.lessonDescriptionPh}">${editingLesson ? escapeHtml(editingLesson.description || "") : ""}</textarea>
 
-      <input id="studioLessonTipText" placeholder="Р СћР ВµР С”РЎРѓРЎвЂљ Р С—Р С•Р Т‘РЎРѓР С”Р В°Р В·Р С”Р С‘" value="${editingLesson ? escapeHtml(editingLesson.tip_text || "") : ""}" />
+      <input id="studioLessonTipText" placeholder="Текст подсказки" value="${editingLesson ? escapeHtml(editingLesson.tip_text || "") : ""}" />
       <div class="row">
-        <input id="studioLessonAudioTitle" placeholder="Р СњР В°Р В·Р Р†Р В°Р Р…Р С‘Р Вµ mp3" value="${editingLesson ? escapeHtml(editingLesson.audio_title || "") : ""}" />
-        <input id="studioLessonAudioDuration" type="number" min="1" placeholder="Р вЂќР В»Р С‘РЎвЂљР ВµР В»РЎРЉР Р…Р С•РЎРѓРЎвЂљРЎРЉ mp3 (РЎРѓР ВµР С”)" value="${editingLesson ? Number(editingLesson.audio_duration_sec || "") : ""}" />
+        <input id="studioLessonAudioTitle" placeholder="Название mp3" value="${editingLesson ? escapeHtml(editingLesson.audio_title || "") : ""}" />
+        <input id="studioLessonAudioDuration" type="number" min="1" placeholder="Длительность mp3 (сек)" value="${editingLesson ? Number(editingLesson.audio_duration_sec || "") : ""}" />
       </div>
-      <input id="studioLessonAudioUrl" placeholder="Р РЋРЎРѓРЎвЂ№Р В»Р С”Р В° Р Р…Р В° mp3" value="${editingLesson ? escapeHtml(editingLesson.audio_url || "") : ""}" />
+      <input id="studioLessonAudioUrl" placeholder="Ссылка на mp3" value="${editingLesson ? escapeHtml(editingLesson.audio_url || "") : ""}" />
 
       <select id="studioLessonIsFree">
         <option value="true" ${editingLesson?.is_free ? "selected" : ""}>${S.lessonFree}</option>
@@ -146,7 +146,7 @@ function studioBuildLessonForm(courseId, editingLesson) {
 
       <div class="studio-lesson-actions">
         <button onclick="teacherStudioSaveLesson(${courseId})">${editingLesson ? S.updateLesson : S.saveLesson}</button>
-        <button class="secondary" onclick="teacherStudioResetLessonEdit()">Р С›РЎвЂљР СР ВµР Р…Р В°</button>
+        <button class="secondary" onclick="teacherStudioResetLessonEdit()">Отмена</button>
       </div>
     </div>
   `;
@@ -156,20 +156,20 @@ function studioBuildEditCourse(course, lessons, editingLesson) {
   return `
     <section class="studio-edit-course">
       <div class="studio-edit-head">
-        <button class="secondary studio-back-btn" onclick="teacherStudioCloseEditCourse()">РІвЂ С’ Р СњР В°Р В·Р В°Р Т‘</button>
-        <h3>Р В Р ВµР Т‘Р В°Р С”РЎвЂљР С‘РЎР‚Р С•Р Р†Р В°Р Р…Р С‘Р Вµ Р С”РЎС“РЎР‚РЎРѓР В°</h3>
+        <button class="secondary studio-back-btn" onclick="teacherStudioCloseEditCourse()">← Назад</button>
+        <h3>Редактирование курса</h3>
       </div>
 
       <section class="studio-panel">
-        <small class="studio-section-kicker">BASIC INFORMATION</small>
+        <small class="studio-section-kicker">ОСНОВНОЕ</small>
         <input id="studioEditCourseTitle" value="${escapeHtml(course.title || "")}" placeholder="${S.courseNamePh}" />
         <input id="studioEditCourseDescription" value="${escapeHtml(course.description || "")}" placeholder="${S.courseDescriptionPh}" />
         <div class="row">
           <input id="studioEditCoursePrice" type="number" min="199" value="${Number(course.price || 0)}" placeholder="${S.coursePricePh}" />
           <select id="studioEditCourseLevel">
-            <option value="beginner" ${course.level === "beginner" ? "selected" : ""}>Р СњР С•Р Р†Р С‘РЎвЂЎР С•Р С”</option>
-            <option value="advanced" ${course.level === "advanced" ? "selected" : ""}>Р СџРЎР‚Р С•Р Т‘Р Р†Р С‘Р Р…РЎС“РЎвЂљРЎвЂ№Р в„–</option>
-            <option value="professional" ${course.level === "professional" ? "selected" : ""}>Р СџРЎР‚Р С•РЎвЂћР ВµРЎРѓРЎРѓР С‘Р С•Р Р…Р В°Р В»</option>
+            <option value="beginner" ${course.level === "beginner" ? "selected" : ""}>Новичок</option>
+            <option value="advanced" ${course.level === "advanced" ? "selected" : ""}>Продвинутый</option>
+            <option value="professional" ${course.level === "professional" ? "selected" : ""}>Профессионал</option>
           </select>
         </div>
         <div class="row">
@@ -178,14 +178,14 @@ function studioBuildEditCourse(course, lessons, editingLesson) {
             <option value="false" ${!course.is_published ? "selected" : ""}>${S.hidden}</option>
           </select>
         </div>
-        <button onclick="teacherStudioSaveCourse(${course.id})">Р РЋР С•РЎвЂ¦РЎР‚Р В°Р Р…Р С‘РЎвЂљРЎРЉ Р С”РЎС“РЎР‚РЎРѓ</button>
+        <button onclick="teacherStudioSaveCourse(${course.id})">Сохранить курс</button>
       </section>
 
       <section class="studio-panel">
         <div class="studio-curriculum-head">
-          <small class="studio-section-kicker">CURRICULUM</small>
+          <small class="studio-section-kicker">ПРОГРАММА</small>
           <button class="secondary studio-add-lesson-btn" onclick="teacherStudioOpenLessonCreate()">
-            ${teacherStudioLessonFormOpen ? "Р вЂ”Р В°Р С”РЎР‚РЎвЂ№РЎвЂљРЎРЉ" : "+ Р Р€РЎР‚Р С•Р С”"}
+            ${teacherStudioLessonFormOpen ? "Закрыть" : "+ Урок"}
           </button>
         </div>
 
@@ -197,14 +197,14 @@ function studioBuildEditCourse(course, lessons, editingLesson) {
                     (lesson) => `
                       <button class="studio-lesson-row" onclick="teacherStudioStartLessonEdit(${lesson.id})">
                         <span class="studio-lesson-row-main">
-                          <span class="studio-lesson-row-title">${escapeHtml(lesson.title || `Р Р€РЎР‚Р С•Р С” ${lesson.lesson_number}`)}</span>
-                          <span class="studio-lesson-row-sub muted">${studioFormatDuration(lesson.duration_sec)} РІР‚Сћ ${lesson.is_free ? "free" : "paid"}</span>
+                          <span class="studio-lesson-row-title">${escapeHtml(lesson.title || `Урок ${lesson.lesson_number}`)}</span>
+                          <span class="studio-lesson-row-sub muted">${studioFormatDuration(lesson.duration_sec)} • ${lesson.is_free ? "free" : "paid"}</span>
                         </span>
                       </button>
                     `
                   )
                   .join("")
-              : `<div class="studio-empty muted">Р Р€РЎР‚Р С•Р С”Р С•Р Р† Р С—Р С•Р С”Р В° Р Р…Р ВµРЎвЂљ</div>`
+              : `<div class="studio-empty muted">Уроков пока нет</div>`
           }
         </div>
 
@@ -322,6 +322,7 @@ async function renderTeacherScreen() {
     </div>
   `;
 }
+
 async function teacherStudioSetTab(tab) {
   teacherStudioTab = tab === "courses" ? "courses" : "overview";
   teacherStudioCreateCourseOpen = false;
@@ -426,7 +427,7 @@ async function teacherStudioSaveCourse(courseId) {
     }),
   });
 
-  tg.showAlert("Р С™РЎС“РЎР‚РЎРѓ Р С•Р В±Р Р…Р С•Р Р†Р В»РЎвЂР Р…");
+  tg.showAlert("Курс обновлен");
   await renderTeacherScreen();
 }
 
@@ -503,4 +504,3 @@ window.teacherStudioStartLessonEdit = teacherStudioStartLessonEdit;
 window.teacherStudioOpenLessonCreate = teacherStudioOpenLessonCreate;
 window.teacherStudioResetLessonEdit = teacherStudioResetLessonEdit;
 window.teacherStudioSaveLesson = teacherStudioSaveLesson;
-
