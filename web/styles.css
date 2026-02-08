@@ -369,12 +369,24 @@
         border-radius: 0 0 42px 42px;
         padding: 16px 20px 16px;
         box-shadow: none;
+        text-align: center;
       }
       .studio-top-row {
-        display: grid;
-        grid-template-columns: auto 1fr;
+        position: relative;
+        display: flex;
         align-items: center;
-        gap: 10px;
+        justify-content: center;
+        min-height: 40px;
+      }
+      .studio-top-row .course-hero-icon-btn {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+      .studio-top-row .course-hero-icon-btn:hover,
+      .studio-top-row .course-hero-icon-btn:active {
+        transform: translateY(-50%);
       }
       .studio-top-row h2 {
         margin: 0;
@@ -388,7 +400,9 @@
         margin-top: 14px;
         display: flex;
         align-items: center;
-        gap: 12px;
+        justify-content: center;
+        gap: 10px;
+        flex-direction: column;
       }
       .studio-avatar,
       .studio-avatar-fallback {
@@ -416,6 +430,10 @@
         font-weight: 700;
         color: #111827;
       }
+      .studio-profile-copy {
+        display: grid;
+        justify-items: center;
+      }
       .studio-profile-sub {
         margin-top: 0;
         color: #5f6b7a;
@@ -424,8 +442,13 @@
       }
       .studio-tabs {
         margin-top: 14px;
-        display: flex;
-        gap: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px;
+        border-radius: 999px;
+        background: #ced6df;
+        border: 1px solid #b5c0cc;
       }
       .studio-tabs button {
         width: auto;
@@ -434,9 +457,9 @@
         min-height: 38px;
         padding: 8px 16px;
         border-radius: 999px;
-        border: 1.15738px solid var(--chip-border);
-        background: #ffffff;
-        color: var(--chip-text);
+        border: 0;
+        background: transparent;
+        color: #4b5565;
         font-size: 14px;
         line-height: 20px;
         font-family: var(--font-display);
@@ -444,15 +467,15 @@
         box-shadow: none;
       }
       .studio-tabs button.active {
-        color: #fff;
-        border-color: var(--nav-bg);
-        background: var(--nav-bg);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        color: #111827;
+        background: #bcc6d2;
+        box-shadow: none;
       }
       .studio-profile-sub-wrap {
         margin-top: 2px;
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 8px;
         min-height: 28px;
       }
@@ -475,6 +498,7 @@
         display: grid;
         gap: 6px;
         max-width: 260px;
+        justify-items: center;
       }
       .studio-about-input {
         margin: 0;
@@ -493,6 +517,7 @@
       .studio-about-actions {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 6px;
       }
       .studio-about-action {
