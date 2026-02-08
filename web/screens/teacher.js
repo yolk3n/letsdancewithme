@@ -6,6 +6,9 @@ let teacherStudioLessonFormOpen = false;
 let teacherStudioAboutValue = "";
 let teacherStudioAboutSaving = false;
 let teacherStudioSalesChart = null;
+let teacherStudioCourseDraft = null;
+let teacherStudioDirectionOptions = [];
+let teacherStudioLevelMenuOpen = false;
 const STUDIO_ABOUT_MAX_LEN = 25;
 
 function studioLevelLabel(level) {
@@ -21,6 +24,72 @@ function studioDirectionClass(course) {
   if (haystack.includes("bachata") || haystack.includes("бачата")) return "bachata";
   if (haystack.includes("kizomba") || haystack.includes("кизомба")) return "kizomba";
   return "salsa";
+}
+
+function studioDirectionLabel(directionKey) {
+  if (directionKey === "bachata") return "Бачата";
+  if (directionKey === "kizomba") return "Кизомба";
+  return "Сальса";
+}
+
+function studioResolveDirectionOptions(styles = []) {
+  const bySlug = new Map(
+    (Array.isArray(styles) ? styles : [])
+      .map((item) => ({ id: Number(item?.id), slug: String(item?.slug || "").toLowerCase(), name: String(item?.name || "") }))
+      .filter((item) => Number.isInteger(item.id) && item.slug)
+      .map((item) => [item.slug, item])
+  );
+
+  const fallback = [
+    { key: "salsa", slug: "salsa", label: "Сальса" },
+    { key: "bachata", slug: "bachata", label: "Бачата" },
+    { key: "kizomba", slug: "kizomba", label: "Кизомба" },
+  ];
+
+  return fallback.map((item) => ({
+    ...item,
+    id: bySlug.get(item.slug)?.id || null,
+  }));
+}
+
+function studioDetectDirectionFromCourse(course) {
+  const styles = Array.isArray(course?.styles) ? course.styles : [];
+  for (const style of styles) {
+    const slug = String(style?.slug || "").toLowerCase();
+    if (slug === "salsa" || slug === "bachata" || slug === "kizomba") return slug;
+  }
+  return studioDirectionClass(course);
+}
+
+function studioBuildCourseDraft(baseCourse = null) {
+  const directionKey = baseCourse ? studioDetectDirectionFromCourse(baseCourse) : "salsa";
+  const selectedDirection = teacherStudioDirectionOptions.find((item) => item.key === directionKey) || teacherStudioDirectionOptions[0] || null;
+  return {
+    courseId: baseCourse ? Number(baseCourse.id) : null,
+    title: String(baseCourse?.title || "").trim(),
+    description: String(baseCourse?.description || "").trim(),
+    price: Number(baseCourse?.price || 199),
+    level: String(baseCourse?.level || "beginner"),
+    isPublished: baseCourse ? Boolean(baseCourse.is_published) : true,
+    directionKey: selectedDirection?.key || "salsa",
+    styleId: selectedDirection?.id || null,
+  };
+}
+
+function studioSyncDraftFromDom() {
+  if (!teacherStudioCourseDraft) return;
+  const title = document.getElementById("studioDraftTitle");
+  const price = document.getElementById("studioDraftPrice");
+  const description = document.getElementById("studioDraftDescription");
+  const published = document.getElementById("studioDraftPublished");
+
+  if (title) teacherStudioCourseDraft.title = String(title.value || "").trim();
+  if (price) {
+    const val = Number(price.value || 0);
+    if (Number.isFinite(val)) teacherStudioCourseDraft.price = val;
+  }
+  if (description) teacherStudioCourseDraft.description = String(description.value || "").trim();
+  if (published) teacherStudioCourseDraft.isPublished = String(published.value || "true") === "true";
 }
 
 function studioFormatMoney(value) {
@@ -164,6 +233,133 @@ function studioRenderSalesChart(salesDynamics = null) {
       },
     },
   });
+}
+
+function studioBuildEditorDirectionTabs() {
+  return `
+    <div class="studio-editor-directions" role="tablist" aria-label="Направления курса">
+      ${teacherStudioDirectionOptions
+        .map(
+          (option) => `
+            <button
+              class="${teacherStudioCourseDraft?.directionKey === option.key ? "active" : ""}"
+              onclick="teacherStudioSetDirection('${option.key}')"
+            >${option.label}</button>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function studioBuildLevelDropdown() {
+  const current = String(teacherStudioCourseDraft?.level || "beginner");
+  const levels = [
+    { key: "beginner", label: "Новичок" },
+    { key: "advanced", label: "Продвинутый" },
+    { key: "professional", label: "Профессионал" },
+  ];
+
+  return `
+    <div class="studio-level-picker">
+      <button class="course-level-badge studio-level-badge-btn ${current}" onclick="teacherStudioToggleLevelMenu()">
+        ${studioLevelLabel(current)} <span class="studio-level-caret">▾</span>
+      </button>
+      ${
+        teacherStudioLevelMenuOpen
+          ? `
+            <div class="studio-level-menu">
+              ${levels
+                .map(
+                  (level) => `
+                    <button class="${current === level.key ? "active" : ""}" onclick="teacherStudioSetLevel('${level.key}')">${level.label}</button>
+                  `
+                )
+                .join("")}
+            </div>
+          `
+          : ""
+      }
+    </div>
+  `;
+}
+
+function studioBuildCourseEditorPage(isCreate, course, lessons, editingLesson) {
+  const directionKey = teacherStudioCourseDraft?.directionKey || "salsa";
+  const draftTitle = teacherStudioCourseDraft?.title || "";
+  const draftPrice = Number(teacherStudioCourseDraft?.price || 199);
+  const draftDescription = teacherStudioCourseDraft?.description || "";
+  const draftPublished = Boolean(teacherStudioCourseDraft?.isPublished);
+
+  return `
+    <section class="studio-body studio-course-editor-page">
+      <div class="studio-edit-head">
+        <button class="secondary studio-back-btn" onclick="${isCreate ? "teacherStudioCancelCreate()" : "teacherStudioCloseEditCourse()"}">← Назад</button>
+        <h3>${isCreate ? "Новый курс" : "Редактирование курса"}</h3>
+      </div>
+
+      ${studioBuildEditorDirectionTabs()}
+
+      <article class="course-card catalog-course-card studio-editor-preview-card dir-${directionKey}">
+        <div class="course-head">
+          <input id="studioDraftTitle" class="studio-editor-inline-title" value="${escapeHtml(draftTitle)}" placeholder="Название курса" />
+          <div class="course-head-side">
+            ${studioBuildLevelDropdown()}
+          </div>
+        </div>
+        <div class="studio-editor-price-line">
+          <span>Цена</span>
+          <input id="studioDraftPrice" class="studio-editor-inline-price" type="number" min="199" value="${Number.isFinite(draftPrice) ? draftPrice : 199}" />
+        </div>
+      </article>
+
+      <section class="studio-panel studio-editor-meta-panel">
+        <textarea id="studioDraftDescription" placeholder="${S.courseDescriptionPh}">${escapeHtml(draftDescription)}</textarea>
+        <select id="studioDraftPublished">
+          <option value="true" ${draftPublished ? "selected" : ""}>${S.published}</option>
+          <option value="false" ${!draftPublished ? "selected" : ""}>${S.hidden}</option>
+        </select>
+        <button onclick="${isCreate ? "teacherStudioCreateCourse()" : `teacherStudioSaveCourse(${course.id})`}">
+          ${isCreate ? "Создать курс" : "Сохранить курс"}
+        </button>
+      </section>
+
+      ${
+        isCreate
+          ? ""
+          : `
+            <section class="studio-panel">
+              <div class="studio-curriculum-head">
+                <small class="studio-section-kicker">ПРОГРАММА</small>
+                <button class="secondary studio-add-lesson-btn" onclick="teacherStudioOpenLessonCreate()">
+                  ${teacherStudioLessonFormOpen ? "Закрыть" : "+ Урок"}
+                </button>
+              </div>
+
+              <div class="studio-lessons-list">
+                ${
+                  lessons.length
+                    ? lessons
+                        .map(
+                          (lesson) => `
+                            <button class="studio-lesson-row" onclick="teacherStudioStartLessonEdit(${lesson.id})">
+                              <span class="studio-lesson-row-main">
+                                <span class="studio-lesson-row-title">${escapeHtml(lesson.title || `Урок ${lesson.lesson_number}`)}</span>
+                                <span class="studio-lesson-row-sub muted">${studioFormatDuration(lesson.duration_sec)} • ${lesson.is_free ? "free" : "paid"}</span>
+                              </span>
+                            </button>
+                          `
+                        )
+                        .join("")
+                    : `<div class="studio-empty muted">Уроков пока нет</div>`
+                }
+              </div>
+              ${teacherStudioLessonFormOpen ? studioBuildLessonForm(course.id, editingLesson) : ""}
+            </section>
+          `
+      }
+    </section>
+  `;
 }
 
 function studioBuildCreateCourseForm() {
@@ -350,14 +546,16 @@ async function renderTeacherScreen() {
   teacherScreen.classList.add("studio-flat");
   teacherScreen.innerHTML = renderCenteredLoader(S.loading);
 
-  const [profile, courses, teachers, salesDynamics] = await Promise.all([
+  const [profile, courses, teachers, salesDynamics, styles] = await Promise.all([
     apiFetch("/api/teacher/profile"),
     apiFetch("/api/teacher/courses"),
     apiFetch("/api/teachers"),
     apiFetch("/api/teacher/sales-dynamics"),
+    apiFetch("/api/styles"),
   ]);
 
   currentTeacherCourses = courses;
+  teacherStudioDirectionOptions = studioResolveDirectionOptions(styles);
   const teacherPublicData = teachers.find((item) => Number(item.id) === Number(profile.id));
   const studentsCount = Number(teacherPublicData?.students_count || 0);
 
@@ -387,25 +585,35 @@ async function renderTeacherScreen() {
   const aboutRaw = String(profile?.about_short || "").trim();
   teacherStudioAboutValue = aboutRaw;
 
+  if (viewMode === "create-course") {
+    if (!teacherStudioCourseDraft || teacherStudioCourseDraft.courseId !== null) {
+      teacherStudioCourseDraft = studioBuildCourseDraft(null);
+    }
+  } else if (viewMode === "edit-course" && editCourse) {
+    if (!teacherStudioCourseDraft || Number(teacherStudioCourseDraft.courseId) !== Number(editCourse.id)) {
+      teacherStudioCourseDraft = studioBuildCourseDraft(editCourse);
+    }
+  } else {
+    teacherStudioCourseDraft = null;
+    teacherStudioLevelMenuOpen = false;
+  }
+
+  if (viewMode === "create-course" || viewMode === "edit-course") {
+    teacherScreen.innerHTML = `
+      <div class="studio-screen">
+        ${studioBuildCourseEditorPage(viewMode === "create-course", editCourse, lessons, editingLesson)}
+      </div>
+    `;
+    if (teacherStudioSalesChart && typeof teacherStudioSalesChart.destroy === "function") {
+      teacherStudioSalesChart.destroy();
+      teacherStudioSalesChart = null;
+    }
+    return;
+  }
+
   let bodyContent = "";
   if (viewMode === "overview") {
     bodyContent = studioBuildOverview(courses, studentsCount, salesDynamics);
-  } else if (viewMode === "edit-course") {
-    bodyContent = `
-      <section class="studio-body">
-        ${studioBuildEditCourse(editCourse, lessons, editingLesson)}
-      </section>
-    `;
-  } else if (viewMode === "create-course") {
-    bodyContent = `
-      <section class="studio-body">
-        <div class="studio-edit-head">
-          <button class="secondary studio-back-btn" onclick="teacherStudioCancelCreate()">← Назад</button>
-          <h3>Новый курс</h3>
-        </div>
-        ${studioBuildCreateCourseForm()}
-      </section>
-    `;
   } else {
     bodyContent = `
       <section class="studio-body">
@@ -483,6 +691,31 @@ async function teacherStudioSetTab(tab) {
     teacherStudioEditLessonId = null;
   }
   await renderTeacherScreen();
+}
+
+function teacherStudioSetDirection(directionKey) {
+  if (!teacherStudioCourseDraft) return;
+  studioSyncDraftFromDom();
+  const option = teacherStudioDirectionOptions.find((item) => item.key === directionKey);
+  if (!option) return;
+  teacherStudioCourseDraft.directionKey = option.key;
+  teacherStudioCourseDraft.styleId = option.id || null;
+  renderTeacherScreen();
+}
+
+function teacherStudioToggleLevelMenu() {
+  if (!teacherStudioCourseDraft) return;
+  studioSyncDraftFromDom();
+  teacherStudioLevelMenuOpen = !teacherStudioLevelMenuOpen;
+  renderTeacherScreen();
+}
+
+function teacherStudioSetLevel(level) {
+  if (!teacherStudioCourseDraft) return;
+  studioSyncDraftFromDom();
+  teacherStudioCourseDraft.level = String(level || "beginner");
+  teacherStudioLevelMenuOpen = false;
+  renderTeacherScreen();
 }
 
 function teacherStudioBindAboutInline() {
@@ -585,9 +818,9 @@ async function teacherStudioOpenCreate() {
   teacherStudioLessonFormOpen = false;
   teacherStudioEditCourseId = null;
   teacherStudioEditLessonId = null;
+  teacherStudioCourseDraft = null;
+  teacherStudioLevelMenuOpen = false;
   await renderTeacherScreen();
-  const node = document.getElementById("studioCreateCourseCard");
-  if (node) node.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 async function teacherStudioToggleCreateCourse() {
@@ -605,6 +838,8 @@ async function teacherStudioCancelCreate() {
   teacherStudioEditCourseId = null;
   teacherStudioEditLessonId = null;
   teacherStudioLessonFormOpen = false;
+  teacherStudioCourseDraft = null;
+  teacherStudioLevelMenuOpen = false;
   await renderTeacherScreen();
 }
 
@@ -614,6 +849,8 @@ async function teacherStudioEditCourse(courseId) {
   teacherStudioLessonFormOpen = false;
   teacherStudioEditCourseId = Number(courseId);
   teacherStudioEditLessonId = null;
+  teacherStudioCourseDraft = null;
+  teacherStudioLevelMenuOpen = false;
   await renderTeacherScreen();
 }
 
@@ -621,15 +858,19 @@ async function teacherStudioCloseEditCourse() {
   teacherStudioEditCourseId = null;
   teacherStudioEditLessonId = null;
   teacherStudioLessonFormOpen = false;
+  teacherStudioCourseDraft = null;
+  teacherStudioLevelMenuOpen = false;
   await renderTeacherScreen();
 }
 
 async function teacherStudioCreateCourse() {
-  const title = document.getElementById("studioCreateCourseTitle")?.value.trim();
-  const description = document.getElementById("studioCreateCourseDescription")?.value.trim() || "";
-  const price = Number(document.getElementById("studioCreateCoursePrice")?.value || 0);
-  const level = document.getElementById("studioCreateCourseLevel")?.value || "beginner";
-  const isPublished = (document.getElementById("studioCreateCoursePublished")?.value || "true") === "true";
+  studioSyncDraftFromDom();
+  const title = String(teacherStudioCourseDraft?.title || "").trim();
+  const description = String(teacherStudioCourseDraft?.description || "").trim();
+  const price = Number(teacherStudioCourseDraft?.price || 0);
+  const level = String(teacherStudioCourseDraft?.level || "beginner");
+  const isPublished = Boolean(teacherStudioCourseDraft?.isPublished);
+  const styleIds = teacherStudioCourseDraft?.styleId ? [Number(teacherStudioCourseDraft.styleId)] : [];
 
   if (!title) return tg.showAlert(S.needCourseName);
   if (!Number.isFinite(price) || price < 199) return tg.showAlert(S.minCoursePriceError);
@@ -642,21 +883,25 @@ async function teacherStudioCreateCourse() {
       price,
       level,
       isPublished,
-      styleIds: [],
+      styleIds,
     }),
   });
 
   tg.showAlert(S.courseCreated);
   teacherStudioCreateCourseOpen = false;
+  teacherStudioCourseDraft = null;
+  teacherStudioLevelMenuOpen = false;
   await renderTeacherScreen();
 }
 
 async function teacherStudioSaveCourse(courseId) {
-  const title = document.getElementById("studioEditCourseTitle")?.value.trim();
-  const description = document.getElementById("studioEditCourseDescription")?.value.trim() || "";
-  const price = Number(document.getElementById("studioEditCoursePrice")?.value || 0);
-  const level = document.getElementById("studioEditCourseLevel")?.value || "beginner";
-  const isPublished = (document.getElementById("studioEditCoursePublished")?.value || "true") === "true";
+  studioSyncDraftFromDom();
+  const title = String(teacherStudioCourseDraft?.title || "").trim();
+  const description = String(teacherStudioCourseDraft?.description || "").trim();
+  const price = Number(teacherStudioCourseDraft?.price || 0);
+  const level = String(teacherStudioCourseDraft?.level || "beginner");
+  const isPublished = Boolean(teacherStudioCourseDraft?.isPublished);
+  const styleIds = teacherStudioCourseDraft?.styleId ? [Number(teacherStudioCourseDraft.styleId)] : [];
 
   if (!title) return tg.showAlert(S.needCourseName);
   if (!Number.isFinite(price) || price < 199) return tg.showAlert(S.minCoursePriceError);
@@ -669,6 +914,7 @@ async function teacherStudioSaveCourse(courseId) {
       price,
       level,
       isPublished,
+      styleIds,
     }),
   });
 
@@ -738,6 +984,9 @@ async function teacherStudioSaveLesson(courseId) {
 }
 
 window.teacherStudioSetTab = teacherStudioSetTab;
+window.teacherStudioSetDirection = teacherStudioSetDirection;
+window.teacherStudioToggleLevelMenu = teacherStudioToggleLevelMenu;
+window.teacherStudioSetLevel = teacherStudioSetLevel;
 window.teacherStudioOpenCreate = teacherStudioOpenCreate;
 window.teacherStudioToggleCreateCourse = teacherStudioToggleCreateCourse;
 window.teacherStudioStartAboutEdit = teacherStudioStartAboutEdit;

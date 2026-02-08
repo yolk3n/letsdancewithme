@@ -675,6 +675,14 @@ app.get(
     }
     const result = await db.query(
       `
+        WITH style_agg AS (
+          SELECT
+            cs.course_id,
+            json_agg(json_build_object('id', ds.id, 'name', ds.name, 'slug', ds.slug) ORDER BY ds.name) AS styles
+          FROM course_styles cs
+          JOIN dance_styles ds ON ds.id = cs.style_id
+          GROUP BY cs.course_id
+        )
         SELECT
           c.id,
           c.teacher_id,
@@ -684,7 +692,8 @@ app.get(
           c.is_published,
           c.level,
           COALESCE(s.sales_count, 0)::int AS sales_count,
-          COALESCE(s.sales_revenue, 0)::numeric(12,2) AS sales_revenue
+          COALESCE(s.sales_revenue, 0)::numeric(12,2) AS sales_revenue,
+          COALESCE(sa.styles, '[]'::json) AS styles
         FROM courses c
         LEFT JOIN (
           SELECT
@@ -695,6 +704,7 @@ app.get(
           WHERE cp.status = 'paid'
           GROUP BY cp.course_id
         ) s ON s.course_id = c.id
+        LEFT JOIN style_agg sa ON sa.course_id = c.id
         WHERE c.teacher_id = $1
         ORDER BY c.id DESC
       `,
