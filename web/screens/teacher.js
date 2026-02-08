@@ -5,6 +5,7 @@ let teacherStudioCreateCourseOpen = false;
 let teacherStudioLessonFormOpen = false;
 let teacherStudioAboutValue = "";
 let teacherStudioAboutSaving = false;
+let teacherStudioSalesChart = null;
 const STUDIO_ABOUT_MAX_LEN = 25;
 
 function studioLevelLabel(level) {
@@ -42,10 +43,23 @@ function studioFormatDuration(sec) {
   return `${Math.floor(value / 60)}:${String(value % 60).padStart(2, "0")}`;
 }
 
-function studioBuildOverview(courses, studentsCount) {
+function studioBuildOverview(courses, studentsCount, salesDynamics = null) {
   const publishedCourses = courses.filter((c) => c.is_published);
   const earnings = publishedCourses.reduce((sum, item) => sum + Number(item.price || 0), 0);
   const coursesCount = courses.length;
+  const revenueByMonth = Array.from({ length: 12 }, (_, idx) => {
+    const month = idx + 1;
+    const found = Array.isArray(salesDynamics?.months)
+      ? salesDynamics.months.find((item) => Number(item.month) === month)
+      : null;
+    return Number(found?.revenue || 0);
+  });
+  const monthLabels = ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"];
+  const currentMonthIndex = Math.max(0, Math.min(11, Number(salesDynamics?.current_month || new Date().getMonth() + 1) - 1));
+  const currentValue = revenueByMonth[currentMonthIndex] || 0;
+  const prevValue = currentMonthIndex > 0 ? revenueByMonth[currentMonthIndex - 1] || 0 : 0;
+  const growth = prevValue > 0 ? ((currentValue - prevValue) / prevValue) * 100 : currentValue > 0 ? 100 : 0;
+  const growthText = `${growth >= 0 ? "+" : ""}${growth.toFixed(1)}%`;
 
   return `
     <section class="studio-overview">
@@ -63,8 +77,93 @@ function studioBuildOverview(courses, studentsCount) {
           <span class="studio-overview-label">Курсы</span>
         </div>
       </div>
+      <div class="studio-revenue-card">
+        <div class="studio-revenue-head">
+          <h3>Продажи</h3>
+          <span class="studio-revenue-badge ${growth >= 0 ? "positive" : "negative"}">${growthText}</span>
+        </div>
+        <div class="studio-revenue-canvas-wrap">
+          <canvas id="studioSalesChart" aria-label="Динамика продаж за текущий год"></canvas>
+        </div>
+        <div class="studio-revenue-axis">
+          ${monthLabels.map((label) => `<span>${label}</span>`).join("")}
+        </div>
+      </div>
     </section>
   `;
+}
+
+function studioRenderSalesChart(salesDynamics = null) {
+  const canvas = document.getElementById("studioSalesChart");
+  if (!canvas) return;
+
+  if (teacherStudioSalesChart && typeof teacherStudioSalesChart.destroy === "function") {
+    teacherStudioSalesChart.destroy();
+    teacherStudioSalesChart = null;
+  }
+  if (typeof window.Chart === "undefined") return;
+
+  const values = Array.from({ length: 12 }, (_, idx) => {
+    const month = idx + 1;
+    const found = Array.isArray(salesDynamics?.months)
+      ? salesDynamics.months.find((item) => Number(item.month) === month)
+      : null;
+    return Number(found?.revenue || 0);
+  });
+
+  const ctx = canvas.getContext("2d");
+  const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+  gradient.addColorStop(0, "rgba(79, 70, 229, 0.35)");
+  gradient.addColorStop(1, "rgba(79, 70, 229, 0.02)");
+
+  teacherStudioSalesChart = new window.Chart(ctx, {
+    type: "line",
+    data: {
+      labels: ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"],
+      datasets: [
+        {
+          data: values,
+          borderColor: "#4f46e5",
+          backgroundColor: gradient,
+          fill: true,
+          tension: 0.35,
+          borderWidth: 3,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          pointBackgroundColor: "#4f46e5",
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (context) => ` ${studioFormatMoney(context.raw || 0)}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { display: false },
+          border: { display: false },
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { display: false },
+          border: { display: false },
+          grid: {
+            color: "rgba(148, 163, 184, 0.2)",
+            drawTicks: false,
+          },
+        },
+      },
+    },
+  });
 }
 
 function studioBuildCreateCourseForm() {
@@ -230,10 +329,11 @@ async function renderTeacherScreen() {
   teacherScreen.classList.add("studio-flat");
   teacherScreen.innerHTML = renderCenteredLoader(S.loading);
 
-  const [profile, courses, teachers] = await Promise.all([
+  const [profile, courses, teachers, salesDynamics] = await Promise.all([
     apiFetch("/api/teacher/profile"),
     apiFetch("/api/teacher/courses"),
     apiFetch("/api/teachers"),
+    apiFetch("/api/teacher/sales-dynamics"),
   ]);
 
   currentTeacherCourses = courses;
@@ -268,7 +368,7 @@ async function renderTeacherScreen() {
 
   let bodyContent = "";
   if (viewMode === "overview") {
-    bodyContent = studioBuildOverview(courses, studentsCount);
+    bodyContent = studioBuildOverview(courses, studentsCount, salesDynamics);
   } else if (viewMode === "edit-course") {
     bodyContent = `
       <section class="studio-body">
@@ -345,6 +445,12 @@ async function renderTeacherScreen() {
     </div>
   `;
   teacherStudioBindAboutInline();
+  if (viewMode === "overview") {
+    studioRenderSalesChart(salesDynamics);
+  } else if (teacherStudioSalesChart && typeof teacherStudioSalesChart.destroy === "function") {
+    teacherStudioSalesChart.destroy();
+    teacherStudioSalesChart = null;
+  }
 }
 
 async function teacherStudioSetTab(tab) {

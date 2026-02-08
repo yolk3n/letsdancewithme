@@ -686,6 +686,53 @@ app.get(
   })
 );
 
+app.get(
+  "/api/teacher/sales-dynamics",
+  requireUser(),
+  requireRole("teacher", "admin"),
+  asyncRoute(async (req, res) => {
+    const teacher = await getTeacherProfileByUser(req.currentUser.telegram_id);
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+
+    if (!teacher) {
+      return res.json({
+        year: currentYear,
+        current_month: currentMonth,
+        months: Array.from({ length: 12 }, (_, idx) => ({ month: idx + 1, revenue: 0 })),
+      });
+    }
+
+    const result = await db.query(
+      `
+        SELECT
+          m.month_index::int AS month,
+          COALESCE(SUM(cp.amount), 0)::numeric(12,2) AS revenue
+        FROM generate_series(1, 12) AS m(month_index)
+        LEFT JOIN courses c
+          ON c.teacher_id = $1
+        LEFT JOIN course_purchases cp
+          ON cp.course_id = c.id
+          AND cp.status = 'paid'
+          AND EXTRACT(YEAR FROM cp.purchased_at) = $2
+          AND EXTRACT(MONTH FROM cp.purchased_at) = m.month_index
+        GROUP BY m.month_index
+        ORDER BY m.month_index
+      `,
+      [teacher.id, currentYear]
+    );
+
+    res.json({
+      year: currentYear,
+      current_month: currentMonth,
+      months: result.rows.map((row) => ({
+        month: Number(row.month),
+        revenue: Number(row.revenue || 0),
+      })),
+    });
+  })
+);
+
 app.post(
   "/api/teacher/courses",
   requireUser(),

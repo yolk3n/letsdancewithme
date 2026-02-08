@@ -538,7 +538,7 @@
       .studio-profile-sub-wrap.is-editing .studio-about-input,
       .studio-about-input.is-editing {
         min-height: 34px;
-        padding: 7px 12px;
+        padding: 7px 56px 7px 12px;
         border: 1px solid var(--chip-border);
         background: #ffffff;
         color: #111827;
@@ -588,7 +588,58 @@
         letter-spacing: 0.06em;
         text-transform: uppercase;
         color: #6b7280;
-      }      .studio-stats-grid {
+      }
+      .studio-revenue-card {
+        border-radius: 18px;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        padding: 14px 14px 10px;
+      }
+      .studio-revenue-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .studio-revenue-head h3 {
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.1;
+        font-weight: 700;
+        color: #111827;
+      }
+      .studio-revenue-badge {
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .studio-revenue-badge.positive {
+        color: #0f8a4a;
+        background: #dff5e8;
+      }
+      .studio-revenue-badge.negative {
+        color: #b42318;
+        background: #fee4e2;
+      }
+      .studio-revenue-canvas-wrap {
+        height: 190px;
+      }
+      .studio-revenue-axis {
+        margin-top: 8px;
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 4px;
+      }
+      .studio-revenue-axis span {
+        font-size: 11px;
+        line-height: 1;
+        color: #94a3b8;
+        text-align: center;
+      }
+      .studio-stats-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 10px;
