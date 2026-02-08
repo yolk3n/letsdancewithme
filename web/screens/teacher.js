@@ -3,6 +3,10 @@ let teacherStudioEditCourseId = null;
 let teacherStudioEditLessonId = null;
 let teacherStudioCreateCourseOpen = false;
 let teacherStudioLessonFormOpen = false;
+let teacherStudioAboutEditOpen = false;
+let teacherStudioAboutDraft = "";
+let teacherStudioAboutValue = "";
+const STUDIO_ABOUT_MAX_LEN = 25;
 
 function studioLevelLabel(level) {
   if (level === "advanced") return "Продвинутый";
@@ -260,6 +264,10 @@ async function renderTeacherScreen() {
 
   const viewMode = studioGetViewMode(Boolean(editCourse));
   const showProfileHeader = true;
+  const aboutRaw = String(profile?.about_short || "").trim();
+  const aboutText = aboutRaw || "О себе не указано";
+  teacherStudioAboutValue = aboutRaw;
+  const aboutDraftValue = teacherStudioAboutEditOpen ? teacherStudioAboutDraft : aboutRaw;
 
   let bodyContent = "";
   if (viewMode === "overview") {
@@ -305,7 +313,34 @@ async function renderTeacherScreen() {
                 ${avatar}
                 <div class="studio-profile-copy">
                   <div class="studio-profile-name">${escapeHtml(profile.name || "Преподаватель")}</div>
-                  <div class="studio-profile-sub">${escapeHtml(profile.about_short || "Dance Specialist")}</div>
+                  ${
+                    teacherStudioAboutEditOpen
+                      ? `
+                        <div class="studio-about-editor">
+                          <input
+                            id="studioAboutInput"
+                            class="studio-about-input"
+                            maxlength="${STUDIO_ABOUT_MAX_LEN}"
+                            value="${escapeHtml(aboutDraftValue)}"
+                            placeholder="О себе"
+                          />
+                          <span class="studio-about-counter">${Math.min(
+                            STUDIO_ABOUT_MAX_LEN,
+                            aboutDraftValue.length
+                          )}/${STUDIO_ABOUT_MAX_LEN}</span>
+                          <div class="studio-about-actions">
+                            <button class="secondary studio-about-action" onclick="teacherStudioCancelAboutEdit()">Отмена</button>
+                            <button class="studio-about-action" onclick="teacherStudioSaveAbout()">Сохранить</button>
+                          </div>
+                        </div>
+                      `
+                      : `
+                        <div class="studio-profile-sub-wrap">
+                          <div class="studio-profile-sub">${escapeHtml(aboutText)}</div>
+                          <button class="secondary studio-about-edit-btn" onclick="teacherStudioStartAboutEdit()" aria-label="Редактировать о себе" title="Редактировать о себе">✎</button>
+                        </div>
+                      `
+                  }
                 </div>
               </div>
             `
@@ -331,6 +366,36 @@ async function teacherStudioSetTab(tab) {
     teacherStudioEditCourseId = null;
     teacherStudioEditLessonId = null;
   }
+  await renderTeacherScreen();
+}
+
+function teacherStudioStartAboutEdit() {
+  teacherStudioAboutEditOpen = true;
+  teacherStudioAboutDraft = String(teacherStudioAboutValue || "").slice(0, STUDIO_ABOUT_MAX_LEN);
+  renderTeacherScreen();
+}
+
+function teacherStudioCancelAboutEdit() {
+  teacherStudioAboutEditOpen = false;
+  teacherStudioAboutDraft = "";
+  renderTeacherScreen();
+}
+
+async function teacherStudioSaveAbout() {
+  const input = document.getElementById("studioAboutInput");
+  const value = String(input?.value || "").trim();
+  if (value.length > STUDIO_ABOUT_MAX_LEN) {
+    return tg.showAlert(`Поле "О себе" не должно превышать ${STUDIO_ABOUT_MAX_LEN} символов`);
+  }
+
+  await apiFetch("/api/teacher/profile", {
+    method: "PUT",
+    body: JSON.stringify({ aboutShort: value }),
+  });
+
+  teacherStudioAboutEditOpen = false;
+  teacherStudioAboutDraft = "";
+  tg.showAlert("О себе обновлено");
   await renderTeacherScreen();
 }
 
@@ -495,6 +560,9 @@ async function teacherStudioSaveLesson(courseId) {
 window.teacherStudioSetTab = teacherStudioSetTab;
 window.teacherStudioOpenCreate = teacherStudioOpenCreate;
 window.teacherStudioToggleCreateCourse = teacherStudioToggleCreateCourse;
+window.teacherStudioStartAboutEdit = teacherStudioStartAboutEdit;
+window.teacherStudioCancelAboutEdit = teacherStudioCancelAboutEdit;
+window.teacherStudioSaveAbout = teacherStudioSaveAbout;
 window.teacherStudioCancelCreate = teacherStudioCancelCreate;
 window.teacherStudioEditCourse = teacherStudioEditCourse;
 window.teacherStudioCloseEditCourse = teacherStudioCloseEditCourse;

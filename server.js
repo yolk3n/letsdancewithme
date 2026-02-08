@@ -636,6 +636,9 @@ app.put(
   asyncRoute(async (req, res) => {
     const teacher = await ensureTeacherProfile(req.currentUser.telegram_id);
     const { name, description, aboutShort, avatarUrl } = req.body;
+    if (typeof aboutShort === "string" && aboutShort.trim().length > 25) {
+      return res.status(400).json({ error: "aboutShort must be at most 25 characters" });
+    }
 
     const result = await db.query(
       `
