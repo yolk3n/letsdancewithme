@@ -66,25 +66,47 @@ function asCourseLevel(value, fallback = "beginner") {
   return COURSE_LEVELS.has(normalized) ? normalized : fallback;
 }
 
-async function getOrCreateTeacherProfile(telegramId) {
+async function getTeacherProfileByUser(telegramId) {
   const existing = await db.query(
-    "SELECT id, user_id, name, description, about_short, avatar_url FROM teachers WHERE user_id = $1",
+    `
+      SELECT
+        t.id,
+        t.user_id,
+        COALESCE(
+          NULLIF(TRIM(CONCAT_WS(' ', u.first_name, u.last_name)), ''),
+          CASE
+            WHEN NULLIF(TRIM(u.username), '') IS NOT NULL THEN '@' || TRIM(u.username)
+            ELSE NULL
+          END,
+          t.name
+        ) AS name,
+        t.description,
+        t.about_short,
+        COALESCE(NULLIF(TRIM(u.avatar_url), ''), t.avatar_url) AS avatar_url
+      FROM teachers t
+      LEFT JOIN users u ON u.telegram_id = t.user_id
+      WHERE t.user_id = $1
+      LIMIT 1
+    `,
     [telegramId]
   );
-  if (existing.rows[0]) {
-    return existing.rows[0];
-  }
+  return existing.rows[0] || null;
+}
 
-  const created = await db.query(
+async function ensureTeacherProfile(telegramId) {
+  const existing = await getTeacherProfileByUser(telegramId);
+  if (existing) return existing;
+
+  await db.query(
     `
       INSERT INTO teachers (user_id, name, description, about_short, avatar_url)
       VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, user_id, name, description, about_short, avatar_url
+      RETURNING id
     `,
-    [telegramId, `Teacher ${telegramId}`, "New teacher profile", null, null]
+    [telegramId, `Teacher ${telegramId}`, null, null, null]
   );
 
-  return created.rows[0];
+  return getTeacherProfileByUser(telegramId);
 }
 
 async function countFreeLessonsInCourse(courseId, excludeLessonId = null) {
@@ -236,20 +258,28 @@ app.get(
         )
         SELECT
           t.id,
-          t.name,
+          COALESCE(
+            NULLIF(TRIM(CONCAT_WS(' ', tu.first_name, tu.last_name)), ''),
+            CASE
+              WHEN NULLIF(TRIM(tu.username), '') IS NOT NULL THEN '@' || TRIM(tu.username)
+              ELSE NULL
+            END,
+            t.name
+          ) AS name,
           t.description,
           t.about_short,
-          t.avatar_url,
+          COALESCE(NULLIF(TRIM(tu.avatar_url), ''), t.avatar_url) AS avatar_url,
           COALESCE(pc.published_courses_count, 0) AS published_courses_count,
           COALESCE(ts.styles, '[]'::json) AS styles,
           COALESCE(st.students_count, 0) AS students_count,
           COALESCE(sp.student_avatars_preview, '[]'::json) AS student_avatars_preview
         FROM teachers t
+        LEFT JOIN users tu ON tu.telegram_id = t.user_id
         LEFT JOIN published_count pc ON pc.teacher_id = t.id
         LEFT JOIN teacher_styles ts ON ts.teacher_id = t.id
         LEFT JOIN teacher_students st ON st.teacher_id = t.id
         LEFT JOIN student_preview sp ON sp.teacher_id = t.id
-        ORDER BY COALESCE(pc.published_courses_count, 0) DESC, t.name ASC
+        ORDER BY COALESCE(pc.published_courses_count, 0) DESC, name ASC
       `
     );
     res.json(result.rows);
@@ -312,9 +342,16 @@ app.get(
         c.level,
         c.is_published,
         t.id AS teacher_id,
-        t.name AS teacher_name,
+        COALESCE(
+          NULLIF(TRIM(CONCAT_WS(' ', tu.first_name, tu.last_name)), ''),
+          CASE
+            WHEN NULLIF(TRIM(tu.username), '') IS NOT NULL THEN '@' || TRIM(tu.username)
+            ELSE NULL
+          END,
+          t.name
+        ) AS teacher_name,
         t.about_short AS teacher_about_short,
-        t.avatar_url AS teacher_avatar_url,
+        COALESCE(NULLIF(TRIM(tu.avatar_url), ''), t.avatar_url) AS teacher_avatar_url,
         CASE WHEN cp.telegram_id IS NULL THEN false ELSE true END AS is_purchased,
         COALESCE(lt.total_lessons, 0) AS total_lessons,
         COALESCE(lp.completed_lessons, 0) AS completed_lessons,
@@ -325,6 +362,7 @@ app.get(
         COALESCE(sa.styles, '[]'::json) AS styles
       FROM courses c
       JOIN teachers t ON t.id = c.teacher_id
+      LEFT JOIN users tu ON tu.telegram_id = t.user_id
       LEFT JOIN lesson_totals lt ON lt.course_id = c.id
       LEFT JOIN lesson_progress lp ON lp.course_id = c.id
       LEFT JOIN course_purchases cp
@@ -406,9 +444,16 @@ app.get(
         c.level,
         c.is_published,
         t.id AS teacher_id,
-        t.name AS teacher_name,
+        COALESCE(
+          NULLIF(TRIM(CONCAT_WS(' ', tu.first_name, tu.last_name)), ''),
+          CASE
+            WHEN NULLIF(TRIM(tu.username), '') IS NOT NULL THEN '@' || TRIM(tu.username)
+            ELSE NULL
+          END,
+          t.name
+        ) AS teacher_name,
         t.about_short AS teacher_about_short,
-        t.avatar_url AS teacher_avatar_url,
+        COALESCE(NULLIF(TRIM(tu.avatar_url), ''), t.avatar_url) AS teacher_avatar_url,
         CASE WHEN cp.telegram_id IS NULL THEN false ELSE true END AS is_purchased,
         COALESCE(lt.total_lessons, 0) AS total_lessons,
         COALESCE(lp.completed_lessons, 0) AS completed_lessons,
@@ -419,6 +464,7 @@ app.get(
         COALESCE(sa.styles, '[]'::json) AS styles
       FROM courses c
       JOIN teachers t ON t.id = c.teacher_id
+      LEFT JOIN users tu ON tu.telegram_id = t.user_id
       LEFT JOIN lesson_totals lt ON lt.course_id = c.id
       LEFT JOIN lesson_progress lp ON lp.course_id = c.id
       LEFT JOIN course_purchases cp
@@ -566,8 +612,20 @@ app.get(
   requireUser(),
   requireRole("teacher", "admin"),
   asyncRoute(async (req, res) => {
-    const teacher = await getOrCreateTeacherProfile(req.currentUser.telegram_id);
-    res.json(teacher);
+    const teacher = await getTeacherProfileByUser(req.currentUser.telegram_id);
+    if (teacher) {
+      return res.json(teacher);
+    }
+    const fullName = [req.currentUser.first_name, req.currentUser.last_name].filter(Boolean).join(" ").trim();
+    const fallbackName = fullName || (req.currentUser.username ? `@${req.currentUser.username}` : "Преподаватель");
+    return res.json({
+      id: null,
+      user_id: req.currentUser.telegram_id,
+      name: fallbackName,
+      description: null,
+      about_short: null,
+      avatar_url: req.currentUser.avatar_url || null,
+    });
   })
 );
 
@@ -576,7 +634,7 @@ app.put(
   requireUser(),
   requireRole("teacher", "admin"),
   asyncRoute(async (req, res) => {
-    const teacher = await getOrCreateTeacherProfile(req.currentUser.telegram_id);
+    const teacher = await ensureTeacherProfile(req.currentUser.telegram_id);
     const { name, description, aboutShort, avatarUrl } = req.body;
 
     const result = await db.query(
@@ -608,7 +666,10 @@ app.get(
   requireUser(),
   requireRole("teacher", "admin"),
   asyncRoute(async (req, res) => {
-    const teacher = await getOrCreateTeacherProfile(req.currentUser.telegram_id);
+    const teacher = await getTeacherProfileByUser(req.currentUser.telegram_id);
+    if (!teacher) {
+      return res.json([]);
+    }
     const result = await db.query(
       `
         SELECT id, teacher_id, title, description, price, is_published, level
@@ -627,7 +688,7 @@ app.post(
   requireUser(),
   requireRole("teacher", "admin"),
   asyncRoute(async (req, res) => {
-    const teacher = await getOrCreateTeacherProfile(req.currentUser.telegram_id);
+    const teacher = await ensureTeacherProfile(req.currentUser.telegram_id);
     const { title, description = "", price = 0, isPublished = true, styleIds = [], level = "beginner" } = req.body;
 
     if (!title || typeof title !== "string") {
@@ -682,7 +743,10 @@ app.put(
       return res.status(400).json({ error: "Invalid courseId" });
     }
 
-    const teacher = await getOrCreateTeacherProfile(req.currentUser.telegram_id);
+    const teacher = await getTeacherProfileByUser(req.currentUser.telegram_id);
+    if (!teacher) {
+      return res.status(404).json({ error: "Course not found" });
+    }
     const owns = await db.query(
       "SELECT id FROM courses WHERE id = $1 AND teacher_id = $2",
       [courseId, teacher.id]
@@ -760,7 +824,10 @@ app.post(
       return res.status(400).json({ error: "Invalid courseId" });
     }
 
-    const teacher = await getOrCreateTeacherProfile(req.currentUser.telegram_id);
+    const teacher = await getTeacherProfileByUser(req.currentUser.telegram_id);
+    if (!teacher) {
+      return res.status(404).json({ error: "Course not found" });
+    }
     const owns = await db.query(
       "SELECT id FROM courses WHERE id = $1 AND teacher_id = $2",
       [courseId, teacher.id]
@@ -878,7 +945,10 @@ app.put(
       return res.status(400).json({ error: "Invalid lessonId" });
     }
 
-    const teacher = await getOrCreateTeacherProfile(req.currentUser.telegram_id);
+    const teacher = await getTeacherProfileByUser(req.currentUser.telegram_id);
+    if (!teacher) {
+      return res.status(404).json({ error: "Lesson not found" });
+    }
     const owns = await db.query(
       `
         SELECT l.id
@@ -991,7 +1061,10 @@ app.get(
       return res.status(400).json({ error: "Invalid courseId" });
     }
 
-    const teacher = await getOrCreateTeacherProfile(req.currentUser.telegram_id);
+    const teacher = await getTeacherProfileByUser(req.currentUser.telegram_id);
+    if (!teacher) {
+      return res.status(404).json({ error: "Course not found" });
+    }
     const owns = await db.query(
       "SELECT id FROM courses WHERE id = $1 AND teacher_id = $2",
       [courseId, teacher.id]
