@@ -203,6 +203,7 @@ async function completeOnboarding() {
 }
 
 async function routeByRole() {
+  if (typeof setUserHeaderVisible === "function") setUserHeaderVisible(false);
   onboardingCard.classList.add("hidden");
   studentScreen.classList.add("hidden");
   profileScreen.classList.add("hidden");

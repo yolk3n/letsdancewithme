@@ -97,7 +97,7 @@
       }
 
       async function loadCourses(teacherId) {
-        if (typeof setUserHeaderVisible === "function") setUserHeaderVisible(true);
+        if (typeof setUserHeaderVisible === "function") setUserHeaderVisible(false);
         studentScreen.classList.remove("flat-list");
         selectedTeacherId = teacherId;
         openedStudentCourseId = null;

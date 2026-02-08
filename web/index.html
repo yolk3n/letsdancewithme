@@ -549,7 +549,7 @@
 
       function openTeacherCabinet() {
         selectedAppScreen = "teacher";
-        setUserHeaderVisible(true);
+        setUserHeaderVisible(false);
         routeByRole().catch((error) => {
           teacherScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
@@ -557,7 +557,7 @@
 
       function openAdminPanel() {
         selectedAppScreen = "admin";
-        setUserHeaderVisible(true);
+        setUserHeaderVisible(false);
         routeByRole().catch((error) => {
           adminScreen.innerHTML = `<span class="error">${escapeHtml(error.message || S.initError)}</span>`;
         });
