@@ -222,7 +222,7 @@ function studioGetViewMode(hasEditCourse) {
 }
 
 async function renderTeacherScreen() {
-  if (typeof setUserHeaderVisible === "function") setUserHeaderVisible(true);
+  if (typeof setUserHeaderVisible === "function") setUserHeaderVisible(false);
   teacherScreen.classList.remove("flat-list");
   teacherScreen.classList.add("studio-flat");
   teacherScreen.innerHTML = renderCenteredLoader(S.loading);
@@ -259,7 +259,7 @@ async function renderTeacherScreen() {
   }
 
   const viewMode = studioGetViewMode(Boolean(editCourse));
-  const showProfileHeader = viewMode === "courses-home";
+  const showProfileHeader = true;
 
   let bodyContent = "";
   if (viewMode === "overview") {
